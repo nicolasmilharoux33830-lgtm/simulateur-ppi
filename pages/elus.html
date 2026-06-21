@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Élus 2026-2032 — Commune de Lugos 33830</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <style>
+    .elu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .elu-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 1.75rem 1.25rem;
+      text-align: center;
+      transition: var(--transition);
+    }
+    .elu-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .elu-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--vert-pale);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1rem;
+      border: 3px solid var(--vert-foret);
+    }
+    .elu-card.maire .elu-avatar { background: var(--vert-foret); font-size: 2.5rem; }
+    .elu-name { font-weight: 700; font-size: .95rem; margin-bottom: .3rem; }
+    .elu-role {
+      font-size: .78rem;
+      color: var(--vert-foret);
+      font-weight: 600;
+      background: var(--vert-pale);
+      padding: .25rem .7rem;
+      border-radius: 99px;
+      display: inline-block;
+      margin-bottom: .6rem;
+    }
+    .elu-card.maire .elu-role { background: var(--vert-foret); color: #fff; }
+    .elu-info { font-size: .8rem; color: #777; }
+  </style>
+</head>
+<body>
+
+<nav id="navbar" class="scrolled">
+  <div class="container">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <div class="logo-icon">🌲</div>
+        <div class="logo-text"><strong>Lugos</strong><span>Commune · 33830</span></div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html#presentation">Vivre à Lugos</a></li>
+        <li><a href="../index.html#services" class="active">Municipalité</a></li>
+        <li><a href="../index.html#evenements">Culture & Loisirs</a></li>
+        <li><a href="../index.html#enfance">Enfance & Jeunesse</a></li>
+      </ul>
+      <a href="../index.html#contact" class="nav-cta">Nous contacter</a>
+      <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-hero" style="background:linear-gradient(135deg,#1a3a2a,var(--vert-foret));">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="../index.html">Accueil</a><span>›</span>
+      <span>Municipalité</span><span>›</span>
+      <span>Élus 2026-2032</span>
+    </div>
+    <h1>🏛️ Élus 2026-2032</h1>
+    <p>Le conseil municipal de Lugos — vos représentants élus pour la mandature 2026-2032.</p>
+  </div>
+</div>
+
+<main>
+  <section>
+    <div class="container">
+
+      <div class="info-card fade-in" style="background:var(--vert-pale);border-left:4px solid var(--vert-foret);margin-bottom:2.5rem;">
+        <strong>Composition du conseil municipal</strong>
+        <p>15 membres : 1 maire, 4 adjoints et 10 conseillers (représentant 7 hommes et 8 femmes).</p>
+      </div>
+
+      <h2 style="font-size:1.3rem;color:var(--vert-pin);margin-bottom:1.5rem;" class="fade-in">Maire</h2>
+      <div class="elu-grid" style="grid-template-columns:1fr;max-width:320px;" class="fade-in">
+        <div class="elu-card maire">
+          <div class="elu-avatar">👩‍💼</div>
+          <div class="elu-name">Emmanuelle TOSTAIN</div>
+          <div class="elu-role">Maire de Lugos</div>
+          <div class="elu-info">En poste depuis 2014</div>
+        </div>
+      </div>
+
+      <h2 style="font-size:1.3rem;color:var(--vert-pin);margin:2.5rem 0 1rem;" class="fade-in">Adjoints au Maire</h2>
+      <div class="elu-grid">
+        <div class="elu-card fade-in">
+          <div class="elu-avatar">👤</div>
+          <div class="elu-name">1er Adjoint</div>
+          <div class="elu-role">Adjoint au Maire</div>
+          <div class="elu-info">Délégation en cours de publication</div>
+        </div>
+        <div class="elu-card fade-in">
+          <div class="elu-avatar">👤</div>
+          <div class="elu-name">2e Adjoint</div>
+          <div class="elu-role">Adjoint au Maire</div>
+          <div class="elu-info">Délégation en cours de publication</div>
+        </div>
+        <div class="elu-card fade-in">
+          <div class="elu-avatar">👤</div>
+          <div class="elu-name">3e Adjoint</div>
+          <div class="elu-role">Adjoint au Maire</div>
+          <div class="elu-info">Délégation en cours de publication</div>
+        </div>
+        <div class="elu-card fade-in">
+          <div class="elu-avatar">👤</div>
+          <div class="elu-name">4e Adjoint</div>
+          <div class="elu-role">Adjoint au Maire</div>
+          <div class="elu-info">Délégation en cours de publication</div>
+        </div>
+      </div>
+
+      <h2 style="font-size:1.3rem;color:var(--vert-pin);margin:2.5rem 0 1rem;" class="fade-in">Conseillers municipaux</h2>
+      <div class="elu-grid">
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 1</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 2</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 3</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 4</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 5</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 6</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 7</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 8</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 9</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+        <div class="elu-card fade-in" style="padding:1.25rem;">
+          <div class="elu-avatar" style="width:56px;height:56px;font-size:1.5rem;">👤</div>
+          <div class="elu-name" style="font-size:.9rem;">Conseiller(ère) 10</div>
+          <div class="elu-role">Conseiller municipal</div>
+        </div>
+      </div>
+
+      <div class="cta-box fade-in" style="margin-top:3rem;">
+        <h3>Prochain conseil municipal</h3>
+        <p>Le prochain conseil municipal se tiendra le <strong>23 juin 2026 à 19h</strong> — ouvert au public.</p>
+        <a href="../index.html#contact" class="btn btn-primary">Contacter la mairie</a>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer style="background:#111;color:rgba(255,255,255,.6);padding:2rem 0;text-align:center;font-size:.85rem;">
+  <div class="container">
+    <p>© 2026 Commune de Lugos · <a href="../index.html" style="color:var(--vert-clair);">Retour à l'accueil</a></p>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

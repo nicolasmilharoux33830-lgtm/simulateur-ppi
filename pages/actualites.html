@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Actualités — Commune de Lugos 33830</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <style>
+    .actu-filter {
+      display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 2rem;
+    }
+    .filter-btn {
+      padding: .45rem 1.1rem;
+      border-radius: 99px;
+      font-size: .83rem;
+      font-weight: 600;
+      border: 1.5px solid #E0E0E0;
+      color: #555;
+      background: #fff;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .filter-btn.active,
+    .filter-btn:hover {
+      background: var(--vert-foret);
+      color: #fff;
+      border-color: var(--vert-foret);
+    }
+    .actu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.75rem; }
+    .actu-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .actu-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .actu-img {
+      height: 180px;
+      background: var(--vert-pale);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 4rem;
+    }
+    .actu-body { padding: 1.5rem; }
+    .actu-body .news-tag { margin-bottom: .6rem; }
+    .actu-body h3 { font-size: 1rem; margin-bottom: .5rem; line-height: 1.4; }
+    .actu-body p  { font-size: .85rem; color: #666; line-height: 1.65; }
+    .actu-meta { display: flex; gap: 1rem; margin-top: .9rem; font-size: .75rem; color: #999; }
+    .alerte-banner {
+      background: #FEF2F2;
+      border: 1.5px solid #FCA5A5;
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+    }
+    .alerte-banner .icon { font-size: 1.5rem; flex-shrink: 0; margin-top: .1rem; }
+    .alerte-banner h4 { color: #991B1B; margin-bottom: .3rem; font-size: .95rem; }
+    .alerte-banner p  { font-size: .85rem; color: #7F1D1D; margin: 0; }
+  </style>
+</head>
+<body>
+
+<nav id="navbar" class="scrolled">
+  <div class="container">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <div class="logo-icon">🌲</div>
+        <div class="logo-text"><strong>Lugos</strong><span>Commune · 33830</span></div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html#presentation">Vivre à Lugos</a></li>
+        <li><a href="../index.html#services">Municipalité</a></li>
+        <li><a href="../index.html#evenements">Culture & Loisirs</a></li>
+        <li><a href="../index.html#enfance">Enfance & Jeunesse</a></li>
+      </ul>
+      <a href="../index.html#contact" class="nav-cta">Nous contacter</a>
+      <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-hero" style="background:linear-gradient(135deg,var(--vert-pin),#2d5a3d);">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="../index.html">Accueil</a><span>›</span>
+      <span>Actualités</span>
+    </div>
+    <h1>📰 Actualités</h1>
+    <p>Toutes les informations de la commune de Lugos — travaux, événements, services et vie locale.</p>
+  </div>
+</div>
+
+<main>
+  <section>
+    <div class="container">
+
+      <!-- Alerte en cours -->
+      <div class="alerte-banner fade-in">
+        <div class="icon">🚨</div>
+        <div>
+          <h4>Vigilance rouge canicule — À partir du 21 juin 2026</h4>
+          <p>
+            La préfecture de Gironde a déclenché une alerte rouge canicule.
+            L'organisation scolaire est adaptée. Des consignes de sécurité sont disponibles sur
+            le site de la préfecture. Pensez à vous hydrater et à protéger les personnes vulnérables.
+          </p>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="actu-filter fade-in">
+        <button class="filter-btn active">Toutes</button>
+        <button class="filter-btn">Travaux</button>
+        <button class="filter-btn">Environnement</button>
+        <button class="filter-btn">Scolaire</button>
+        <button class="filter-btn">Services</button>
+        <button class="filter-btn">Conseil municipal</button>
+      </div>
+
+      <div class="actu-grid">
+
+        <article class="actu-card fade-in">
+          <div class="actu-img" style="background:#FFF3E0;">🌲</div>
+          <div class="actu-body">
+            <span class="news-tag">Environnement</span>
+            <h3>Plantation annuelle de feuillus par les CM1-CM2</h3>
+            <p>Cette année encore, les élèves ont planté entre 400 et 800 arbres feuillus dans la forêt communale pour enrichir la biodiversité.</p>
+            <div class="actu-meta">
+              <span>📅 Juin 2026</span>
+              <span>📍 Forêt communale</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="actu-card fade-in">
+          <div class="actu-img" style="background:#FEF9C3;">🚧</div>
+          <div class="actu-body">
+            <span class="news-tag" style="background:#FEF3C7;color:#92400E;">Travaux</span>
+            <h3>Travaux rue de la Forêt — À partir du 9 juin</h3>
+            <p>Des travaux de voirie débutent à partir du 9 juin 2026 sur la rue de la Forêt. Des perturbations de circulation sont à prévoir.</p>
+            <div class="actu-meta">
+              <span>📅 9 juin 2026</span>
+              <span>📍 Rue de la Forêt</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="actu-card fade-in">
+          <div class="actu-img" style="background:#EFF6FF;">💧</div>
+          <div class="actu-body">
+            <span class="news-tag" style="background:#EFF6FF;color:#1E40AF;">Services</span>
+            <h3>Perturbations de distribution d'eau</h3>
+            <p>Un nettoyage du surpresseur est prévu, entraînant des coupures d'eau temporaires sur certains quartiers de la commune.</p>
+            <div class="actu-meta">
+              <span>📅 Juin 2026</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="actu-card fade-in">
+          <div class="actu-img" style="background:#F0FDF4;">🏫</div>
+          <div class="actu-body">
+            <span class="news-tag">Scolaire</span>
+            <h3>Adaptation de l'organisation scolaire face à la canicule</h3>
+            <p>L'équipe enseignante et la municipalité ont adapté les horaires et activités scolaires pour protéger les enfants des fortes chaleurs.</p>
+            <div class="actu-meta">
+              <span>📅 21 juin 2026</span>
+              <span>📍 École de Lugos</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="actu-card fade-in">
+          <div class="actu-img" style="background:#F5F3FF;">🏛️</div>
+          <div class="actu-body">
+            <span class="news-tag" style="background:#F3F4F6;color:#374151;">Conseil municipal</span>
+            <h3>Conseil municipal du 23 juin 2026</h3>
+            <p>La prochaine séance du conseil municipal se tiendra le 23 juin à 19h à la mairie. Ouverte à tous les habitants.</p>
+            <div class="actu-meta">
+              <span>📅 23 juin 2026</span>
+              <span>⏰ 19h00</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="actu-card fade-in">
+          <div class="actu-img" style="background:#FDF4FF;">🎭</div>
+          <div class="actu-body">
+            <span class="news-tag" style="background:#FDF4FF;color:#7E22CE;">Culture</span>
+            <h3>Théâtre sur Lugos — 26 juin</h3>
+            <p>Une représentation théâtrale en plein air animera le village le 26 juin. Entrée libre pour toute la famille.</p>
+            <div class="actu-meta">
+              <span>📅 26 juin 2026</span>
+              <span>⏰ 20h30</span>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- Newsletter -->
+      <div style="background:var(--vert-pin);border-radius:var(--radius-lg);padding:2.5rem;text-align:center;margin-top:3rem;color:#fff;" class="fade-in">
+        <h3 style="color:#fff;margin-bottom:.5rem;">Ne manquez aucune actualité</h3>
+        <p style="color:rgba(255,255,255,.75);margin-bottom:1.5rem;">Abonnez-vous à la newsletter pour recevoir les infos directement dans votre boîte mail.</p>
+        <form style="display:flex;gap:.75rem;max-width:440px;margin:0 auto;flex-wrap:wrap;justify-content:center;">
+          <input type="email" placeholder="Votre email" style="flex:1;min-width:200px;padding:.8rem 1.25rem;border:none;border-radius:99px;font-size:.9rem;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);outline:none;" />
+          <button type="submit" class="btn btn-white">S'inscrire</button>
+        </form>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer style="background:#111;color:rgba(255,255,255,.6);padding:2rem 0;text-align:center;font-size:.85rem;">
+  <div class="container">
+    <p>© 2026 Commune de Lugos · <a href="../index.html" style="color:var(--vert-clair);">Retour à l'accueil</a></p>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

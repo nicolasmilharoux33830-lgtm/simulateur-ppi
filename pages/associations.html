@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Associations — Commune de Lugos 33830</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <style>
+    .asso-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+    .asso-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 1.75rem;
+      transition: var(--transition);
+      border-top: 4px solid var(--vert-foret);
+    }
+    .asso-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .asso-icon { font-size: 2rem; margin-bottom: .75rem; }
+    .asso-card h3 { font-size: 1rem; margin-bottom: .4rem; }
+    .asso-card p  { font-size: .85rem; color: #666; line-height: 1.6; }
+    .asso-contact { margin-top: 1rem; font-size: .8rem; color: var(--vert-foret); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<nav id="navbar" class="scrolled">
+  <div class="container">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <div class="logo-icon">🌲</div>
+        <div class="logo-text"><strong>Lugos</strong><span>Commune · 33830</span></div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html#presentation">Vivre à Lugos</a></li>
+        <li><a href="../index.html#services">Municipalité</a></li>
+        <li><a href="../index.html#evenements" class="active">Culture & Loisirs</a></li>
+        <li><a href="../index.html#enfance">Enfance & Jeunesse</a></li>
+      </ul>
+      <a href="../index.html#contact" class="nav-cta">Nous contacter</a>
+      <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-hero" style="background:linear-gradient(135deg,#4a1d96,#7C3AED);">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="../index.html">Accueil</a><span>›</span>
+      <span>Culture & Loisirs</span><span>›</span>
+      <span>Associations</span>
+    </div>
+    <h1>🤝 Associations</h1>
+    <p>La vie associative de Lugos — sport, culture, loisirs et solidarité.</p>
+  </div>
+</div>
+
+<main>
+  <section>
+    <div class="container">
+
+      <div class="info-card fade-in" style="background:#F5F3FF;border-left:4px solid #7C3AED;margin-bottom:2.5rem;">
+        <strong>Vie associative dynamique</strong>
+        <p>Les associations lugosiennesaniment la vie locale tout au long de l'année. Rejoignez-les !</p>
+      </div>
+
+      <div class="asso-grid">
+        <div class="asso-card fade-in" style="border-top-color:#EF4444;">
+          <div class="asso-icon">⚽</div>
+          <h3>Sports & Activités physiques</h3>
+          <p>Clubs sportifs, activités de plein air, randonnée dans les landes et sur les bords de Leyre.</p>
+          <div class="asso-contact">→ Contacter la mairie pour la liste complète</div>
+        </div>
+
+        <div class="asso-card fade-in" style="border-top-color:#F59E0B;">
+          <div class="asso-icon">🎭</div>
+          <h3>Culture & Arts</h3>
+          <p>Théâtre, musique, activités artistiques et culturelles animant le village tout au long de l'année.</p>
+          <div class="asso-contact">→ Renseignements mairie</div>
+        </div>
+
+        <div class="asso-card fade-in" style="border-top-color:#10B981;">
+          <div class="asso-icon">🌿</div>
+          <h3>Environnement & Nature</h3>
+          <p>Associations engagées dans la préservation du massif landais, de la Leyre et de la biodiversité locale.</p>
+          <div class="asso-contact">→ Renseignements mairie</div>
+        </div>
+
+        <div class="asso-card fade-in" style="border-top-color:#3B82F6;">
+          <div class="asso-icon">👴</div>
+          <h3>Solidarité & Lien social</h3>
+          <p>Associations d'aide aux personnes âgées, d'animation intergénérationnelle et de solidarité locale.</p>
+          <div class="asso-contact">→ CCAS Lugos</div>
+        </div>
+
+        <div class="asso-card fade-in" style="border-top-color:#EC4899;">
+          <div class="asso-icon">👶</div>
+          <h3>Jeunesse</h3>
+          <p>Activités et animations destinées aux jeunes Lugosiens — sorties, projets collectifs, engagement citoyen.</p>
+          <div class="asso-contact">→ Facebook Info Jeunes</div>
+        </div>
+
+        <div class="asso-card fade-in" style="border-top-color:#8B5CF6;">
+          <div class="asso-icon">🏕️</div>
+          <h3>Tourisme & Patrimoine</h3>
+          <p>Valorisation du patrimoine naturel et historique de Lugos, organisation de visites et randonnées.</p>
+          <div class="asso-contact">→ Office du tourisme</div>
+        </div>
+      </div>
+
+      <div class="cta-box fade-in" style="margin-top:3rem;">
+        <h3>Votre association n'est pas listée ?</h3>
+        <p>Contactez la mairie pour faire référencer votre association dans cet annuaire.</p>
+        <a href="../index.html#contact" class="btn btn-primary">Contacter la mairie</a>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer style="background:#111;color:rgba(255,255,255,.6);padding:2rem 0;text-align:center;font-size:.85rem;">
+  <div class="container">
+    <p>© 2026 Commune de Lugos · <a href="../index.html" style="color:var(--vert-clair);">Retour à l'accueil</a></p>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>
