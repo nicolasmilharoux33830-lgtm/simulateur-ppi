@@ -328,11 +328,13 @@ def weekend_block(fri, sat, sun, mon, cache):
     return "\n".join(L)
 
 
-def render(weekends, cache):
+def render(weekends, cache, only_found=False):
     head = ("🚆 Hector — Allers-retours TGVmax gratuits\n"
             "Paris ↔ bassin d'Arcachon (Bordeaux, Biganos, Arcachon)\n"
             f"Relevé du {datetime.now(PARIS_TZ):%d/%m} · à réserver sur SNCF Connect")
     blocks = [b for b in (weekend_block(*w, cache) for w in weekends) if b]
+    if not blocks and only_found:
+        return ""   # mode "ne prévenir que si trouvé" : aucun message
     if blocks:
         body = "\n\n".join(blocks)
         foot = ("\nSeuls les week-ends avec aller (ven soir ou sam matin) ET retour "
@@ -352,6 +354,7 @@ def main():
     today = datetime.now(PARIS_TZ).date()
     args = [a for a in sys.argv[1:] if not a.startswith("-")]
     full = "--full" in sys.argv
+    only_found = "--only-found" in sys.argv
     n = int(args[0]) if args else 2
     max_day = today + timedelta(days=30)
     fri = today + timedelta((4 - today.weekday()) % 7)
@@ -378,7 +381,9 @@ def main():
             print(plan_weekend(fri, sat, sun, mon, cache))
             print("\n" + "-" * 58 + "\n")
     else:
-        print(render(weekends, cache))
+        msg = render(weekends, cache, only_found)
+        if msg:
+            print(msg)
 
 
 if __name__ == "__main__":
