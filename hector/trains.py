@@ -264,14 +264,12 @@ MOIS = ["", "janv.", "févr.", "mars", "avril", "mai", "juin", "juil.",
 TER_HOP = {"LIBOURNE": ("Libourne", "~25 min"), "ANGOULEME": ("Angoulême", "~1 h")}
 
 
-def line(o, day, toward_paris, off):
+def line(o, day, toward_paris):
     """Une option en français clair, ex: 'samedi 6h06 : Paris → Bordeaux (direct, arr. 9h05)'."""
     p = o["path"]
     route = f"{short(p[0]['o'])} → {short(p[-1]['d'])}"
     how = "direct" if len(p) == 1 else "via " + ", ".join(short(l["d"]) for l in p[:-1])
     base = f"{day} {_hm(p[0]['dep'])} : {route} ({how}, arr. {_hm(p[-1]['arr'])})"
-    if off:
-        base += " — hors créneau habituel"
     sw = p[0]["o"] if toward_paris else p[-1]["d"]
     if sw in TER_HOP:
         city, dur = TER_HOP[sw]
@@ -281,19 +279,33 @@ def line(o, day, toward_paris, off):
 
 
 def gather(cache, days_labels, toward_paris):
-    """Options d'un sens (aller ou retour), classées par créneau préféré puis qualité."""
+    """Options STRICTEMENT dans les créneaux voulus. Aller : ven >=17h ou sam <=11h.
+    Retour : dim >=13h (soir prioritaire) ou lun <10h. Rien d'autre."""
     basin = list(TARGET) + list(TER_HOP)
     rows = []
     for day, lbl in days_labels:
-        for o in collect(cache.get(day, []), basin, [PARIS], True) if toward_paris \
-                else collect(cache.get(day, []), [PARIS], basin, False):
+        opts = (collect(cache.get(day, []), basin, [PARIS], True) if toward_paris
+                else collect(cache.get(day, []), [PARIS], basin, False))
+        for o in opts:
             dep = o["path"][0]["dep"]
-            if toward_paris:   # retour : dim soir > dim aprem > lun matin > dim tot > lun tard
-                r = (0 if dep >= 18 * 60 else 1 if dep >= 13 * 60 else 3) if lbl == "dimanche" \
-                    else (2 if dep < 10 * 60 else 4)
-            else:              # aller : ven soir > sam matin > autres
-                r = (0 if dep >= 17 * 60 else 2) if lbl == "vendredi" \
-                    else (1 if dep <= 11 * 60 else 3)
+            if toward_paris:
+                if lbl == "dimanche":
+                    if dep < 13 * 60:
+                        continue
+                    r = 0 if dep >= 18 * 60 else 1       # dim soir > dim debut aprem
+                else:                                     # lundi : matin seulement
+                    if dep >= 10 * 60:
+                        continue
+                    r = 2
+            else:
+                if lbl == "vendredi":
+                    if dep < 17 * 60:                     # vendredi SOIR uniquement
+                        continue
+                    r = 0
+                else:                                     # samedi matin seulement
+                    if dep > 11 * 60:
+                        continue
+                    r = 1
             rows.append((r, o, lbl))
     rows.sort(key=lambda x: (x[0], x[1]["km"], x[1]["path"][-1]["arr"] - x[1]["path"][0]["dep"],
                              -x[1]["path"][0]["dep"] if toward_paris else x[1]["path"][0]["dep"]))
@@ -301,18 +313,18 @@ def gather(cache, days_labels, toward_paris):
 
 
 def weekend_block(fri, sat, sun, mon, cache):
-    """Un week-end n'apparaît que s'il a un aller ET un retour gratuits (toute heure)."""
+    """Un week-end n'apparaît que s'il a un aller ET un retour gratuits dans tes créneaux."""
     allers = gather(cache, [(fri, "vendredi"), (sat, "samedi")], False)
     retours = gather(cache, [(sun, "dimanche"), (mon, "lundi")], True)
     if not allers or not retours:
         return None
 
     L = [f"📅 Week-end du {sat.day} au {sun.day} {MOIS[sun.month]}", " Aller :"]
-    for r, o, lbl in allers[:2]:
-        L.append("   • " + line(o, lbl, False, r >= 2))
+    for r, o, lbl in allers[:3]:
+        L.append("   • " + line(o, lbl, False))
     L.append(" Retour :")
-    for r, o, lbl in retours[:2]:
-        L.append("   • " + line(o, lbl, True, r >= 3))
+    for r, o, lbl in retours[:3]:
+        L.append("   • " + line(o, lbl, True))
     return "\n".join(L)
 
 
@@ -323,13 +335,15 @@ def render(weekends, cache):
     blocks = [b for b in (weekend_block(*w, cache) for w in weekends) if b]
     if blocks:
         body = "\n\n".join(blocks)
-        foot = ("\nSeuls les week-ends avec aller ET retour gratuits sont listés. "
-                "Je priorise tes créneaux (ven soir/sam matin, retour dim) ; "
-                "les options hors créneau sont signalées. Je revérifie chaque jour.")
+        foot = ("\nSeuls les week-ends avec aller (ven soir ou sam matin) ET retour "
+                "(dim, ou lun matin) gratuits sont listés. Je revérifie chaque jour.")
     else:
-        body = ("Aucun aller-retour 100 % gratuit en train pour l'instant sur les "
-                "prochaines semaines.\nLes places TGVmax s'ouvrent au fil des jours — "
-                "je revérifie demain et je t'écris dès qu'un week-end complet se libère.")
+        body = ("Pour l'instant, aucun week-end avec aller ET retour gratuits dans tes "
+                "créneaux (aller vendredi soir ou samedi matin, retour dimanche ou lundi "
+                "matin).\n\nLe vendredi soir Paris→Bordeaux est le créneau le plus prisé : "
+                "les trains existent mais les places TGVmax sont déjà toutes prises. "
+                "Elles se libèrent au fil des jours (annulations, quotas ouverts plus tard).\n\n"
+                "Je vérifie chaque jour à 18h et je te préviens dès qu'un week-end complet s'ouvre.")
         foot = ""
     return head + "\n\n" + body + "\n" + foot
 
