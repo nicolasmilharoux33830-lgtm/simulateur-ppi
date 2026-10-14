@@ -48,7 +48,18 @@ SLUG = {
     "POITIERS": "poitiers", "AGEN": "agen", "DAX": "dax", "BAYONNE": "bayonne",
     "MONTAUBAN VILLE BOURBON": "montauban",
 }
+SHORT = {
+    "PARIS (intramuros)": "Paris", "BORDEAUX ST JEAN": "Bordeaux",
+    "BIGANOS FACTURE": "Biganos", "ARCACHON": "Arcachon", "LIBOURNE": "Libourne",
+    "ANGOULEME": "Angouleme", "NIORT": "Niort", "LA ROCHELLE VILLE": "La Rochelle",
+    "POITIERS": "Poitiers", "AGEN": "Agen", "DAX": "Dax", "BAYONNE": "Bayonne",
+    "MONTAUBAN VILLE BOURBON": "Montauban",
+}
 MIN_LAYOVER, MAX_LAYOVER = 20, 240
+
+
+def short(n):
+    return SHORT.get(n, n.split(" (")[0].title())
 
 
 def _slug(name):
@@ -242,9 +253,90 @@ def plan_weekend(fri, sat, sun, mon, cache):
     return "\n".join(L)
 
 
+def brief(o, toward_paris, day):
+    p = o["path"]
+    dep = _hm(p[0]["dep"])
+    sw = p[0]["o"] if toward_paris else p[-1]["d"]
+    how = "direct" if len(p) == 1 else "via " + "/".join(short(l["d"]) for l in p[:-1])
+    km = f" +{o['km']}km" if o["km"] else ""
+    if toward_paris:
+        return f"{day} {dep} {short(sw)}→Paris, {how}{km}"
+    return f"{day} {dep} → {short(sw)}, {how}{km}"
+
+
+def compact_weekend(fri, sat, sun, mon, cache):
+    south = list(TARGET) + list(PIVOTS)
+    al_ven = collect(cache.get(fri, []), [PARIS], south, False, dep_min=17 * 60)
+    al_sam = collect(cache.get(sat, []), [PARIS], south, False, dep_max=10 * 60)
+    re_dim = collect(cache.get(sun, []), south, [PARIS], True, dep_min=13 * 60)
+    re_lun = collect(cache.get(mon, []), south, [PARIS], True, dep_max=10 * 60)
+    allers = al_ven + al_sam
+    best_out = al_ven[0] if al_ven else (al_sam[0] if al_sam else None)
+    best_ret = re_dim[0] if re_dim else (re_lun[0] if re_lun else None)
+
+    tag = f"{fri.day:02d}/{fri.month:02d}-{sun.day:02d}/{sun.month:02d}"
+    if not best_out and not best_ret:
+        return None, tag  # vide -> regroupe ailleurs
+
+    icon = "✅" if (best_out and best_ret and best_out["km"] == 0 and best_ret["km"] == 0) else "🟡"
+    L = [f"📅 {tag}  {icon}"]
+
+    if best_out:
+        day = "ven" if al_ven else "sam"
+        more = f"  (+{len(allers) - 1} autres)" if len(allers) > 1 else ""
+        L.append("  🟢 " + brief(best_out, False, day) + more)
+    else:
+        L.append("  🟢 aller : rien encore")
+
+    if re_dim:
+        more = f"  (+{len(re_dim) - 1})" if len(re_dim) > 1 else ""
+        L.append("  🔵 " + brief(re_dim[0], True, "dim") + more)
+    elif re_lun:
+        L.append("  🔵 dim ✗ · " + brief(re_lun[0], True, "lun") + " (option)")
+    else:
+        L.append("  🔵 retour : rien encore")
+    # si le retour montre un pivot lointain mais qu'un direct gratuit existe, l'ajouter
+    if best_ret and best_ret["km"] > 0:
+        free_ret = next((o for o in (re_dim + re_lun) if o["km"] == 0), None)
+        if free_ret:
+            d = "dim" if free_ret in re_dim else "lun"
+            opt = "" if d == "dim" else " (option)"
+            L.append("     ou " + brief(free_ret, True, d) + opt)
+
+    links = []
+    for o, tp in ((best_out, False), (best_ret, True)):
+        if o and o["km"]:
+            sw = o["path"][0]["o"] if tp else o["path"][-1]["d"]
+            lk = bla_link("BORDEAUX ST JEAN", sw)
+            if lk not in links:
+                links.append(lk)
+    L += ["  🚗 " + lk for lk in links]
+    return "\n".join(L), tag
+
+
+def render(weekends, cache):
+    out = [f"🚆 Hector · TGVmax week-ends Paris ↔ Arcachon — {datetime.now(PARIS_TZ):%d/%m}",
+           "0€ = place TGVmax. Retour : dimanche prioritaire.", ""]
+    empties = []
+    for (fri, sat, sun, mon) in weekends:
+        blk, tag = compact_weekend(fri, sat, sun, mon, cache)
+        if blk:
+            out.append(blk)
+        else:
+            empties.append(tag)
+    if empties:
+        out.append("📅 Rien encore : " + ", ".join(empties))
+    out.append("")
+    out.append("✅ AR 100% gratuit · 🟡 partiel/pivot · Bordeaux→Biganos TER ~45min.")
+    out.append("Résa SNCF Connect. 🚗 = dernier bout en covoit (prix sur l'appli).")
+    return "\n".join(out)
+
+
 def main():
     today = datetime.now(PARIS_TZ).date()
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 2
+    args = [a for a in sys.argv[1:] if not a.startswith("-")]
+    full = "--full" in sys.argv
+    n = int(args[0]) if args else 2
     max_day = today + timedelta(days=30)
     fri = today + timedelta((4 - today.weekday()) % 7)
     weekends = []
@@ -264,12 +356,13 @@ def main():
 
     with ThreadPoolExecutor(max_workers=8) as ex:
         cache = dict(zip(days, ex.map(safe_fetch, days)))
-    print(f"TGVmax week-end Paris <-> Bordeaux/Arcachon - releve {datetime.now(PARIS_TZ):%d/%m %H:%M}")
-    print("(trains GRATUITS open data SNCF ; [OK]=arrive dans le bassin, [PIVOT]=+ petit troncon pas cher)")
-    print("Bassin d'Arcachon : depuis Bordeaux, TER vers Biganos ~45 min.\n")
-    for (fri, sat, sun, mon) in weekends:
-        print(plan_weekend(fri, sat, sun, mon, cache))
-        print("\n" + "-" * 58 + "\n")
+    if full:
+        print(f"TGVmax week-end Paris <-> Bordeaux/Arcachon - releve {datetime.now(PARIS_TZ):%d/%m %H:%M}\n")
+        for (fri, sat, sun, mon) in weekends:
+            print(plan_weekend(fri, sat, sun, mon, cache))
+            print("\n" + "-" * 58 + "\n")
+    else:
+        print(render(weekends, cache))
 
 
 if __name__ == "__main__":
