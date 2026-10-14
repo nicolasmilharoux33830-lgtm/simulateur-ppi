@@ -1,45 +1,69 @@
-"""Planificateur TGVmax Paris <-> Bordeaux / Biganos (données open data SNCF).
+"""Planificateur week-end TGVmax Paris <-> bassin de Bordeaux / Arcachon.
 
-Source officielle : https://ressources.data.sncf.com dataset `tgvmax`
-(od_happy_card = "OUI" => place TGVmax gratuite ouverte à la réservation).
-Ne réserve rien : affiche seulement les trajets gratuits possibles,
-directs ou en correspondance (découpage de billet).
+Objectif : des ALLERS-RETOURS packagés par week-end, gratuits ou presque.
+- Ossature GRATUITE fiable : trains TGVmax (open data officiel SNCF,
+  od_happy_card = "OUI"), directs et en correspondance.
+- Dernier tronçon non couvert par un train gratuit (ville-pivot -> Bordeaux) :
+  on ne peut pas récupérer les prix/places covoiturage/bus en direct
+  (pas d'API ouverte, anti-robot), donc on fournit un LIEN BlaBlaCar prêt
+  à cliquer + la distance, à vérifier par Nicolas.
+Ne réserve jamais rien. Source : https://ressources.data.sncf.com dataset `tgvmax`.
 """
 import json
 import sys
+import unicodedata
 import urllib.parse
 import urllib.request
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 PARIS_TZ = ZoneInfo("Europe/Paris")
 API = "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/tgvmax/records"
 
-# Gares du corridor Atlantique utiles (nom exact dans le dataset), du nord au sud.
 PARIS = "PARIS (intramuros)"
-BORDEAUX = "BORDEAUX ST JEAN"
-BIGANOS = "BIGANOS FACTURE"
-ARCACHON = "ARCACHON"
-# Hubs de correspondance entre Paris et Bordeaux (ordre géographique).
-HUBS = ["ST PIERRE DES CORPS", "CHATELLERAULT", "FUTUROSCOPE", "POITIERS",
-        "ANGOULEME", "LIBOURNE"]
-CORRIDOR = [PARIS] + HUBS + [BORDEAUX, BIGANOS, ARCACHON]
+# Zone d'arrivée idéale (bassin de Bordeaux / Arcachon) : hop = 0.
+TARGET = {"BORDEAUX ST JEAN": 0, "BIGANOS FACTURE": 0, "ARCACHON": 0}
+# Villes-pivots : si un train gratuit n'arrive que là, distance route vers Bordeaux
+# (km) + note pour finir le trajet pas cher.
+PIVOTS = {
+    "LIBOURNE": (30, "TER ~25 min, souvent <10 EUR, tres frequent"),
+    "ANGOULEME": (115, "BlaBlaCar/bus ~1h15 (~8-13 EUR) ou TER ~1h"),
+    "NIORT": (175, "BlaBlaCar ~1h45 (~12-16 EUR)"),
+    "LA ROCHELLE VILLE": (185, "BlaBlaCar ~2h (~12-18 EUR)"),
+    "POITIERS": (240, "loin : surtout utile comme correspondance train"),
+}
+# Hubs de correspondance train (decoupage de billet) entre Paris et le Sud-Ouest.
+HUBS = ["ST PIERRE DES CORPS", "CHATELLERAULT", "FUTUROSCOPE", "POITIERS", "ANGOULEME", "LIBOURNE"]
+CORRIDOR = [PARIS] + sorted(set(HUBS) | set(PIVOTS) | set(TARGET))
 
-MIN_LAYOVER = 20     # minutes mini pour une correspondance
-MAX_LAYOVER = 240    # minutes maxi (au-delà, trajet peu réaliste)
+SLUG = {
+    "PARIS (intramuros)": "paris", "BORDEAUX ST JEAN": "bordeaux",
+    "BIGANOS FACTURE": "biganos", "ARCACHON": "arcachon", "LIBOURNE": "libourne",
+    "ANGOULEME": "angouleme", "NIORT": "niort", "LA ROCHELLE VILLE": "la-rochelle",
+    "POITIERS": "poitiers",
+}
+MIN_LAYOVER, MAX_LAYOVER = 20, 240
+
+
+def _slug(name):
+    if name in SLUG:
+        return SLUG[name]
+    s = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+    return s.lower().replace(" ", "-")
+
+
+def bla_link(frm, to):
+    return f"https://www.blablacar.fr/trajets-covoiturage/{_slug(frm)}/{_slug(to)}"
 
 
 def fetch_day(day):
-    """Tous les tronçons TGVmax du corridor Atlantique pour une date."""
     stations = "(" + ",".join("'" + s.replace("'", "''") + "'" for s in CORRIDOR) + ")"
     where = (f"date=date'{day}' and axe='ATLANTIQUE' "
              f"and origine in {stations} and destination in {stations}")
     rows, offset = [], 0
     while True:
-        qs = urllib.parse.urlencode({
-            "where": where, "limit": 100, "offset": offset,
-            "select": "train_no,origine,destination,heure_depart,heure_arrivee,od_happy_card",
-        })
+        qs = urllib.parse.urlencode({"where": where, "limit": 100, "offset": offset,
+            "select": "train_no,origine,destination,heure_depart,heure_arrivee,od_happy_card"})
         req = urllib.request.Request(API + "?" + qs, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=30) as r:
             data = json.load(r)
@@ -55,8 +79,7 @@ def fetch_day(day):
         dep, arr = _mins(x["heure_depart"]), _mins(x["heure_arrivee"])
         if arr < dep:
             arr += 24 * 60
-        legs.append({"no": x["train_no"], "o": x["origine"], "d": x["destination"],
-                     "dep": dep, "arr": arr})
+        legs.append({"no": x["train_no"], "o": x["origine"], "d": x["destination"], "dep": dep, "arr": arr})
     return legs
 
 
@@ -70,141 +93,169 @@ def _hm(mins):
     return f"{mins // 60:02d}h{mins % 60:02d}"
 
 
-def itineraries(legs, origin, dest, dep_min=None, dep_max=None):
-    """Itinéraires gratuits origin->dest : direct, 1 ou 2 correspondances."""
+def itineraries(legs, origin, dests, dep_min=None, dep_max=None):
+    """Itineraires train gratuits origin -> une des dests (direct / 1-2 corresp.)."""
     by_origin = {}
     for lg in legs:
         by_origin.setdefault(lg["o"], []).append(lg)
+    dests = set(dests)
     results = []
 
-    def extend(path, current_station, current_arr):
-        if current_station == dest and path:
+    def extend(path, station, arr, visited):
+        if path and station in dests:
             results.append(list(path))
+        if len(path) >= 3:
             return
-        if len(path) >= 3:   # 3 tronçons max (2 correspondances)
-            return
-        for nxt in by_origin.get(current_station, []):
-            if path:  # contrainte de correspondance
-                wait = nxt["dep"] - current_arr
+        for nxt in by_origin.get(station, []):
+            if nxt["d"] in visited:          # jamais repasser par une gare deja vue
+                continue
+            if path:
+                wait = nxt["dep"] - arr
                 if wait < MIN_LAYOVER or wait > MAX_LAYOVER:
                     continue
-            else:     # premier tronçon : fenêtre de départ
+            else:
                 if dep_min is not None and nxt["dep"] < dep_min:
                     continue
                 if dep_max is not None and nxt["dep"] > dep_max:
                     continue
-            if any(p["no"] == nxt["no"] for p in path):
-                continue
-            # on n'enchaîne pas deux tronçons qui repartent en arrière (évite boucles)
             path.append(nxt)
-            extend(path, nxt["d"], nxt["arr"])
+            extend(path, nxt["d"], nxt["arr"], visited | {nxt["d"]})
             path.pop()
 
-    extend([], origin, 0)
-    # dédoublonnage + tri par heure de départ puis durée
+    extend([], origin, 0, {origin})
     seen, uniq = set(), []
     for p in sorted(results, key=lambda p: (p[0]["dep"], p[-1]["arr"])):
-        key = tuple(lg["no"] for lg in p)
-        if key in seen:
-            continue
-        seen.add(key)
-        uniq.append(p)
+        key = tuple((lg["no"], lg["o"], lg["d"]) for lg in p)
+        if key not in seen:
+            seen.add(key)
+            uniq.append(p)
     return uniq
 
 
-def fmt_itin(p):
+def hop_of(station):
+    if station in TARGET:
+        return 0, None
+    return PIVOTS.get(station, (999, None))[0], PIVOTS.get(station, (999, None))[1]
+
+
+def describe(p, toward_paris):
+    """Texte d'un itineraire + info dernier troncon si on s'arrete a un pivot."""
     first, last = p[0], p[-1]
     dur = last["arr"] - first["dep"]
     head = f"{_hm(first['dep'])}->{_hm(last['arr'])} ({dur // 60}h{dur % 60:02d})"
     if len(p) == 1:
-        return f"  DIRECT {head}  TGV {first['no']}  [{first['o']} -> {first['d']}]"
-    steps = "  +  ".join(
-        f"{_hm(lg['dep'])} {lg['o']}->{lg['d']} ({_hm(lg['arr'])}, TGV {lg['no']})" for lg in p)
-    chg = " via " + " / ".join(lg["d"] for lg in p[:-1])
-    return f"  CORRESP.{chg} {head}\n      {steps}"
+        body = f"{head}  TGV {first['no']} [{first['o'].split(' (')[0]}->{first['d']}]"
+    else:
+        steps = " + ".join(f"{_hm(l['dep'])} {l['o'].split(' (')[0]}->{l['d']} (TGV {l['no']})" for l in p)
+        body = f"{head} via {' / '.join(l['d'] for l in p[:-1])}\n       {steps}"
+    # pivot (cote Sud-Ouest) = origine si retour, destination si aller
+    pivot = first["o"] if toward_paris else last["d"]
+    km, note = hop_of(pivot)
+    tag = "OK" if km == 0 else f"PIVOT {pivot} (+{km} km Bordeaux)"
+    extra = ""
+    if km not in (0, 999):
+        a, b = ("BORDEAUX ST JEAN", pivot) if toward_paris else (pivot, "BORDEAUX ST JEAN")
+        extra = f"\n       -> dernier troncon {a.split(' (')[0]}<->{b.split(' (')[0]} : {note}\n         {bla_link(a, b)}"
+    return f"[{tag}] {body}{extra}", km
 
 
-def section(title, legs, origin, dests, dep_min=None, dep_max=None, limit=8):
-    out = [title]
-    allp = []
-    for dest in dests:
-        allp += itineraries(legs, origin, dest, dep_min, dep_max)
-    allp.sort(key=lambda p: (p[0]["dep"], p[-1]["arr"]))
-    if not allp:
-        out.append("  (aucune place TGVmax gratuite trouvée sur ce créneau)")
-    for p in allp[:limit]:
-        out.append(fmt_itin(p))
-    return "\n".join(out)
+def rank(options, toward_paris):
+    """Trie : d'abord arrivee directe (hop 0), puis plus petit hop, puis horaire."""
+    def key(o):
+        p = o["path"]
+        dur = p[-1]["arr"] - p[0]["dep"]
+        when = -p[0]["dep"] if toward_paris else p[0]["dep"]
+        return (o["km"], len(p), dur, when)
+    return sorted(options, key=key)
+
+
+def collect(legs, origin_set, dest_set, toward_paris, dep_min=None, dep_max=None):
+    opts = []
+    for o in origin_set:
+        for p in itineraries(legs, o, dest_set, dep_min, dep_max):
+            txt, km = describe(p, toward_paris)
+            opts.append({"path": p, "km": km, "txt": txt})
+    return rank(opts, toward_paris)
 
 
 def weekday_fr(d):
     return ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"][d.weekday()]
 
 
-def next_weekend(today):
-    """Vendredi/samedi/dimanche/lundi du prochain week-end (>= aujourd'hui)."""
-    fri = today + timedelta((4 - today.weekday()) % 7)
-    return fri, fri + timedelta(1), fri + timedelta(2), fri + timedelta(3)
-
-
 def label(d):
     return f"{weekday_fr(d)} {d.day:02d}/{d.month:02d}"
 
 
-def plan_weekend(fri, sat, sun, mon, cache):
-    L = []
-    L.append(f"=== WEEK-END : {label(fri)} -> {label(sun)}/{label(mon)} ===\n")
+def block(title, opts, limit=6):
+    out = [title]
+    if not opts:
+        out.append("   (rien de gratuit pour l'instant - les places peuvent s'ouvrir plus tard)")
+    for o in opts[:limit]:
+        out.append("  - " + o["txt"])
+    return "\n".join(out)
 
-    # ALLER : vendredi soir apres 17h
-    L.append(section(f"ALLER {label(fri)} - Paris (Montparnasse), depart >= 17h00 :",
-                     cache[fri], PARIS, [BORDEAUX, BIGANOS, ARCACHON], dep_min=17 * 60))
-    L.append("")
-    # ALLER : samedi tot le matin
-    L.append(section(f"ALLER {label(sat)} - Paris (Montparnasse), depart tot (<= 10h00) :",
-                     cache[sat], PARIS, [BORDEAUX, BIGANOS, ARCACHON], dep_max=10 * 60))
-    L.append("")
-    # RETOUR : dimanche soir apres 18h
-    L.append(section(f"RETOUR {label(sun)} - vers Paris, depart >= 18h00 :",
-                     cache[sun], BORDEAUX, [PARIS], dep_min=18 * 60) + "\n"
-             + section(f"RETOUR {label(sun)} - depuis Biganos, depart >= 18h00 :",
-                       cache[sun], BIGANOS, [PARIS], dep_min=18 * 60))
-    L.append("")
-    # RETOUR : lundi matin avant 10h
-    L.append(section(f"RETOUR {label(mon)} - vers Paris, depart < 10h00 :",
-                     cache[mon], BORDEAUX, [PARIS], dep_max=10 * 60) + "\n"
-             + section(f"RETOUR {label(mon)} - depuis Biganos, depart < 10h00 :",
-                       cache[mon], BIGANOS, [PARIS], dep_max=10 * 60))
+
+def plan_weekend(fri, sat, sun, mon, cache):
+    south = list(TARGET) + list(PIVOTS)
+    # ALLERS (Paris -> Sud-Ouest)
+    al_ven = collect(cache.get(fri, []), [PARIS], south, False, dep_min=17 * 60)
+    al_sam = collect(cache.get(sat, []), [PARIS], south, False, dep_max=10 * 60)
+    # RETOURS (Sud-Ouest -> Paris)
+    re_dim = collect(cache.get(sun, []), south, [PARIS], True, dep_min=18 * 60)
+    re_lun = collect(cache.get(mon, []), south, [PARIS], True, dep_max=10 * 60)
+
+    L = [f"=== WEEK-END {label(fri)} -> {label(sun)} / {label(mon)} ==="]
+
+    # Combo conseille : meilleur aller + meilleur retour (idealement 100% gratuit)
+    best_out = al_ven[0] if al_ven else (al_sam[0] if al_sam else None)
+    best_ret = re_dim[0] if re_dim else (re_lun[0] if re_lun else None)
+    L.append("\n>>> COMBO CONSEILLE (le plus proche de ton ideal aller-retour) :")
+    if best_out and best_ret:
+        fully = (best_out["km"] == 0 and best_ret["km"] == 0)
+        L.append("    ALLER  : " + best_out["txt"])
+        L.append("    RETOUR : " + best_ret["txt"])
+        L.append("    => " + ("100% GRATUIT de bout en bout !" if fully
+                              else "gratuit en train + 1 petit troncon pas cher (voir liens)"))
+    else:
+        L.append("    pas d'aller-retour complet gratuit ce week-end pour l'instant.")
+        if best_out:
+            L.append("    (aller gratuit possible, mais pas de retour gratuit trouve)")
+        if best_ret:
+            L.append("    (retour gratuit possible, mais pas d'aller gratuit trouve)")
+
+    L.append("\n  TOUS LES ALLERS gratuits (Paris -> Sud-Ouest) :")
+    L.append(block("   * vendredi soir (depart >= 17h) :", al_ven))
+    L.append(block("   * samedi matin (depart <= 10h) :", al_sam))
+    L.append("\n  TOUS LES RETOURS gratuits (Sud-Ouest -> Paris) :")
+    L.append(block("   * dimanche soir (depart >= 18h) :", re_dim))
+    L.append(block("   * lundi matin (depart < 10h) :", re_lun))
     return "\n".join(L)
 
 
 def main():
     today = datetime.now(PARIS_TZ).date()
-    # nombre de week-ends à couvrir (par défaut 2) ; données SNCF ~30 jours
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 2
     max_day = today + timedelta(days=30)
-
+    fri = today + timedelta((4 - today.weekday()) % 7)
     weekends = []
-    fri, sat, sun, mon = next_weekend(today)
     for _ in range(n):
         if fri > max_day:
             break
-        weekends.append((fri, sat, sun, mon))
-        fri, sat, sun, mon = (d + timedelta(7) for d in (fri, sat, sun, mon))
-
-    needed = sorted({d for w in weekends for d in w if d <= max_day})
+        weekends.append((fri, fri + timedelta(1), fri + timedelta(2), fri + timedelta(3)))
+        fri = fri + timedelta(7)
     cache = {}
-    for d in needed:
+    for d in sorted({x for w in weekends for x in w if x <= max_day}):
         try:
             cache[d] = fetch_day(d)
         except Exception as e:
             cache[d] = []
-            print(f"[avertissement] récupération {d} échouée : {e}", file=sys.stderr)
-
-    print(f"TGVmax Paris <-> Bordeaux/Biganos — relevé {datetime.now(PARIS_TZ):%d/%m/%Y %H:%M} "
-          f"(source open data SNCF, places gratuites uniquement)\n")
+            print(f"[avert] {d}: {e}", file=sys.stderr)
+    print(f"TGVmax week-end Paris <-> Bordeaux/Arcachon - releve {datetime.now(PARIS_TZ):%d/%m %H:%M}")
+    print("(trains GRATUITS open data SNCF ; [OK]=arrive dans le bassin, [PIVOT]=+ petit troncon pas cher)")
+    print("Bassin d'Arcachon : depuis Bordeaux, TER vers Biganos ~45 min.\n")
     for (fri, sat, sun, mon) in weekends:
         print(plan_weekend(fri, sat, sun, mon, cache))
-        print("\n" + "-" * 60 + "\n")
+        print("\n" + "-" * 58 + "\n")
 
 
 if __name__ == "__main__":
