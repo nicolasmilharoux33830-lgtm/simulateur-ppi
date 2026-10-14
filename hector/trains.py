@@ -14,6 +14,7 @@ import sys
 import unicodedata
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -28,8 +29,12 @@ TARGET = {"BORDEAUX ST JEAN": 0, "BIGANOS FACTURE": 0, "ARCACHON": 0}
 PIVOTS = {
     "LIBOURNE": (30, "TER ~25 min, souvent <10 EUR, tres frequent"),
     "ANGOULEME": (115, "BlaBlaCar/bus ~1h15 (~8-13 EUR) ou TER ~1h"),
+    "AGEN": (140, "BlaBlaCar ~1h30 (~10-15 EUR), sud-est de Bordeaux"),
+    "DAX": (150, "BlaBlaCar/TER ~1h30, sud de Bordeaux (proche cote)"),
     "NIORT": (175, "BlaBlaCar ~1h45 (~12-16 EUR)"),
     "LA ROCHELLE VILLE": (185, "BlaBlaCar ~2h (~12-18 EUR)"),
+    "BAYONNE": (185, "loin (sud) : plutot cote basque"),
+    "MONTAUBAN VILLE BOURBON": (215, "loin (sud-est) : surtout vers Toulouse"),
     "POITIERS": (240, "loin : surtout utile comme correspondance train"),
 }
 # Hubs de correspondance train (decoupage de billet) entre Paris et le Sud-Ouest.
@@ -40,7 +45,8 @@ SLUG = {
     "PARIS (intramuros)": "paris", "BORDEAUX ST JEAN": "bordeaux",
     "BIGANOS FACTURE": "biganos", "ARCACHON": "arcachon", "LIBOURNE": "libourne",
     "ANGOULEME": "angouleme", "NIORT": "niort", "LA ROCHELLE VILLE": "la-rochelle",
-    "POITIERS": "poitiers",
+    "POITIERS": "poitiers", "AGEN": "agen", "DAX": "dax", "BAYONNE": "bayonne",
+    "MONTAUBAN VILLE BOURBON": "montauban",
 }
 MIN_LAYOVER, MAX_LAYOVER = 20, 240
 
@@ -58,7 +64,7 @@ def bla_link(frm, to):
 
 def fetch_day(day):
     stations = "(" + ",".join("'" + s.replace("'", "''") + "'" for s in CORRIDOR) + ")"
-    where = (f"date=date'{day}' and axe='ATLANTIQUE' "
+    where = (f"date=date'{day}' and axe='ATLANTIQUE' and od_happy_card='OUI' "
              f"and origine in {stations} and destination in {stations}")
     rows, offset = [], 0
     while True:
@@ -164,8 +170,11 @@ def rank(options, toward_paris):
     def key(o):
         p = o["path"]
         dur = p[-1]["arr"] - p[0]["dep"]
-        when = -p[0]["dep"] if toward_paris else p[0]["dep"]
-        return (o["km"], len(p), dur, when)
+        dep = p[0]["dep"]
+        if toward_paris:   # retour : gratuit > soir (>=18h) > peu de corresp. > court > plus tard
+            evening = 0 if dep >= 18 * 60 else 1
+            return (o["km"], evening, len(p), dur, -dep)
+        return (o["km"], len(p), dur, dep)
     return sorted(options, key=key)
 
 
@@ -200,8 +209,9 @@ def plan_weekend(fri, sat, sun, mon, cache):
     # ALLERS (Paris -> Sud-Ouest)
     al_ven = collect(cache.get(fri, []), [PARIS], south, False, dep_min=17 * 60)
     al_sam = collect(cache.get(sat, []), [PARIS], south, False, dep_max=10 * 60)
-    # RETOURS (Sud-Ouest -> Paris)
-    re_dim = collect(cache.get(sun, []), south, [PARIS], True, dep_min=18 * 60)
+    # RETOURS (Sud-Ouest -> Paris) : dimanche prioritaire (ideal le soir, debut
+    # d'apres-midi au plus tot) ; lundi matin optionnel.
+    re_dim = collect(cache.get(sun, []), south, [PARIS], True, dep_min=13 * 60)
     re_lun = collect(cache.get(mon, []), south, [PARIS], True, dep_max=10 * 60)
 
     L = [f"=== WEEK-END {label(fri)} -> {label(sun)} / {label(mon)} ==="]
@@ -227,8 +237,8 @@ def plan_weekend(fri, sat, sun, mon, cache):
     L.append(block("   * vendredi soir (depart >= 17h) :", al_ven))
     L.append(block("   * samedi matin (depart <= 10h) :", al_sam))
     L.append("\n  TOUS LES RETOURS gratuits (Sud-Ouest -> Paris) :")
-    L.append(block("   * dimanche soir (depart >= 18h) :", re_dim))
-    L.append(block("   * lundi matin (depart < 10h) :", re_lun))
+    L.append(block("   * dimanche - PRIORITAIRE (depart >= 13h, l'ideal c'est le soir >= 18h) :", re_dim))
+    L.append(block("   * lundi matin - OPTIONNEL (depart < 10h) :", re_lun))
     return "\n".join(L)
 
 
@@ -243,13 +253,17 @@ def main():
             break
         weekends.append((fri, fri + timedelta(1), fri + timedelta(2), fri + timedelta(3)))
         fri = fri + timedelta(7)
-    cache = {}
-    for d in sorted({x for w in weekends for x in w if x <= max_day}):
+    days = sorted({x for w in weekends for x in w if x <= max_day})
+
+    def safe_fetch(d):
         try:
-            cache[d] = fetch_day(d)
+            return fetch_day(d)
         except Exception as e:
-            cache[d] = []
             print(f"[avert] {d}: {e}", file=sys.stderr)
+            return []
+
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        cache = dict(zip(days, ex.map(safe_fetch, days)))
     print(f"TGVmax week-end Paris <-> Bordeaux/Arcachon - releve {datetime.now(PARIS_TZ):%d/%m %H:%M}")
     print("(trains GRATUITS open data SNCF ; [OK]=arrive dans le bassin, [PIVOT]=+ petit troncon pas cher)")
     print("Bassin d'Arcachon : depuis Bordeaux, TER vers Biganos ~45 min.\n")
