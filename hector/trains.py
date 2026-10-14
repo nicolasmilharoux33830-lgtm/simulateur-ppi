@@ -39,7 +39,9 @@ PIVOTS = {
 }
 # Hubs de correspondance train (decoupage de billet) entre Paris et le Sud-Ouest.
 HUBS = ["ST PIERRE DES CORPS", "CHATELLERAULT", "FUTUROSCOPE", "POITIERS", "ANGOULEME", "LIBOURNE"]
-CORRIDOR = [PARIS] + sorted(set(HUBS) | set(PIVOTS) | set(TARGET))
+# On ne cherche que des trajets 100% train gratuit jusqu'au bassin d'Arcachon :
+# correspondances via les hubs, arrivee a Bordeaux / Biganos / Arcachon.
+CORRIDOR = [PARIS] + sorted(set(HUBS) | set(TARGET))
 
 SLUG = {
     "PARIS (intramuros)": "paris", "BORDEAUX ST JEAN": "bordeaux",
@@ -253,83 +255,83 @@ def plan_weekend(fri, sat, sun, mon, cache):
     return "\n".join(L)
 
 
-def brief(o, toward_paris, day):
+MOIS = ["", "janv.", "févr.", "mars", "avril", "mai", "juin", "juil.",
+        "août", "sept.", "oct.", "nov.", "déc."]
+
+
+# Gares relais proches de Bordeaux reliees par un TER frequent et bon marche
+# (fiable, verifiable) : (nom court, duree TER vers Bordeaux).
+TER_HOP = {"LIBOURNE": ("Libourne", "~25 min"), "ANGOULEME": ("Angoulême", "~1 h")}
+
+
+def line(o, day, toward_paris, off):
+    """Une option en français clair, ex: 'samedi 6h06 : Paris → Bordeaux (direct, arr. 9h05)'."""
     p = o["path"]
-    dep = _hm(p[0]["dep"])
+    route = f"{short(p[0]['o'])} → {short(p[-1]['d'])}"
+    how = "direct" if len(p) == 1 else "via " + ", ".join(short(l["d"]) for l in p[:-1])
+    base = f"{day} {_hm(p[0]['dep'])} : {route} ({how}, arr. {_hm(p[-1]['arr'])})"
+    if off:
+        base += " — hors créneau habituel"
     sw = p[0]["o"] if toward_paris else p[-1]["d"]
-    how = "direct" if len(p) == 1 else "via " + "/".join(short(l["d"]) for l in p[:-1])
-    km = f" +{o['km']}km" if o["km"] else ""
-    if toward_paris:
-        return f"{day} {dep} {short(sw)}→Paris, {how}{km}"
-    return f"{day} {dep} → {short(sw)}, {how}{km}"
+    if sw in TER_HOP:
+        city, dur = TER_HOP[sw]
+        base += (f"\n       → d'abord TER Bordeaux → {city} {dur}" if toward_paris
+                 else f"\n       → puis TER {city} → Bordeaux {dur}")
+    return base
 
 
-def compact_weekend(fri, sat, sun, mon, cache):
-    south = list(TARGET) + list(PIVOTS)
-    al_ven = collect(cache.get(fri, []), [PARIS], south, False, dep_min=17 * 60)
-    al_sam = collect(cache.get(sat, []), [PARIS], south, False, dep_max=10 * 60)
-    re_dim = collect(cache.get(sun, []), south, [PARIS], True, dep_min=13 * 60)
-    re_lun = collect(cache.get(mon, []), south, [PARIS], True, dep_max=10 * 60)
-    allers = al_ven + al_sam
-    best_out = al_ven[0] if al_ven else (al_sam[0] if al_sam else None)
-    best_ret = re_dim[0] if re_dim else (re_lun[0] if re_lun else None)
+def gather(cache, days_labels, toward_paris):
+    """Options d'un sens (aller ou retour), classées par créneau préféré puis qualité."""
+    basin = list(TARGET) + list(TER_HOP)
+    rows = []
+    for day, lbl in days_labels:
+        for o in collect(cache.get(day, []), basin, [PARIS], True) if toward_paris \
+                else collect(cache.get(day, []), [PARIS], basin, False):
+            dep = o["path"][0]["dep"]
+            if toward_paris:   # retour : dim soir > dim aprem > lun matin > dim tot > lun tard
+                r = (0 if dep >= 18 * 60 else 1 if dep >= 13 * 60 else 3) if lbl == "dimanche" \
+                    else (2 if dep < 10 * 60 else 4)
+            else:              # aller : ven soir > sam matin > autres
+                r = (0 if dep >= 17 * 60 else 2) if lbl == "vendredi" \
+                    else (1 if dep <= 11 * 60 else 3)
+            rows.append((r, o, lbl))
+    rows.sort(key=lambda x: (x[0], x[1]["km"], x[1]["path"][-1]["arr"] - x[1]["path"][0]["dep"],
+                             -x[1]["path"][0]["dep"] if toward_paris else x[1]["path"][0]["dep"]))
+    return rows
 
-    tag = f"{fri.day:02d}/{fri.month:02d}-{sun.day:02d}/{sun.month:02d}"
-    if not best_out and not best_ret:
-        return None, tag  # vide -> regroupe ailleurs
 
-    icon = "✅" if (best_out and best_ret and best_out["km"] == 0 and best_ret["km"] == 0) else "🟡"
-    L = [f"📅 {tag}  {icon}"]
+def weekend_block(fri, sat, sun, mon, cache):
+    """Un week-end n'apparaît que s'il a un aller ET un retour gratuits (toute heure)."""
+    allers = gather(cache, [(fri, "vendredi"), (sat, "samedi")], False)
+    retours = gather(cache, [(sun, "dimanche"), (mon, "lundi")], True)
+    if not allers or not retours:
+        return None
 
-    if best_out:
-        day = "ven" if al_ven else "sam"
-        more = f"  (+{len(allers) - 1} autres)" if len(allers) > 1 else ""
-        L.append("  🟢 " + brief(best_out, False, day) + more)
-    else:
-        L.append("  🟢 aller : rien encore")
-
-    if re_dim:
-        more = f"  (+{len(re_dim) - 1})" if len(re_dim) > 1 else ""
-        L.append("  🔵 " + brief(re_dim[0], True, "dim") + more)
-    elif re_lun:
-        L.append("  🔵 dim ✗ · " + brief(re_lun[0], True, "lun") + " (option)")
-    else:
-        L.append("  🔵 retour : rien encore")
-    # si le retour montre un pivot lointain mais qu'un direct gratuit existe, l'ajouter
-    if best_ret and best_ret["km"] > 0:
-        free_ret = next((o for o in (re_dim + re_lun) if o["km"] == 0), None)
-        if free_ret:
-            d = "dim" if free_ret in re_dim else "lun"
-            opt = "" if d == "dim" else " (option)"
-            L.append("     ou " + brief(free_ret, True, d) + opt)
-
-    links = []
-    for o, tp in ((best_out, False), (best_ret, True)):
-        if o and o["km"]:
-            sw = o["path"][0]["o"] if tp else o["path"][-1]["d"]
-            lk = bla_link("BORDEAUX ST JEAN", sw)
-            if lk not in links:
-                links.append(lk)
-    L += ["  🚗 " + lk for lk in links]
-    return "\n".join(L), tag
+    L = [f"📅 Week-end du {sat.day} au {sun.day} {MOIS[sun.month]}", " Aller :"]
+    for r, o, lbl in allers[:2]:
+        L.append("   • " + line(o, lbl, False, r >= 2))
+    L.append(" Retour :")
+    for r, o, lbl in retours[:2]:
+        L.append("   • " + line(o, lbl, True, r >= 3))
+    return "\n".join(L)
 
 
 def render(weekends, cache):
-    out = [f"🚆 Hector · TGVmax week-ends Paris ↔ Arcachon — {datetime.now(PARIS_TZ):%d/%m}",
-           "0€ = place TGVmax. Retour : dimanche prioritaire.", ""]
-    empties = []
-    for (fri, sat, sun, mon) in weekends:
-        blk, tag = compact_weekend(fri, sat, sun, mon, cache)
-        if blk:
-            out.append(blk)
-        else:
-            empties.append(tag)
-    if empties:
-        out.append("📅 Rien encore : " + ", ".join(empties))
-    out.append("")
-    out.append("✅ AR 100% gratuit · 🟡 partiel/pivot · Bordeaux→Biganos TER ~45min.")
-    out.append("Résa SNCF Connect. 🚗 = dernier bout en covoit (prix sur l'appli).")
-    return "\n".join(out)
+    head = ("🚆 Hector — Allers-retours TGVmax gratuits\n"
+            "Paris ↔ bassin d'Arcachon (Bordeaux, Biganos, Arcachon)\n"
+            f"Relevé du {datetime.now(PARIS_TZ):%d/%m} · à réserver sur SNCF Connect")
+    blocks = [b for b in (weekend_block(*w, cache) for w in weekends) if b]
+    if blocks:
+        body = "\n\n".join(blocks)
+        foot = ("\nSeuls les week-ends avec aller ET retour gratuits sont listés. "
+                "Je priorise tes créneaux (ven soir/sam matin, retour dim) ; "
+                "les options hors créneau sont signalées. Je revérifie chaque jour.")
+    else:
+        body = ("Aucun aller-retour 100 % gratuit en train pour l'instant sur les "
+                "prochaines semaines.\nLes places TGVmax s'ouvrent au fil des jours — "
+                "je revérifie demain et je t'écris dès qu'un week-end complet se libère.")
+        foot = ""
+    return head + "\n\n" + body + "\n" + foot
 
 
 def main():
