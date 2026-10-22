@@ -8,8 +8,6 @@ import json
 import os
 import re
 import sys
-import unicodedata
-import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -18,6 +16,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from net import get, jget, jpost  # noqa: E402
 from perimetre import DEPT2REG, DEPT_NAME, norm  # noqa: E402
 from totem import emprunts  # noqa: E402
+import marches  # noqa: E402
+import presse  # noqa: E402
 
 PARIS = ZoneInfo("Europe/Paris")
 PLATEFORMES = {
@@ -29,22 +29,14 @@ ANNUAIRE = "https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/dat
 TED_NUTS = ("FRG", "FRH", "FRB", "FRD")
 KW_ACTE = re.compile(r"\b(emprunt|pret|prets|tresorerie|refinanc|renegoci|reamenag|banque|bancaire|"
                      r"credit agricole|credit mutuel|caisse d.epargne|caisse des depots|financement bancaire)\b")
-KW_ACTE_EXCLU = re.compile(r"virement|fongibilit|subvention")
-KW_TITRE = re.compile(r"\b(emprunt|emprunts|endettement|dette|dettes|financement|financements|banque|banques|"
-                      r"bancaire|budget|budgets|tresorerie|investissement|investissements|prets|pret bancaire)\b")
+KW_ACTE_EXCLU = re.compile(r"virement|fongibilit|subvention|pret d.honneur|pret de (materiel|salle|vehicule|local)|"
+                           r"mise a disposition|arrete (permanent|temporaire)|circulation|permis de construire")
+KW_ROB = re.compile(r"\b(orientations? budgetaires?|debat d.orientation|rapport d.orientation|rob|dob)\b")
+TEXTE_INTEGRAL = ["emprunt", "emprunts", "prêt", "prêts", "bancaire", "banque"]
+AGE_MAX = 45
+MAX_FICHES = 80
 KW_BOAMP = re.compile(r"\b(emprunt|pret|prets|financement bancaire|bancaire|credit|ligne de tresorerie|"
                       r"concours financier|refinanc)")
-NEWS_QUERIES = [
-    'emprunt commune', 'emprunt "conseil municipal"', 'emprunt "communauté de communes"',
-    'emprunt mairie investissement', '"prêt" "conseil municipal" banque', '"ligne de trésorerie"',
-    '"consultation bancaire"', '"recours à l\'emprunt"', '"contracter un emprunt"', '"souscrire un emprunt"',
-    'endettement commune budget', '"plan de financement" commune travaux',
-] + [f'emprunt "{n}"' for n in DEPT_NAME.values()] + [
-    'financement commune "Pays de la Loire"', 'financement commune Bretagne',
-    'financement commune "Centre-Val de Loire"', 'financement commune Normandie']
-NAME_STOP = {"mayenne", "loire", "cher", "indre", "eure", "orne", "manche", "vendee", "sarthe", "morbihan",
-             "finistere", "calvados", "loiret", "bretagne", "normandie", "centre", "ouest", "grand", "saint",
-             "sainte", "ville", "conde", "chateau", "vallee", "plaine", "fontaine", "moulins", "monts"}
 
 
 def jour(argv):
@@ -209,6 +201,39 @@ def actes_du_jour(api, d):
             return out, r.get("nb_resultats", len(out))
 
 
+def plein_texte(api, d):
+    """Actes du jour dont le texte (et pas seulement l'objet) contient un mot du financement bancaire."""
+    a, b = fenetre_utc(d)
+    out = {}
+    for q in TEXTE_INTEGRAL:
+        try:
+            r = jget(api, {"date_de_publication_debut": a, "date_de_publication_fin": b, "lignes": 100, "query": q},
+                     tries=6, timeout=60)
+        except Exception:
+            continue
+        for x in r.get("resultats", []):
+            out.setdefault(x["url"], (x, q))
+    return out
+
+
+def ecart_budget(em):
+    """Motif d'écart d'un document budgétaire, ou None si c'est un emprunt nouveau voté maintenant."""
+    if em.get("natdec") in ("Budget primitif", "Compte administratif"):
+        return f"{em['natdec']} : prévision ou bilan, pas une décision d'emprunt nouvelle"
+    if em.get("total_vote", 0) <= 0:
+        return "Aucun emprunt nouveau voté dans cette décision (montant reporté du budget primitif)"
+    if em.get("total_realise", 0) >= em.get("total_budget", 0) > 0:
+        return "Emprunt de l'année déjà encaissé"
+    return None
+
+
+def age(date_acte, d):
+    try:
+        return (d - date.fromisoformat(date_acte[:10])).days
+    except (TypeError, ValueError):
+        return None
+
+
 def collecte_actes(d, outdir, communes, epcis, stats):
     cands = []
     for nom, api in PLATEFORMES.items():
@@ -217,10 +242,12 @@ def collecte_actes(d, outdir, communes, epcis, stats):
         except Exception as e:
             stats[nom] = f"ERREUR : {e}"
             continue
-        n_bud = 0
+        texte = plein_texte(api, d)
+        n_bud, n_txt, n_bp, n_vieux = 0, 0, 0, 0
         for a in actes:
             budget = a["url"].endswith(".xml")
             cl = a.get("classification_code") or ""
+            o = norm(a.get("objet"))
             if budget:
                 n_bud += 1
                 try:
@@ -231,9 +258,13 @@ def collecte_actes(d, outdir, communes, epcis, stats):
                     continue
                 em["deja_realise"] = em.get("total_realise", 0) >= em["total_budget"]
                 kind = "budget"
-            elif cl.startswith("7.3") or (KW_ACTE.search(norm(a.get("objet")))
-                                          and not KW_ACTE_EXCLU.search(norm(a.get("objet")))):
+            elif cl.startswith("7.3") or (KW_ACTE.search(o) and not KW_ACTE_EXCLU.search(o)):
                 em, kind = None, "acte"
+            elif KW_ROB.search(o):
+                em, kind = None, "orientations budgétaires"
+            elif a["url"] in texte and not KW_ACTE_EXCLU.search(o):
+                em, kind = None, "acte (mot trouvé dans le texte)"
+                n_txt += 1
             else:
                 continue
             ent = entite(a["siren"], communes, epcis)
@@ -243,7 +274,16 @@ def collecte_actes(d, outdir, communes, epcis, stats):
                  "publie_le": a_paris(a.get("date_publication")), "id_publication": a.get("id_publication"),
                  "typologie": a.get("typologie"), "lien": a["url"],
                  "annexes": [x["url"] for x in a.get("annexes", [])], "budget_emprunt": em, "entite": ent}
-            if kind == "acte" and ent.get("eligible"):
+            if a["url"] in texte:
+                c["mot_texte_integral"] = texte[a["url"]][1]
+            c["age_jours"] = age(c["date_acte"], d)
+            if kind == "budget":
+                c["motif_ecart"] = ecart_budget(em)
+                n_bp += bool(c["motif_ecart"])
+            elif c["age_jours"] is not None and c["age_jours"] > AGE_MAX and kind != "orientations budgétaires":
+                c["motif_ecart"] = f"Décision du {c['date_acte']} ({c['age_jours']} jours) : publiée tardivement, besoin ancien"
+                n_vieux += 1
+            if kind != "budget" and not c.get("motif_ecart") and ent.get("eligible"):
                 c["pdf_locaux"] = []
                 for i, u in enumerate([a["url"]] + c["annexes"]):
                     if u.lower().endswith(".pdf"):
@@ -254,12 +294,16 @@ def collecte_actes(d, outdir, communes, epcis, stats):
                         except Exception:
                             pass
             cands.append(c)
-        stats[nom] = f"{len(actes)} actes publiés lus (sur {annonces} annoncés), {n_bud} budgets XML analysés"
+        stats[nom] = (f"{len(actes)} actes publiés lus (sur {annonces} annoncés), {n_bud} budgets XML analysés "
+                      f"({n_bp} écartés : budget primitif, compte administratif ou aucun emprunt nouveau), "
+                      f"{len(texte)} actes trouvés en texte intégral ({n_txt} de plus que par leur objet), "
+                      f"{n_vieux} décisions de plus de {AGE_MAX} jours écartées")
     return cands
 
 
 # ---------- BOAMP ----------
-def collecte_boamp(d, stats):
+def collecte_boamp(d, communes, epcis, stats):
+    idx = marches.index_acheteurs(communes, epcis)
     deps = ",".join(f'"{x}"' for x in sorted(DEPT2REG))
     sel = "idweb,objet,code_departement,nomacheteur,dateparution,datelimitereponse,nature_libelle,url_avis"
     out = []
@@ -277,10 +321,13 @@ def collecte_boamp(d, stats):
     for lot, rows in (("publié J-1", per), ("consultation encore ouverte", ouv_rows)):
         for r in rows:
             if KW_BOAMP.search(norm(r.get("objet"))):
+                siren = marches.rattacher(r.get("nomacheteur"), r.get("code_departement"), idx)
                 out.append({"source": "BOAMP", "type_signal": lot, "acheteur": r.get("nomacheteur"),
                             "objet": r.get("objet"), "departements": r.get("code_departement"),
                             "date_publication": r.get("dateparution"), "date_limite": r.get("datelimitereponse"),
-                            "nature": r.get("nature_libelle"), "lien": r.get("url_avis")})
+                            "nature": r.get("nature_libelle"), "lien": r.get("url_avis"),
+                            "entite": entite(siren, communes, epcis) if siren else
+                            {"eligible": False, "motif": "Acheteur non rattaché à une commune ou un EPCI du périmètre"}})
     stats["BOAMP"] = (f"{len(jour_rows)} avis publiés le {d:%d/%m} ({len(per)} dans le périmètre) ; "
                       f"{len(ouv_rows)} avis encore ouverts du périmètre contrôlés")
     return out
@@ -310,75 +357,6 @@ def collecte_ted(d, stats):
     return out
 
 
-# ---------- presse (Google News) ----------
-def fold(s):
-    """Sans accents, casse conservée, apostrophes typographiques unifiées."""
-    s = unicodedata.normalize("NFKD", (s or "").replace("’", "'")).encode("ascii", "ignore").decode()
-    return re.sub(r"\s+", " ", s)
-
-
-def cite(titre_fold, nom):
-    """Nom présent tel quel (majuscule comprise), sans faire partie d'un nom composé plus long."""
-    i = titre_fold.find(nom)
-    while i >= 0:
-        avant = titre_fold[i - 1] if i > 0 else " "
-        apres = titre_fold[i + len(nom)] if i + len(nom) < len(titre_fold) else " "
-        if not (avant.isalnum() or avant == "-") and not (apres.isalnum() or apres == "-"):
-            return True
-        i = titre_fold.find(nom, i + 1)
-    return False
-
-
-def index_noms(communes, epcis):
-    idx = {}
-    for siren, c in communes.items():
-        k = fold(c["nom"])
-        if len(k) >= 5 and norm(k) not in NAME_STOP:
-            idx.setdefault(k, []).append(siren)
-    for siren, e in epcis.items():
-        k = re.sub(r"^(CC|CA|CU|Communaut. (de communes|d.agglom.ration|urbaine)) (du |de la |de l'|des |de |d')?",
-                   "", fold(e["nom"]), flags=re.I)
-        if len(k) >= 8 and norm(k) not in NAME_STOP:
-            idx.setdefault(k, []).append(siren)
-    return idx
-
-
-def collecte_presse(d, communes, epcis, stats):
-    idx = index_noms(communes, epcis)
-    vus, out, n_items = set(), [], 0
-    for q in NEWS_QUERIES:
-        u = "https://news.google.com/rss/search?" + urllib.parse.urlencode(
-            {"q": q + " when:2d", "hl": "fr", "gl": "FR", "ceid": "FR:fr"})
-        try:
-            s = get(u, tries=6, timeout=40).decode("utf-8", "ignore")
-        except Exception:
-            continue
-        for it in re.findall(r"<item>(.*?)</item>", s, re.S):
-            n_items += 1
-            titre = re.sub(r"<!\[CDATA\[|\]\]>", "", re.search(r"<title>(.*?)</title>", it, re.S).group(1))
-            lien = re.search(r"<link>(.*?)</link>", it, re.S).group(1)
-            pub = re.search(r"<pubDate>(.*?)</pubDate>", it).group(1)
-            src = re.search(r"<source[^>]*>(.*?)</source>", it)
-            try:
-                dt = datetime.strptime(pub, "%a, %d %b %Y %H:%M:%S %Z").replace(tzinfo=timezone.utc).astimezone(PARIS)
-            except ValueError:
-                continue
-            if dt.date() != d or titre in vus:
-                continue
-            vus.add(titre)
-            if not KW_TITRE.search(norm(titre)):
-                continue
-            t = fold(titre)
-            hits = sorted({s2 for k, sirens in idx.items() if cite(t, k) for s2 in sirens})
-            if hits:
-                out.append({"source": "Presse (Google News)", "type_signal": "article", "titre": titre,
-                            "media": src.group(1) if src else None, "date_publication": dt.strftime("%Y-%m-%d %H:%M"),
-                            "lien": lien, "collectivites_citees": [entite(x, communes, epcis) for x in hits]})
-    stats["Presse (Google News)"] = (f"{len(NEWS_QUERIES)} requêtes, {n_items} articles parcourus, "
-                                     f"{len(vus)} publiés le {d:%d/%m}, {len(out)} citant une collectivité du périmètre")
-    return out
-
-
 def fiche(siren):
     """Fiche vérifiée d'une collectivité (pour un acheteur BOAMP/TED ou un article de presse)."""
     communes, epcis = referentiel()
@@ -387,6 +365,21 @@ def fiche(siren):
         e["contacts"] = contacts(e)
         e["finances"] = finances(e)
     return e
+
+
+def scores(sirens):
+    """Probabilité d'emprunt dans l'année (modele.py) pour les collectivités retenues."""
+    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scores.csv")
+    if not os.path.exists(chemin):
+        return {}
+    out = {}
+    with open(chemin, encoding="utf-8") as f:
+        tete = f.readline().strip().split(";")
+        for ligne in f:
+            r = dict(zip(tete, ligne.rstrip("\n").split(";")))
+            if r.get("siren") in sirens:
+                out[r["siren"]] = r
+    return out
 
 
 def main():
@@ -399,33 +392,61 @@ def main():
     stats = {}
     communes, epcis = referentiel()
     stats["Référentiel"] = f"{len(communes)} communes et {len(epcis)} EPCI dans les 20 départements (INSEE)"
-    with ThreadPoolExecutor(4) as ex:
+    debut, fin = presse.fenetre(d, PARIS)
+    with ThreadPoolExecutor(5) as ex:
         f_actes = ex.submit(collecte_actes, d, outdir, communes, epcis, stats)
-        f_boamp = ex.submit(collecte_boamp, d, stats)
+        f_boamp = ex.submit(collecte_boamp, d, communes, epcis, stats)
         f_ted = ex.submit(collecte_ted, d, stats)
-        f_presse = ex.submit(collecte_presse, d, communes, epcis, stats)
-        actes, boamp, ted, presse = f_actes.result(), f_boamp.result(), f_ted.result(), f_presse.result()
+        f_presse = ex.submit(presse.collecte, debut, fin, communes, epcis, entite, stats)
+        f_marches = ex.submit(marches.collecte, d, communes, epcis, entite, stats)
+        actes, boamp, ted = f_actes.result(), f_boamp.result(), f_ted.result()
+        (articles, orphelins), consultations = f_presse.result(), f_marches.result()
     res = {"jour": d.isoformat(), "genere": datetime.now(PARIS).isoformat(timespec="minutes"),
-           "couverture": stats, "actes": actes, "boamp": boamp, "ted": ted, "presse": presse,
+           "fenetre_presse": f"{debut:%Y-%m-%d %H:%M} -> {fin:%Y-%m-%d %H:%M}",
+           "couverture": stats, "actes": actes, "consultations": consultations, "boamp": boamp, "ted": ted,
+           "presse": articles, "presse_sans_collectivite": orphelins,
            "non_couvert": "Pays de la Loire et Normandie : pas de plateforme publique des actes connue ; "
-                          "couverts par BOAMP, TED et presse uniquement.",
-           "note": "Contacts fournis pour les actes éligibles ; pour une piste BOAMP, TED ou presse retenue, "
-                   "lancer : python3 veille.py --fiche SIREN"}
+                          "couverts par les appels d'offres, la presse locale et le modèle prédictif.",
+           "note": "Fiches (contacts, comptes, probabilité) dans 'fiches' ; pour une autre collectivité : "
+                   "python3 veille.py --fiche SIREN"}
     chemin = os.path.join(outdir, "candidats.json")
     json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=1)
-    elig = [c for c in actes if c["entite"].get("eligible")]
 
-    def enrichir(c):
-        bud = (c.get("budget_emprunt") or {}).get("budget")
-        return contacts(c["entite"]), finances(c["entite"], bud)
+    # Fiches des collectivités éligibles à vérifier (actes retenus d'abord, puis appels d'offres, puis presse)
+    pistes = {}
+    for c in actes:
+        if c["entite"].get("eligible") and not c.get("motif_ecart"):
+            pistes.setdefault(c["siren"], (c["entite"], (c.get("budget_emprunt") or {}).get("budget")))
+    for c in consultations + boamp:
+        e = c.get("entite") or {}
+        if e.get("eligible"):
+            pistes.setdefault(e["siren"], (e, None))
+    for a in articles:
+        if a["signal"] != "budget / finances":
+            for e in a["collectivites_citees"]:
+                if e.get("eligible"):
+                    pistes.setdefault(e["siren"], (e, None))
+    pistes = dict(list(pistes.items())[:MAX_FICHES])
+
+    def enrichir(item):
+        siren, (e, bud) = item
+        return siren, {"contacts": contacts(e), "finances": finances(e, bud)}
 
     with ThreadPoolExecutor(8) as ex:
-        for c, (ct, fi) in zip(elig, ex.map(enrichir, elig)):
-            c["contacts"], c["finances"] = ct, fi
+        res["fiches"] = dict(ex.map(enrichir, pistes.items()))
+    proba = scores(set(res["fiches"]) | {e["siren"] for a in articles for e in a["collectivites_citees"]})
+    for siren, p in proba.items():
+        res["fiches"].setdefault(siren, {})["prediction"] = p
+    for c in actes:
+        f = res["fiches"].get(c["siren"], {})
+        if "contacts" in f:
+            c["contacts"], c["finances"] = f["contacts"], f["finances"]
     json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=1)
-    print(json.dumps({"jour": res["jour"], "couverture": stats,
-                      "actes_candidats": len(actes), "actes_eligibles": sum(c["entite"].get("eligible", False) for c in actes),
-                      "boamp": len(boamp), "ted": len(ted), "presse": len(presse)}, ensure_ascii=False, indent=1))
+    retenus = [c for c in actes if c["entite"].get("eligible") and not c.get("motif_ecart")]
+    print(json.dumps({"jour": res["jour"], "couverture": stats, "actes_candidats": len(actes),
+                      "actes_eligibles_retenus": len(retenus),
+                      "consultations": len(consultations), "boamp": len(boamp), "ted": len(ted),
+                      "presse": len(articles), "fiches": len(res["fiches"])}, ensure_ascii=False, indent=1))
 
 
 if __name__ == "__main__":

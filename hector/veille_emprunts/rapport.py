@@ -29,7 +29,7 @@ CODES = {"Loire-Atlantique": "44", "Maine-et-Loire": "49", "Mayenne": "53", "Sar
 def args():
     a = sys.argv[1:]
     opts = {}
-    for k in ("--sortie", "--webhook", "--secret"):
+    for k in ("--sortie", "--webhook", "--secret", "--top"):
         if k in a:
             i = a.index(k)
             opts[k] = a[i + 1]
@@ -40,10 +40,11 @@ def args():
 LIBELLE_SOURCE = {"Mégalis Bretagne": "Mégalis Bretagne, registre officiel des actes transmis en préfecture",
                   "GIP RECIA (Centre-Val de Loire)": "GIP RECIA, registre officiel des actes transmis en préfecture"}
 LIENS = {}
+ECARTS_AUTO = []
 
 
 def fiches(cand_files):
-    """SIREN -> entité vérifiée (contacts, finances) ; lien -> horodatage de publication."""
+    """SIREN -> entité vérifiée (contacts, finances, prédiction) ; lien -> horodatage de publication."""
     idx, jours, couv = {}, [], {}
     for f in cand_files:
         if f.endswith("qualifies.json"):
@@ -54,21 +55,42 @@ def fiches(cand_files):
             couv.setdefault(k, []).append(v)
         ents = []
         for a in c.get("actes", []):
-            ents.append(a["entite"] | {"contacts": a.get("contacts", {}), "finances": a.get("finances")})
+            ents.append(a["entite"])
             info = {"publie_le": a.get("publie_le"), "date_acte": a.get("date_acte"),
                     "plateforme": LIBELLE_SOURCE.get(a["source"], a["source"]), "objet": a.get("objet"),
                     "budget": a.get("budget_emprunt")}
             for u in [a["lien"]] + a.get("annexes", []):
                 LIENS[u] = info
+            if a.get("motif_ecart") and a["entite"].get("eligible"):
+                ECARTS_AUTO.append({"siren": a["siren"], "nom": a["entite"].get("nom"), "acte": a.get("objet"),
+                                    "date_publication": c["jour"], "motif": a["motif_ecart"], "lien": a["lien"]})
         for p in c.get("presse", []):
             ents += p.get("collectivites_citees", [])
-            LIENS[p["lien"]] = {"publie_le": p.get("date_publication"), "plateforme": p.get("media")}
-        for b in c.get("boamp", []) + c.get("ted", []):
+            info = {"publie_le": p.get("publie_le"), "plateforme": p.get("media_nom") or p.get("media")}
+            LIENS[p["lien"]] = info
+            if p.get("lien_article"):
+                LIENS[p["lien_article"]] = info
+        for b in c.get("consultations", []) + c.get("boamp", []) + c.get("ted", []):
+            if b.get("entite", {}).get("siren"):
+                ents.append(b["entite"])
             LIENS[b["lien"]] = {"publie_le": b.get("date_publication"), "plateforme": b["source"]}
         for e in ents:
-            if e.get("siren") and (e["siren"] not in idx or e.get("contacts")):
-                idx[e["siren"]] = e
+            if e.get("siren") and e["siren"] not in idx:
+                idx[e["siren"]] = dict(e)
+        for siren, fi in (c.get("fiches") or {}).items():
+            idx.setdefault(siren, {"siren": siren}).update(fi)
     return idx, sorted(jours), couv
+
+
+def ligne_prediction(p):
+    if not p:
+        return []
+    pc = round(float(p["proba"]) * 100)
+    txt = (f"🔮 Probabilité d'emprunter en {p['annee_prevue']} (modèle sur les comptes {p['annee_comptes']}) : {pc} %, "
+           f"rang {p['rang_departement']} du département")
+    if p.get("facteurs"):
+        txt += f" · {p['facteurs']}"
+    return [txt + "."]
 
 
 def court(x):
@@ -177,7 +199,8 @@ def message(q, idx, jours):
                 besoin += f" Réponse avant le {fr_date(o['date_limite'])}."
             L.append(f"💶 {besoin}")
             if o.get("extrait"):
-                L.append(f"📝 Extrait de l'acte : « {o['extrait']} »")
+                quoi = "de l'article" if o.get("source", "").startswith("Presse") else "de l'acte"
+                L.append(f"📝 Extrait {quoi} : « {o['extrait']} »")
             b = info.get("budget") or {}
             for lg in b.get("lignes", []):
                 doc = f"{b.get('natdec') or 'Budget'}" + (f" n°{b['numdec']}" if b.get("numdec") else "")
@@ -185,6 +208,7 @@ def message(q, idx, jours):
                 L.append(f"🧾 Fichier budgétaire officiel ({doc} {b.get('exer', '')}, {(b.get('budget') or '').title()}) : "
                          f"compte {lg['compte']} Emprunts en recettes, prévu {euros(lg['budget_total'])}, réalisé {real}.")
             L += ligne_finances(e.get("finances"))
+            L += ligne_prediction(e.get("prediction"))
             site = (e.get("contacts") or {}).get("site")
             L.append(f"☎ {nom}, {fonction.lower()} · {tel} · {mail}" + (f" · {site}" if site else ""))
             L.append(f"🔗 {o['lien']}")
@@ -196,12 +220,49 @@ def message(q, idx, jours):
     return "\n".join(L)
 
 
+def top_predit(n, exclus):
+    """Les n collectivités éligibles les plus susceptibles d'emprunter, d'après le modèle (scores.csv)."""
+    import csv
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import veille
+    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scores.csv")
+    if not os.path.exists(chemin):
+        return []
+    rows = [r for r in csv.DictReader(open(chemin, encoding="utf-8"), delimiter=";")
+            if r["siren"] not in exclus and int(r["population"] or 0) < (10000 if r["type"] == "Commune" else 20000)]
+    rows = sorted(rows, key=lambda r: -float(r["proba"]))[:n]
+    if not rows:
+        return []
+    m = json.load(open(os.path.join(os.path.dirname(chemin), "modele.json")))
+    auc = m["types"]["Commune"]["ensemble"]
+    L = [f"🔮 Top {len(rows)} prédit · qui va emprunter en {rows[0]['annee_prevue']} "
+         f"(modèle économétrique sur les comptes OFGL {rows[0]['annee_comptes']}, testé sur {int(rows[0]['annee_comptes'])} : "
+         f"AUC {str(auc['auc']).replace('.', ',')}, {round(auc['taux_premier_decile'] * 100)} % d'emprunteurs dans le "
+         f"premier décile contre {round(auc['taux_moyen'] * 100)} % en moyenne)", ""]
+    noms = {v: k for k, v in CODES.items()}
+    for r in rows:
+        ct = veille.contacts({"type": r["type"], "siren": r["siren"], "code_insee": r.get("code_insee")})
+        nom, fonction, tel, mail = interlocuteur({"type": r["type"], "contacts": ct})
+        pop = f"{int(r['population']):,}".replace(",", " ")
+        L.append(f"▶ {r['nom'].upper()} · {noms.get(r['dept'], '')} ({r['dept']}) · {r['type'].lower()} de {pop} hab. · "
+                 f"{round(float(r['proba']) * 100)} %")
+        det = f"   {r['facteurs']}" if r.get("facteurs") else "   "
+        emp = float(r["emprunts_derniere_annee"] or 0)
+        det += (f" · emprunté {court(emp)} en {r['annee_comptes']}" if emp >= 1 else f" · aucun emprunt en {r['annee_comptes']}")
+        det += f" · investissement {court(float(r['depense_equipement'] or 0))}"
+        L.append(det)
+        L.append(f"   ☎ {nom}, {fonction.lower()} · {tel} · {mail}")
+    return L + [""]
+
+
 def bloc_lecture(couv, jours):
     L = [f"🔎 Ce qu'Hector a lu ({periode(jours)}) :"]
     for k, v in couv.items():
         if k != "Référentiel":
             L.append(f"• {k} : {' / '.join(v)}")
-    L.append("• Pays de la Loire et Normandie : pas de registre public des actes, couverts par BOAMP, TED et presse.")
+    L.append("• Pays de la Loire et Normandie : pas de registre public des actes ; couverts par les appels d'offres, "
+             "la presse locale et le modèle prédictif.")
     L.append("• Contrôles : population INSEE, SIREN (Annuaire des entreprises), élus (Répertoire national des élus), "
              "coordonnées (Annuaire de l'administration), comptes (OFGL).")
     return "\n".join(L)
@@ -219,7 +280,8 @@ def lignes_sheet(q, idx, jours, couv):
                     o["nature"], o.get("montant") if o.get("montant") is not None else "", o["niveau"],
                     o.get("statut", ""), fr_date(o.get("date_publication")), fr_date(o.get("date_limite")),
                     o.get("source", ""), o["lien"], "Non", ""])
-    for x in q.get("ecartes", []):
+    deja = {x.get("lien") for x in q.get("ecartes", [])}
+    for x in q.get("ecartes", []) + [x for x in ECARTS_AUTO if x["lien"] not in deja]:
         e = idx.get(x.get("siren"), {})
         dep = e.get("departement")
         ec.append([detect, x.get("nom") or e.get("nom", ""), x.get("siren", ""),
@@ -240,8 +302,9 @@ def lignes_sheet(q, idx, jours, couv):
                 f"=COUNTIFS('Opportunités'!$A:$A,{f},'Opportunités'!$P:$P,\"B\")",
                 f"=COUNTIFS('Opportunités'!$A:$A,{f},'Opportunités'!$P:$P,\"C\")",
                 ouvertes, rep, sources,
-                "Pays de la Loire et Normandie : pas de plateforme publique des actes, couverture BOAMP, TED et presse. "
-                "Presse lue sur les titres seulement (sites inaccessibles aux outils d'IA).",
+                "Pays de la Loire et Normandie : pas de plateforme publique des actes ; couverture par les appels "
+                "d'offres, la presse locale et le modèle prédictif. Presse lue sur les titres et chapeaux "
+                "(Google News, Bing News), les sites des journaux refusant les outils d'IA.",
                 q.get("suivi", "")]]
     return {"Opportunités": opp, "Actes écartés": ec, "Journal de veille": journal}
 
@@ -250,7 +313,10 @@ def main():
     qf, cfs, opts = args()
     q = json.load(open(qf))
     idx, jours, couv = fiches(cfs)
-    msg = message(q, idx, jours) + "\n" + bloc_lecture(couv, jours)
+    msg = message(q, idx, jours)
+    if "--top" in opts:
+        msg += "\n".join(top_predit(int(opts["--top"]), {o["siren"] for o in q.get("opportunites", [])})) + "\n"
+    msg += "\n" + bloc_lecture(couv, jours)
     if "--sortie" in opts:
         open(opts["--sortie"], "w").write(msg)
     print(msg)

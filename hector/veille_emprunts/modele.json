@@ -1,0 +1,109 @@
+{
+ "cible": "Emprunts hors GAD >= 20000 € l'année suivante",
+ "variables": [
+  "e0",
+  "e1",
+  "e2",
+  "depuis",
+  "emp_3",
+  "lpop",
+  "eq_rrf",
+  "eq_moy",
+  "eq_hausse",
+  "fdr_j",
+  "treso_j",
+  "vfdr",
+  "cbf",
+  "teb",
+  "ten",
+  "dette_hab",
+  "desend",
+  "remb_enc",
+  "subv_eq",
+  "gap"
+ ],
+ "types": {
+  "Commune": {
+   "apprentissage": "cibles 2021-2024, 27302 lignes",
+   "test": "cible 2025, 6811 lignes",
+   "ensemble": {
+    "auc": 0.755,
+    "taux_moyen": 0.234,
+    "taux_premier_decile": 0.634
+   },
+   "logistique": {
+    "auc": 0.741,
+    "taux_moyen": 0.234,
+    "taux_premier_decile": 0.62
+   },
+   "gradient_boosting": {
+    "auc": 0.756,
+    "taux_moyen": 0.234,
+    "taux_premier_decile": 0.646
+   },
+   "coefficients_logistique": {
+    "e0": 0.328,
+    "e1": 0.206,
+    "e2": 0.161,
+    "depuis": 0.158,
+    "emp_3": -0.13,
+    "lpop": 0.383,
+    "eq_rrf": 0.146,
+    "eq_moy": 0.037,
+    "eq_hausse": 0.069,
+    "fdr_j": 0.154,
+    "treso_j": -0.667,
+    "vfdr": 0.106,
+    "cbf": -0.106,
+    "teb": -0.03,
+    "ten": -0.051,
+    "dette_hab": 0.079,
+    "desend": -0.018,
+    "remb_enc": 0.066,
+    "subv_eq": -0.052,
+    "gap": -0.192
+   }
+  },
+  "EPCI": {
+   "apprentissage": "cibles 2021-2024, 5052 lignes",
+   "test": "cible 2025, 1262 lignes",
+   "ensemble": {
+    "auc": 0.82,
+    "taux_moyen": 0.596,
+    "taux_premier_decile": 0.984
+   },
+   "logistique": {
+    "auc": 0.815,
+    "taux_moyen": 0.596,
+    "taux_premier_decile": 0.968
+   },
+   "gradient_boosting": {
+    "auc": 0.808,
+    "taux_moyen": 0.596,
+    "taux_premier_decile": 0.984
+   },
+   "coefficients_logistique": {
+    "e0": 0.5,
+    "e1": 0.349,
+    "e2": 0.21,
+    "depuis": 0.048,
+    "emp_3": -0.15,
+    "lpop": 0.385,
+    "eq_rrf": 0.008,
+    "eq_moy": 0.207,
+    "eq_hausse": 0.145,
+    "fdr_j": 0.022,
+    "treso_j": -0.352,
+    "vfdr": 0.111,
+    "cbf": 0.108,
+    "teb": 0.145,
+    "ten": -0.269,
+    "dette_hab": 0.353,
+    "desend": -0.043,
+    "remb_enc": 0.043,
+    "subv_eq": -0.128,
+    "gap": -0.325
+   }
+  }
+ }
+}
