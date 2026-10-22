@@ -8,6 +8,7 @@ import json
 import os
 import re
 import sys
+import unicodedata
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, time, timedelta, timezone
@@ -26,8 +27,11 @@ PLATEFORMES = {
 BOAMP = "https://boamp-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/boamp/exports/json"
 ANNUAIRE = "https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records"
 TED_NUTS = ("FRG", "FRH", "FRB", "FRD")
-KW_ACTE = re.compile(r"\b(emprunt|pret|prets|tresorerie|refinanc|renegoci|reamenag|banque|bancaire|credit|"
-                     r"caisse d.epargne|caisse des depots|financement)")
+KW_ACTE = re.compile(r"\b(emprunt|pret|prets|tresorerie|refinanc|renegoci|reamenag|banque|bancaire|"
+                     r"credit agricole|credit mutuel|caisse d.epargne|caisse des depots|financement bancaire)\b")
+KW_ACTE_EXCLU = re.compile(r"virement|fongibilit|subvention")
+KW_TITRE = re.compile(r"\b(emprunt|emprunts|endettement|dette|dettes|financement|financements|banque|banques|"
+                      r"bancaire|budget|budgets|tresorerie|investissement|investissements|prets|pret bancaire)\b")
 KW_BOAMP = re.compile(r"\b(emprunt|pret|prets|financement bancaire|bancaire|credit|ligne de tresorerie|"
                       r"concours financier|refinanc)")
 NEWS_QUERIES = [
@@ -99,7 +103,7 @@ def contacts(ent):
              else f'siren="{ent["siren"]}"')
         r = jget(ANNUAIRE, {"where": w, "limit": 1,
                             "select": "nom,telephone,adresse_courriel,site_internet,date_modification"},
-                 tries=10, timeout=40).get("results", [])
+                 tries=12, timeout=25).get("results", [])
         if r:
             r = r[0]
             tel = json.loads(r["telephone"])[0]["valeur"] if r.get("telephone") else None
@@ -110,7 +114,7 @@ def contacts(ent):
         out["annuaire_erreur"] = str(e)[:120]
     try:
         r = jget("https://recherche-entreprises.api.gouv.fr/search", {"q": ent["siren"], "per_page": 1},
-                 tries=10, timeout=40)["results"][0]
+                 tries=12, timeout=25)["results"][0]
         out["nom_officiel"] = r.get("nom_complet")
         out["nature_juridique"] = r.get("nature_juridique")
         elus = ((r.get("complements") or {}).get("collectivite_territoriale") or {}).get("elus") or []
@@ -159,8 +163,10 @@ def collecte_actes(d, outdir, communes, epcis, stats):
                     em = {"erreur": str(e)[:100], "total_budget": 0}
                 if not em.get("total_budget"):
                     continue
+                em["deja_realise"] = em.get("total_realise", 0) >= em["total_budget"]
                 kind = "budget"
-            elif cl.startswith("7.3") or KW_ACTE.search(norm(a.get("objet"))):
+            elif cl.startswith("7.3") or (KW_ACTE.search(norm(a.get("objet")))
+                                          and not KW_ACTE_EXCLU.search(norm(a.get("objet")))):
                 em, kind = None, "acte"
             else:
                 continue
@@ -192,11 +198,11 @@ def collecte_boamp(d, stats):
     out = []
     try:
         jour_rows = json.loads(get(BOAMP, {"where": f"dateparution=date'{d}'", "select": sel},
-                                   tries=40, timeout=90))
+                                   tries=25, timeout=60))
         ouv_rows = json.loads(get(BOAMP, {"where": f"dateparution>=date'{d - timedelta(days=90)}' and "
                                                    f"code_departement in ({deps}) and "
                                                    f"datelimitereponse>=date'{d + timedelta(days=1)}'",
-                                          "select": sel}, tries=40, timeout=90))
+                                          "select": sel}, tries=25, timeout=60))
     except Exception as e:
         stats["BOAMP"] = f"ERREUR : {e}"
         return out
@@ -238,16 +244,34 @@ def collecte_ted(d, stats):
 
 
 # ---------- presse (Google News) ----------
+def fold(s):
+    """Sans accents, casse conservée, apostrophes typographiques unifiées."""
+    s = unicodedata.normalize("NFKD", (s or "").replace("’", "'")).encode("ascii", "ignore").decode()
+    return re.sub(r"\s+", " ", s)
+
+
+def cite(titre_fold, nom):
+    """Nom présent tel quel (majuscule comprise), sans faire partie d'un nom composé plus long."""
+    i = titre_fold.find(nom)
+    while i >= 0:
+        avant = titre_fold[i - 1] if i > 0 else " "
+        apres = titre_fold[i + len(nom)] if i + len(nom) < len(titre_fold) else " "
+        if not (avant.isalnum() or avant == "-") and not (apres.isalnum() or apres == "-"):
+            return True
+        i = titre_fold.find(nom, i + 1)
+    return False
+
+
 def index_noms(communes, epcis):
     idx = {}
     for siren, c in communes.items():
-        k = tokens(c["nom"]).strip()
-        if len(k) >= 5 and k not in NAME_STOP:
+        k = fold(c["nom"])
+        if len(k) >= 5 and norm(k) not in NAME_STOP:
             idx.setdefault(k, []).append(siren)
     for siren, e in epcis.items():
-        k = re.sub(r"^(cc|ca|cu|communaute (de communes|d agglomeration|urbaine)) (du |de la |de l |des |de |d )?",
-                   "", tokens(e["nom"]).strip())
-        if len(k) >= 8 and k not in NAME_STOP:
+        k = re.sub(r"^(CC|CA|CU|Communaut. (de communes|d.agglom.ration|urbaine)) (du |de la |de l'|des |de |d')?",
+                   "", fold(e["nom"]), flags=re.I)
+        if len(k) >= 8 and norm(k) not in NAME_STOP:
             idx.setdefault(k, []).append(siren)
     return idx
 
@@ -275,8 +299,10 @@ def collecte_presse(d, communes, epcis, stats):
             if dt.date() != d or titre in vus:
                 continue
             vus.add(titre)
-            t = tokens(titre)
-            hits = sorted({s2 for k, sirens in idx.items() if f" {k} " in t for s2 in sirens})
+            if not KW_TITRE.search(norm(titre)):
+                continue
+            t = fold(titre)
+            hits = sorted({s2 for k, sirens in idx.items() if cite(t, k) for s2 in sirens})
             if hits:
                 out.append({"source": "Presse (Google News)", "type_signal": "article", "titre": titre,
                             "media": src.group(1) if src else None, "date_publication": dt.strftime("%Y-%m-%d %H:%M"),
@@ -311,18 +337,19 @@ def main():
         f_ted = ex.submit(collecte_ted, d, stats)
         f_presse = ex.submit(collecte_presse, d, communes, epcis, stats)
         actes, boamp, ted, presse = f_actes.result(), f_boamp.result(), f_ted.result(), f_presse.result()
-    for c in actes:
-        if c["entite"].get("eligible"):
-            c["contacts"] = contacts(c["entite"])
-    for p in presse:
-        for e in p["collectivites_citees"]:
-            if e.get("eligible"):
-                e["contacts"] = contacts(e)
     res = {"jour": d.isoformat(), "genere": datetime.now(PARIS).isoformat(timespec="minutes"),
            "couverture": stats, "actes": actes, "boamp": boamp, "ted": ted, "presse": presse,
            "non_couvert": "Pays de la Loire et Normandie : pas de plateforme publique des actes connue ; "
-                          "couverts par BOAMP, TED et presse uniquement."}
-    json.dump(res, open(os.path.join(outdir, "candidats.json"), "w"), ensure_ascii=False, indent=1)
+                          "couverts par BOAMP, TED et presse uniquement.",
+           "note": "Contacts fournis pour les actes éligibles ; pour une piste BOAMP, TED ou presse retenue, "
+                   "lancer : python3 veille.py --fiche SIREN"}
+    chemin = os.path.join(outdir, "candidats.json")
+    json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=1)
+    elig = [c for c in actes if c["entite"].get("eligible")]
+    with ThreadPoolExecutor(8) as ex:
+        for c, ct in zip(elig, ex.map(lambda c: contacts(c["entite"]), elig)):
+            c["contacts"] = ct
+    json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=1)
     print(json.dumps({"jour": res["jour"], "couverture": stats,
                       "actes_candidats": len(actes), "actes_eligibles": sum(c["entite"].get("eligible", False) for c in actes),
                       "boamp": len(boamp), "ted": len(ted), "presse": len(presse)}, ensure_ascii=False, indent=1))
