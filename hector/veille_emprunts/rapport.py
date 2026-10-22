@@ -37,8 +37,13 @@ def args():
     return a[0], a[1:], opts
 
 
+LIBELLE_SOURCE = {"Mégalis Bretagne": "Mégalis Bretagne, registre officiel des actes transmis en préfecture",
+                  "GIP RECIA (Centre-Val de Loire)": "GIP RECIA, registre officiel des actes transmis en préfecture"}
+LIENS = {}
+
+
 def fiches(cand_files):
-    """SIREN -> entité vérifiée + contacts, depuis les fichiers candidats."""
+    """SIREN -> entité vérifiée (contacts, finances) ; lien -> horodatage de publication."""
     idx, jours, couv = {}, [], {}
     for f in cand_files:
         if f.endswith("qualifies.json"):
@@ -47,12 +52,74 @@ def fiches(cand_files):
         jours.append(c["jour"])
         for k, v in c.get("couverture", {}).items():
             couv.setdefault(k, []).append(v)
-        ents = [a["entite"] | {"contacts": a.get("contacts", {})} for a in c.get("actes", [])]
-        ents += [e for p in c.get("presse", []) for e in p.get("collectivites_citees", [])]
+        ents = []
+        for a in c.get("actes", []):
+            ents.append(a["entite"] | {"contacts": a.get("contacts", {}), "finances": a.get("finances")})
+            info = {"publie_le": a.get("publie_le"), "date_acte": a.get("date_acte"),
+                    "plateforme": LIBELLE_SOURCE.get(a["source"], a["source"]), "objet": a.get("objet"),
+                    "budget": a.get("budget_emprunt")}
+            for u in [a["lien"]] + a.get("annexes", []):
+                LIENS[u] = info
+        for p in c.get("presse", []):
+            ents += p.get("collectivites_citees", [])
+            LIENS[p["lien"]] = {"publie_le": p.get("date_publication"), "plateforme": p.get("media")}
+        for b in c.get("boamp", []) + c.get("ted", []):
+            LIENS[b["lien"]] = {"publie_le": b.get("date_publication"), "plateforme": b["source"]}
         for e in ents:
             if e.get("siren") and (e["siren"] not in idx or e.get("contacts")):
                 idx[e["siren"]] = e
     return idx, sorted(jours), couv
+
+
+def court(x):
+    x = float(x)
+    if abs(x) >= 1e6:
+        return f"{x / 1e6:,.2f} M€".replace(",", " ").replace(".", ",")
+    if abs(x) >= 1e4:
+        return f"{x / 1e3:,.0f} k€".replace(",", " ")
+    return f"{x:,.0f} €".replace(",", " ")
+
+
+def ligne_finances(f):
+    if not f or f.get("erreur") or "encours" not in f:
+        return []
+    hab = f"{f.get('encours_hab') or 0:,.0f}".replace(",", " ")
+    p = [f"dette {court(f['encours'])} ({hab} €/hab)"]
+    if f.get("desendettement_ans") is not None:
+        p.append(f"désendettement {str(f['desendettement_ans']).replace('.', ',')} ans")
+    if f.get("epargne_brute") is not None:
+        t = f" ({str(f['taux_epargne_brute']).replace('.', ',')} % des recettes)" if f.get("taux_epargne_brute") is not None else ""
+        p.append(f"épargne brute {court(f['epargne_brute'])}{t}")
+    if f.get("depenses_equipement") is not None:
+        p.append(f"investissement {court(f['depenses_equipement'])}")
+    if f.get("emprunts_annee") is not None:
+        p.append(f"emprunté dans l'année {court(f['emprunts_annee'])}" if f["emprunts_annee"] >= 1
+                 else "aucun emprunt dans l'année")
+    if f.get("tresorerie") is not None:
+        p.append(f"trésorerie {court(f['tresorerie'])}")
+    out = [f"📊 Comptes {f['annee']} (OFGL) : " + ", ".join(p) + "."]
+    a = f.get("budget_annexe") or {}
+    if a.get("budget") and a.get("capacite_financement") is not None:
+        cf = a["capacite_financement"]
+        q = [("besoin de financement " if cf < 0 else "capacité de financement ") + court(abs(cf))]
+        if a.get("epargne_brute") is not None:
+            q.append(f"épargne brute {court(a['epargne_brute'])}")
+        if a.get("fonds_roulement") is not None:
+            q.append(f"fonds de roulement {court(a['fonds_roulement'])}")
+        if a.get("encours") is not None:
+            q.append(f"dette {court(a['encours'])}" if a["encours"] >= 1 else "aucune dette")
+        out.append(f"   Budget {a['budget'].title()} {f['annee']} : " + ", ".join(q) + ".")
+    return out
+
+
+def date_heure(s):
+    if not s:
+        return ""
+    try:
+        dt = datetime.fromisoformat(s)
+        return dt.strftime("%d/%m à %Hh%M") if len(s) > 10 else dt.strftime("%d/%m")
+    except ValueError:
+        return s
 
 
 def fr_date(s):
@@ -87,26 +154,56 @@ def message(q, idx, jours):
         if not ops:
             continue
         L.append(f"{puce} {niv} · {titre} ({len(ops)})")
+        L.append("")
         for o in ops:
             e = idx.get(o["siren"]) or o.get("fiche") or {}
             nom, fonction, tel, mail = interlocuteur(e)
-            pop = f"{e.get('population'):,} hab.".replace(",", " ") if e.get("population") else ""
-            dep = CODES.get(e.get("departement"), "")
-            L.append(f"• {e.get('nom', o['siren'])} ({dep}) · {pop}")
-            ligne = o["nature"]
+            dep = e.get("departement", "")
+            pop = f"{e.get('population'):,}".replace(",", " ") if e.get("population") else "?"
+            typ = (e.get("type") or "collectivité").lower()
+            L.append(f"▶ {e.get('nom', o['siren']).upper()} · {dep} ({CODES.get(dep, '')})")
+            L.append(f"   {typ} de {pop} hab. (INSEE {e.get('annee_population', '2023')}) · SIREN {o['siren']}")
+            info = LIENS.get(o["lien"], {})
+            quand = o.get("publie_le") or info.get("publie_le")
+            acte = o.get("date_acte") or info.get("date_acte")
+            src = info.get("plateforme") or o.get("source", "")
+            ligne = f"📅 Publié le {date_heure(quand)}" if quand else "📅 Publication"
+            ligne += f" sur {src}" if src else ""
+            if acte:
+                ligne += f". Acte daté du {fr_date(acte)}"
+            L.append(ligne + ".")
+            besoin = o["nature"]
             if o.get("date_limite"):
-                ligne += f" Réponse avant le {fr_date(o['date_limite'])}."
-            L.append(f"  {ligne}")
-            L.append(f"  ☎ {nom} ({fonction.lower()}) · {tel} · {mail}")
-            L.append(f"  🔗 {o['lien']}")
+                besoin += f" Réponse avant le {fr_date(o['date_limite'])}."
+            L.append(f"💶 {besoin}")
+            if o.get("extrait"):
+                L.append(f"📝 Extrait de l'acte : « {o['extrait']} »")
+            b = info.get("budget") or {}
+            for lg in b.get("lignes", []):
+                doc = f"{b.get('natdec') or 'Budget'}" + (f" n°{b['numdec']}" if b.get("numdec") else "")
+                real = euros(lg["realise"]) if lg["realise"] else "non indiqué"
+                L.append(f"🧾 Fichier budgétaire officiel ({doc} {b.get('exer', '')}, {(b.get('budget') or '').title()}) : "
+                         f"compte {lg['compte']} Emprunts en recettes, prévu {euros(lg['budget_total'])}, réalisé {real}.")
+            L += ligne_finances(e.get("finances"))
+            site = (e.get("contacts") or {}).get("site")
+            L.append(f"☎ {nom}, {fonction.lower()} · {tel} · {mail}" + (f" · {site}" if site else ""))
+            L.append(f"🔗 {o['lien']}")
+            L.append("")
             total += 1
-        L.append("")
     if not total:
-        L += ["Aucune collectivité du périmètre à appeler aujourd'hui : pas de besoin d'emprunt "
-              "nouveau et vérifiable dans les publications de la veille.", ""]
-    L.append("Sources : actes officiels de Bretagne (Mégalis) et du Centre-Val de Loire (GIP RECIA), "
-             "BOAMP, TED et presse locale. Pays de la Loire et Normandie : pas d'actes en ligne, "
-             "couverts par BOAMP, TED et presse.")
+        L += ["Personne à appeler ce matin : aucun besoin d'emprunt nouveau et vérifiable "
+              "dans les publications de la veille.", ""]
+    return "\n".join(L)
+
+
+def bloc_lecture(couv, jours):
+    L = [f"🔎 Ce qu'Hector a lu ({periode(jours)}) :"]
+    for k, v in couv.items():
+        if k != "Référentiel":
+            L.append(f"• {k} : {' / '.join(v)}")
+    L.append("• Pays de la Loire et Normandie : pas de registre public des actes, couverts par BOAMP, TED et presse.")
+    L.append("• Contrôles : population INSEE, SIREN (Annuaire des entreprises), élus (Répertoire national des élus), "
+             "coordonnées (Annuaire de l'administration), comptes (OFGL).")
     return "\n".join(L)
 
 
@@ -153,7 +250,7 @@ def main():
     qf, cfs, opts = args()
     q = json.load(open(qf))
     idx, jours, couv = fiches(cfs)
-    msg = message(q, idx, jours)
+    msg = message(q, idx, jours) + "\n" + bloc_lecture(couv, jours)
     if "--sortie" in opts:
         open(opts["--sortie"], "w").write(msg)
     print(msg)

@@ -127,6 +127,72 @@ def contacts(ent):
     return out
 
 
+# ---------- comptes officiels (OFGL) ----------
+OFGL = "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets"
+INDIC = {"Encours de dette": "encours", "Annuité de la dette": "annuite", "Epargne brute": "epargne_brute",
+         "Epargne nette": "epargne_nette", "Recettes de fonctionnement": "recettes_fonctionnement",
+         "Dépenses d'équipement": "depenses_equipement", "Emprunts hors GAD": "emprunts_annee",
+         "Dépôts au Trésor": "tresorerie", "Fonds de roulement": "fonds_roulement",
+         "Capacité ou besoin de financement": "capacite_financement"}
+
+
+def finances(ent, budget_nom=None):
+    """Derniers comptes publiés (tous budgets) et, si besoin, ceux du budget annexe concerné."""
+    commune = ent.get("type") == "Commune"
+    ds = "ofgl-base-communes-consolidee" if commune else "ofgl-base-gfp-consolidee"
+    cle = f'com_code="{ent.get("code_insee")}"' if commune else f'epci_code="{ent["siren"]}"'
+    an0 = datetime.now(PARIS).year - 1
+    try:
+        for an in (an0, an0 - 1):
+            ex = f"year(exer)={an}"
+            rows = jget(f"{OFGL}/{ds}/records", {"where": f"{cle} and {ex}", "limit": 100,
+                                                  "select": "agregat,montant,euros_par_habitant"},
+                        tries=12, timeout=40).get("results", [])
+            if rows:
+                break
+        else:
+            return {"erreur": "comptes non publiés"}
+        f = {"annee": an, "source": "OFGL, comptes de gestion tous budgets"}
+        for r in rows:
+            k = INDIC.get(r["agregat"])
+            if k:
+                f[k] = r["montant"]
+                f[k + "_hab"] = r.get("euros_par_habitant")
+        eb, enc, rrf = f.get("epargne_brute"), f.get("encours"), f.get("recettes_fonctionnement")
+        if eb and eb > 0 and enc is not None:
+            f["desendettement_ans"] = round(enc / eb, 1)
+        if eb is not None and rrf:
+            f["taux_epargne_brute"] = round(100 * eb / rrf, 1)
+        mots = [m for m in re.findall(r"[a-z]{5,}", norm(budget_nom or ""))
+                if m not in ("budget", "annexe", "principal", "commune", "collectivite")
+                and m not in norm(ent.get("nom", ""))]
+        if commune and mots:
+            try:
+                rows = jget(f"{OFGL}/ofgl-base-communes/records",
+                            {"where": f"{cle} and year(exer)={an} and type_de_budget=\"Budget annexe\"",
+                             "limit": 100, "select": "lbudg,agregat,montant"},
+                            tries=12, timeout=40).get("results", [])
+                ann = {}
+                for r in rows:
+                    if any(m[:6] in norm(r["lbudg"]) for m in mots) and r["agregat"] in INDIC:
+                        ann["budget"] = r["lbudg"]
+                        ann[INDIC[r["agregat"]]] = r["montant"]
+                if ann:
+                    f["budget_annexe"] = ann
+            except Exception:
+                f["budget_annexe"] = {"erreur": "détail du budget annexe indisponible"}
+        return f
+    except Exception as e:
+        return {"erreur": str(e)[:120]}
+
+
+def a_paris(iso):
+    try:
+        return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(PARIS).strftime("%Y-%m-%d %H:%M")
+    except (ValueError, AttributeError):
+        return iso
+
+
 # ---------- actes transmis en préfecture (Mégalis, RECIA) ----------
 def actes_du_jour(api, d):
     a, b = fenetre_utc(d)
@@ -174,6 +240,7 @@ def collecte_actes(d, outdir, communes, epcis, stats):
             c = {"source": nom, "type_signal": kind, "siren": a["siren"], "objet": a.get("objet"),
                  "classification": f"{cl} {a.get('classification_libelle', '')}".strip(),
                  "date_acte": (a.get("date_acte") or "")[:10], "date_publication": d.isoformat(),
+                 "publie_le": a_paris(a.get("date_publication")), "id_publication": a.get("id_publication"),
                  "typologie": a.get("typologie"), "lien": a["url"],
                  "annexes": [x["url"] for x in a.get("annexes", [])], "budget_emprunt": em, "entite": ent}
             if kind == "acte" and ent.get("eligible"):
@@ -318,6 +385,7 @@ def fiche(siren):
     e = entite(siren, communes, epcis)
     if e.get("eligible") or e.get("type"):
         e["contacts"] = contacts(e)
+        e["finances"] = finances(e)
     return e
 
 
@@ -346,9 +414,14 @@ def main():
     chemin = os.path.join(outdir, "candidats.json")
     json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=1)
     elig = [c for c in actes if c["entite"].get("eligible")]
+
+    def enrichir(c):
+        bud = (c.get("budget_emprunt") or {}).get("budget")
+        return contacts(c["entite"]), finances(c["entite"], bud)
+
     with ThreadPoolExecutor(8) as ex:
-        for c, ct in zip(elig, ex.map(lambda c: contacts(c["entite"]), elig)):
-            c["contacts"] = ct
+        for c, (ct, fi) in zip(elig, ex.map(enrichir, elig)):
+            c["contacts"], c["finances"] = ct, fi
     json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=1)
     print(json.dumps({"jour": res["jour"], "couverture": stats,
                       "actes_candidats": len(actes), "actes_eligibles": sum(c["entite"].get("eligible", False) for c in actes),
