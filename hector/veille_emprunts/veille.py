@@ -16,6 +16,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from net import get, jget, jpost  # noqa: E402
 from perimetre import DEPT2REG, DEPT_NAME, norm  # noqa: E402
 from totem import emprunts  # noqa: E402
+try:
+    import imminence  # noqa: E402
+except ImportError:          # fichier absent : pas d'échéances, le reste de la veille tourne
+    imminence = None
 import mairies  # noqa: E402
 import marches  # noqa: E402
 import presse  # noqa: E402
@@ -341,6 +345,29 @@ def collecte_boamp(d, communes, epcis, stats):
     return out
 
 
+def collecte_echeances(d, communes, epcis, stats):
+    """Délibérations d'emprunt et de ligne de trésorerie des 14 derniers mois (Mégalis, RECIA) : échéances
+    attendues autour de leur date anniversaire, et collectivités qui viennent déjà d'emprunter."""
+    if imminence is None:
+        return [], {}
+    try:
+        actes = imminence.historique(PLATEFORMES, (d - timedelta(days=430)).isoformat(), d.isoformat())
+    except Exception as e:
+        stats["Échéances (historique des emprunts)"] = f"ERREUR : {e}"
+        return [], {}
+    ech = (imminence.echeances(actes, d, communes, epcis, entite, "ligne")
+           + imminence.echeances(actes, d, communes, epcis, entite, "emprunt"))
+    recents = {}
+    for a in actes:
+        if imminence.type_acte(a["objet"]) in ("emprunt", "ligne") and a["date_acte"] >= (d - timedelta(days=75)).isoformat():
+            recents.setdefault(a["siren"], []).append({"date": a["date_acte"], "objet": a["objet"], "lien": a["url"]})
+    stats["Échéances (historique des emprunts)"] = (
+        f"{len(actes)} délibérations d'emprunt et de trésorerie des 14 derniers mois relues (Mégalis, RECIA), "
+        f"{sum(e['genre'] == 'ligne' for e in ech)} lignes de trésorerie et {sum(e['genre'] == 'emprunt' for e in ech)} "
+        f"emprunts arrivant à leur date anniversaire")
+    return ech, recents
+
+
 def collecte_travaux(d, communes, epcis, stats, jours=90):
     """Marchés de travaux lancés par les communes et EPCI éligibles ces 90 derniers jours (BOAMP) :
     un chantier engagé appelle un financement dans les mois qui suivent."""
@@ -429,22 +456,25 @@ def main():
     stats["Référentiel"] = f"{len(communes)} communes et {len(epcis)} EPCI dans les 20 départements (INSEE)"
     debut, fin = presse.fenetre(d, PARIS)
     plan = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plan_sites.json")
-    with ThreadPoolExecutor(7) as ex:
+    with ThreadPoolExecutor(8) as ex:
         f_actes = ex.submit(collecte_actes, d, outdir, communes, epcis, stats)
         f_boamp = ex.submit(collecte_boamp, d, communes, epcis, stats)
         f_trav = ex.submit(collecte_travaux, d, communes, epcis, stats)
+        f_ech = ex.submit(collecte_echeances, d, communes, epcis, stats)
         f_ted = ex.submit(collecte_ted, d, stats)
         f_presse = ex.submit(presse.collecte, debut, fin, communes, epcis, entite, stats)
         f_marches = ex.submit(marches.collecte, d, communes, epcis, entite, stats)
         f_sites = (ex.submit(mairies.scan, plan, d, communes, epcis, entite, stats)
                    if os.path.exists(plan) and not sans_sites else None)
         actes, boamp, ted, travaux = f_actes.result(), f_boamp.result(), f_ted.result(), f_trav.result()
+        echeances, recents = f_ech.result()
         (articles, orphelins), consultations = f_presse.result(), f_marches.result()
         sites = f_sites.result() if f_sites else []
     res = {"jour": d.isoformat(), "genere": datetime.now(PARIS).isoformat(timespec="minutes"),
            "fenetre_presse": f"{debut:%Y-%m-%d %H:%M} -> {fin:%Y-%m-%d %H:%M}",
            "couverture": stats, "actes": actes, "consultations": consultations, "boamp": boamp, "ted": ted,
            "presse": articles, "presse_sans_collectivite": orphelins, "sites": sites, "travaux": travaux,
+           "echeances": echeances, "emprunts_recents": recents,
            "non_couvert": "Pays de la Loire et Normandie : pas de plateforme publique des actes connue ; "
                           "couverts par les sites des mairies, les appels d'offres, la presse locale et le modèle.",
            "note": "Fiches (contacts, comptes, probabilité) dans 'fiches' ; pour une autre collectivité : "

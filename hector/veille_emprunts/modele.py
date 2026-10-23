@@ -30,6 +30,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import veille  # noqa: E402
 
 ICI = os.path.dirname(os.path.abspath(__file__))
+# variables annuelles reprises par le modèle mensuel d'imminence (imminence.py)
+ANNUELLES_IMMINENCE = ["e0", "e1", "depuis", "emp_3", "lpop", "eq_rrf", "eq_moy", "eq_hausse", "fdr_j", "treso_j", "vfdr",
+                       "cbf", "teb", "ten", "dette_hab", "desend", "remb_enc", "gap"]
 SEUIL = 20000
 COURT = {"Encours de dette": "enc", "Annuité de la dette": "ann", "Epargne brute": "eb", "Epargne nette": "en",
          "Recettes de fonctionnement": "rrf", "Dépenses d'équipement": "eq", "Emprunts hors GAD": "emp",
@@ -258,7 +261,8 @@ def main():
                            "marches_travaux_annee": int(nb_cour.get(r["code"], 0)) if typ == "Commune" else "",
                            "dernier_marche_date": dm["date"] if dm is not None else "",
                            "dernier_marche_objet": str(dm["objet"])[:160].replace(";", ",") if dm is not None else "",
-                           "facteurs": f})
+                           "facteurs": f, **{f"x_{k}": round(float(r[k]), 4) if r[k] == r[k] else ""
+                                              for k in ANNUELLES_IMMINENCE}})
     s = pd.DataFrame(sortie)
     s["rang_departement"] = s.groupby(["dept", "type"])["proba"].rank(ascending=False, method="min").astype(int)
     s.sort_values("proba", ascending=False).to_csv(os.path.join(ICI, "scores.csv"), sep=";", index=False)

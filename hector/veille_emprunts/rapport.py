@@ -48,6 +48,9 @@ LIBELLE_SOURCE = {"Mégalis Bretagne": "Mégalis Bretagne, registre officiel des
 LIENS = {}
 ECARTS_AUTO = []
 TRAVAUX = {}
+SURPLUS = []
+ECHEANCES = {}
+RECENTS = {}
 VIVIER = 100
 
 
@@ -84,6 +87,11 @@ def fiches(cand_files):
             LIENS[b["lien"]] = {"publie_le": b.get("date_publication"), "plateforme": b["source"]}
         for siren, v in (c.get("travaux") or {}).items():
             TRAVAUX.setdefault(siren, []).extend(v)
+        for e in c.get("echeances") or []:
+            ECHEANCES.setdefault(e["siren"], e)
+            ents.append(e["entite"])
+        for siren, v in (c.get("emprunts_recents") or {}).items():
+            RECENTS.setdefault(siren, []).extend(v)
         for p in c.get("sites", []):
             ents.append(p["entite"])
             LIENS[p["url"]] = {"publie_le": p.get("mis_en_ligne"), "date_acte": p.get("date_seance"),
@@ -211,6 +219,8 @@ def proba(p):
     t = f"{round(float(p['proba']) * 100)} % en {p['annee_prevue']}"
     if p.get("proba_annee_suivante"):
         t += f", {round(float(p['proba_annee_suivante']) * 100)} % en {int(p['annee_prevue']) + 1}"
+    if p.get("proba_2_mois"):
+        t += f" · {round(float(p['proba_2_mois']) * 100)} % d'ici 2 mois"
     return t
 
 
@@ -251,6 +261,13 @@ def message(q, idx, jours, calc):
             if c.get("lien"):
                 L.append(f"   🔗 {c['lien']}")
         L.append("")
+    if SURPLUS:
+        def court_dec(p):
+            r, genre = p[2], p[6]
+            quoi = {"ligne": "ligne de trésorerie", "emprunt": "emprunt annuel", "chantier": "chantier"}.get(genre, "modèle")
+            return f"{r['nom']} ({r['dept']}, {quoi})"
+        L.append(f"➕ AUSSI PROBABLES ({len(SURPLUS)}) : " + " · ".join(court_dec(p) for p in SURPLUS))
+        L.append("")
     if suivis:
         L.append(f"👀 À SUIVRE ({len(suivis)}) : " + " · ".join(
             f"{(fiche_de(o, idx).get('nom') or o['siren'])} ({o.get('statut') or 'signal'})" for o in suivis))
@@ -260,66 +277,117 @@ def message(q, idx, jours, calc):
     return "\n".join(L)
 
 
+def une_fois(siren, ecart, debut, duree):
+    """Vrai le jour (à 2 jours près, pour les week-ends) où cette collectivité doit être proposée :
+    chacune passe une seule fois dans la fenêtre [debut, debut + duree], à une date qui lui est propre."""
+    cible = debut + int(siren[-6:]) % duree
+    return cible - 2 <= ecart <= cible
+
+
 def liste_calculee(n, exclus, jour_ref):
-    """Collectivités éligibles qui vont emprunter selon le calcul : probabilité du modèle (comptes OFGL,
-    historique d'emprunt, marchés de travaux), relevée quand un chantier vient d'être lancé et que la
-    trésorerie est courte. Les noms tournent d'un jour à l'autre parmi les meilleurs."""
+    """Collectivités éligibles qui vont emprunter selon le calcul, par ordre de fiabilité :
+    1. échéance : ligne de trésorerie ou emprunt de l'an dernier arrivant à sa date anniversaire ;
+    2. chantier lancé récemment (BOAMP) ;
+    3. probabilité annuelle du modèle (comptes OFGL), par roulement parmi les 100 meilleures.
+    Chaque piste vient avec le taux observé sur l'historique breton (Mégalis 2021-2026)."""
     import csv
     import os
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import veille
+    try:
+        import imminence
+        taux_obs = imminence.TAUX
+    except ImportError:
+        imminence = None
+        taux_obs = {"ligne": 0.41, "emprunt": 0.22, "travaux_90j": 0.29}
     chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scores.csv")
     if not os.path.exists(chemin) or n <= 0:
         return []
-    rows = {r["siren"]: r for r in csv.DictReader(open(chemin, encoding="utf-8"), delimiter=";")
-            if r["siren"] not in exclus and int(r["population"] or 0) < (10000 if r["type"] == "Commune" else 20000)}
+    scores = {r["siren"]: r for r in csv.DictReader(open(chemin, encoding="utf-8"), delimiter=";")}
 
-    def note(r):
-        p = float(r["proba"])
-        t = TRAVAUX.get(r["siren"]) or []
-        if t:
-            age = (jour_ref - date.fromisoformat(t[0]["date"][:10])).days
-            p += 0.20 if age <= 30 else 0.10
-        elif r.get("dernier_marche_date"):
-            p += 0.05
-        tj = r.get("tresorerie_jours")
-        if tj not in (None, "") and float(tj) < 60:
-            p += 0.05
-        return p
+    def eligible(r):
+        return int(r["population"] or 0) < (10000 if r["type"] == "Commune" else 20000)
 
-    classes = sorted(rows.values(), key=lambda r: -note(r))
-    # d'abord les chantiers de moins de 30 jours (nouveaux chaque jour), puis le vivier par roulement
-    recents = [r for r in classes if TRAVAUX.get(r["siren"]) and
-               (jour_ref - date.fromisoformat(TRAVAUX[r["siren"]][0]["date"][:10])).days <= 30 and float(r["proba"]) >= 0.35]
-    vivier = [r for r in classes[:VIVIER] if r not in recents]
-    k = (jour_ref.toordinal() * n) % max(1, len(vivier))
-    choix = (recents[: n] + (vivier[k:] + vivier[:k]))[:n]
+    def recent(siren):
+        return bool(RECENTS.get(siren))
+
+    mod_mensuel = None
+    try:
+        mod_mensuel = json.load(open(os.path.join(os.path.dirname(chemin), "imminence.json")))
+    except Exception:
+        pass
+
+    def proche(r):
+        """Probabilité d'une délibération d'emprunt dans les 2 prochains mois (modèle mensuel)."""
+        if not mod_mensuel or imminence is None or "x_treso_j" not in r:
+            return 0.0
+        ann = {k: r.get(f"x_{k}") for k in imminence.ANNUELLES}
+        dates_tv = [t["date"] for t in TRAVAUX.get(r["siren"], [])]
+        r["proba_2_mois"] = round(imminence.proba_periode(mod_mensuel, ann, dates_tv, jour_ref, 2), 3)
+        return r["proba_2_mois"]
+
+    pistes = []
+    # 1. échéances
+    for siren, e in (ECHEANCES.items() if imminence else []):
+        if siren in exclus or recent(siren) or siren not in scores:
+            continue
+        ecart = (date.fromisoformat(e["attendu"]) - jour_ref).days
+        if not une_fois(siren, ecart, 7, 21):
+            continue
+        taux = taux_obs[e["genre"]]
+        if e["genre"] == "ligne":
+            dec = (f"🔁 Ligne de trésorerie du {fr_date(e['dernier_acte'])} : renouvellement attendu vers le "
+                   f"{fr_date(e['attendu'])[:5]} ({round(taux * 100)} % renouvellent à la date anniversaire)")
+        else:
+            dec = (f"📅 Emprunt du {fr_date(e['dernier_acte'])} : {round(taux * 100)} % réempruntent à la même période "
+                   f"l'année suivante")
+        pistes.append((-taux, -float(scores[siren]["proba"]), scores[siren], dec, e["lien"], [], e["genre"]))
+    # 2. chantiers récents
+    for siren, t in TRAVAUX.items():
+        r = scores.get(siren)
+        if not r or siren in exclus or recent(siren) or not eligible(r) or any(p[2]["siren"] == siren for p in pistes):
+            continue
+        t = sorted(t, key=lambda x: x["date"] or "", reverse=True)
+        age = (jour_ref - date.fromisoformat(t[0]["date"][:10])).days
+        if not une_fois(siren, age, 2, 25):
+            continue
+        objet = t[0]["objet"] if len(t[0]["objet"]) <= 80 else t[0]["objet"][:78] + "…"
+        dec = (f"🏗 Chantier lancé le {fr_date(t[0]['date'])[:5]} : {objet}"
+               + f" ({round(taux_obs['travaux_90j'] * 100)} % empruntent dans les 90 jours)")
+        pistes.append((-taux_obs["travaux_90j"], -float(r["proba"]), r, dec, t[0].get("lien"), t[:1], "chantier"))
+    pistes.sort(key=lambda p: (p[0], p[1]))
+    global SURPLUS
+    SURPLUS = pistes[n:]
+    pistes = pistes[:n]
+    # 3. modèle : les plus probables dans les 2 prochains mois (risque mensuel x probabilité annuelle), par roulement
+    if len(pistes) < n:
+        pris = {p[2]["siren"] for p in pistes}
+        candidats = sorted((r for r in scores.values() if eligible(r) and r["siren"] not in exclus
+                            and r["siren"] not in pris and not recent(r["siren"])),
+                           key=lambda r: -float(r["proba"]))[:3 * VIVIER]
+        vivier = sorted(candidats, key=lambda r: -proche(r))[:VIVIER]
+        k = (jour_ref.toordinal() * n) % max(1, len(vivier))
+        for r in (vivier[k:] + vivier[:k])[: n - len(pistes)]:
+            dec = f"🧮 {r['facteurs'] or 'profil d emprunteur régulier'}"
+            if r.get("dernier_marche_date"):
+                dec += f" · dernier chantier le {fr_date(r['dernier_marche_date'])}"
+            pistes.append((0, 0, r, dec, None, [], "modele"))
     noms = {v: k for k, v in CODES.items()}
     out = []
-    for r in choix:
+    for _, _, r, dec, lien, t, genre in pistes:
+        proche(r)
         ent = {"type": r["type"], "siren": r["siren"], "code_insee": r.get("code_insee"), "nom": r["nom"],
                "population": r["population"], "dept": r["dept"], "departement": noms.get(r["dept"], "")}
         ent["contacts"] = veille.contacts(ent)
-        t = TRAVAUX.get(r["siren"]) or []
-        if t:
-            dec = f"🏗 Chantier lancé le {fr_date(t[0]['date'])} : {t[0]['objet'][:110]}" + (
-                f" ({t[0]['taille']})" if t[0].get("taille") else "") + " · BOAMP"
-            lien = t[0].get("lien")
-        elif r.get("dernier_marche_date"):
-            dec = f"🏗 Dernier chantier lancé le {fr_date(r['dernier_marche_date'])} : {r['dernier_marche_objet'][:110]} · BOAMP"
-            lien = None
-        else:
-            dec = f"🧮 {r['facteurs'] or 'profil d emprunteur régulier'}"
-            lien = None
         emp = float(r["emprunts_derniere_annee"] or 0)
         fin = [f"emprunté {court(emp)} en {r['annee_comptes']}" if emp >= 20000 else f"aucun emprunt en {r['annee_comptes']}",
                f"investi {court(float(r['depense_equipement'] or 0))}"]
         if r.get("tresorerie") not in (None, ""):
             tj = f" ({r['tresorerie_jours']} j de dépenses)" if r.get("tresorerie_jours") not in (None, "") else ""
             fin.append(f"trésorerie {court(float(r['tresorerie']))}{tj}")
-        out.append({"siren": r["siren"], "entite": ent, "prediction": r, "declencheur": dec,
+        out.append({"siren": r["siren"], "entite": ent, "prediction": r, "declencheur": dec, "genre": genre,
                     "finances": "📊 Comptes " + r["annee_comptes"] + " : " + ", ".join(fin), "lien": lien,
-                    "facteurs": r.get("facteurs"), "travaux": t[:1]})
+                    "facteurs": r.get("facteurs"), "travaux": t})
     return out
 
 
