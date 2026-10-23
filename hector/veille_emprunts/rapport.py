@@ -402,19 +402,20 @@ def liste_calculee(n, exclus, jour_ref):
     return out
 
 
-def bloc_lecture(couv, jours):
-    def nb(cle, motif):
+def bloc_lecture(couv, jours, sheet=False):
+    def nb(cle, motif, total=sum):
         import re
-        v = " ".join(x for k, vals in couv.items() if cle in k for x in vals)
-        return sum(int(x.replace(" ", "")) for x in re.findall(motif, v))
+        v = [int(x) for k, vals in couv.items() if cle in k for val in vals for x in re.findall(motif, val)]
+        return total(v) if v else 0
     actes = nb("Mégalis Bretagne", r"(\d+) actes publiés lus") + nb("RECIA", r"(\d+) actes publiés lus")
     articles = nb("Presse", r"(\d+) articles distincts")
-    sites = nb("Sites des mairies", r"(\d+) sites lus")
-    avis = nb("BOAMP", r"(\d+) avis encore ouverts") + nb("BOAMP", r"(\d+) avis publiés")
+    # les mêmes sites et les mêmes avis ouverts sont relus chaque jour : on ne les compte qu'une fois
+    sites = nb("Sites des mairies", r"(\d+) sites lus", max)
+    avis = nb("BOAMP", r"(\d+) avis encore ouverts", max) + nb("BOAMP", r"(\d+) avis publiés")
     morceaux = [f"{actes} actes", f"{articles} articles de presse", f"{sites} sites de mairies",
                 f"{avis} avis BOAMP", "Mégalis, e-marchespublics, AWS, TED"]
     erreurs = [k for k, v in couv.items() if any("ERREUR" in x for x in v)]
-    L = [f"🔎 Lu {periode(jours)} : " + " · ".join(morceaux) + ". Détail dans le Google Sheets."]
+    L = [f"🔎 Lu {periode(jours)} : " + " · ".join(morceaux) + (". Détail dans le Google Sheets." if sheet else ".")]
     if erreurs:
         L.append("⚠️ Source en panne : " + ", ".join(erreurs))
     return "\n".join(L)
@@ -498,7 +499,7 @@ def main():
     mini = int(opts.get("--calcules", opts.get("--top", 5)))
     calc = [] if opts["--surs"] else liste_calculee(max(objectif - len(certains), mini),
                                                    {o["siren"] for o in q.get("opportunites", [])}, jour_ref)
-    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + bloc_lecture(couv, jours)
+    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + bloc_lecture(couv, jours, "--webhook" in opts)
     if "--sortie" in opts:
         open(opts["--sortie"], "w").write(msg)
     print(msg)
