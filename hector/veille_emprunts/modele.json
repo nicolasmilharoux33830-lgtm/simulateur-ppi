@@ -1,108 +1,240 @@
 {
- "cible": "Emprunts hors GAD >= 20000 € l'année suivante",
- "variables": [
-  "e0",
-  "e1",
-  "e2",
-  "depuis",
-  "emp_3",
-  "lpop",
-  "eq_rrf",
-  "eq_moy",
-  "eq_hausse",
-  "fdr_j",
-  "treso_j",
-  "vfdr",
-  "cbf",
-  "teb",
-  "ten",
-  "dette_hab",
-  "desend",
-  "remb_enc",
-  "subv_eq",
-  "gap"
- ],
+ "cible": "Emprunts hors GAD >= 20000 € l'année t+1 (horizon 1) et t+2 (horizon 2)",
+ "variables": {
+  "Commune": [
+   "e0",
+   "e1",
+   "e2",
+   "depuis",
+   "emp_3",
+   "lpop",
+   "eq_rrf",
+   "eq_moy",
+   "eq_hausse",
+   "fdr_j",
+   "treso_j",
+   "vfdr",
+   "cbf",
+   "teb",
+   "ten",
+   "dette_hab",
+   "desend",
+   "remb_enc",
+   "subv_eq",
+   "gap",
+   "tv",
+   "tv_gros",
+   "tv_suiv",
+   "tv_suiv_gros"
+  ],
+  "EPCI": [
+   "e0",
+   "e1",
+   "e2",
+   "depuis",
+   "emp_3",
+   "lpop",
+   "eq_rrf",
+   "eq_moy",
+   "eq_hausse",
+   "fdr_j",
+   "treso_j",
+   "vfdr",
+   "cbf",
+   "teb",
+   "ten",
+   "dette_hab",
+   "desend",
+   "remb_enc",
+   "subv_eq",
+   "gap"
+  ]
+ },
  "types": {
   "Commune": {
-   "apprentissage": "cibles 2021-2024, 27302 lignes",
-   "test": "cible 2025, 6811 lignes",
+   "horizon_1": {
+    "apprentissage": "cibles 2021-2024, 27302 lignes",
+    "test": "cible 2025, 6811 lignes",
+    "ensemble": {
+     "auc": 0.759,
+     "taux_moyen": 0.234,
+     "taux_premier_decile": 0.636
+    },
+    "logistique": {
+     "auc": 0.743,
+     "taux_moyen": 0.234,
+     "taux_premier_decile": 0.611
+    },
+    "gradient_boosting": {
+     "auc": 0.76,
+     "taux_moyen": 0.234,
+     "taux_premier_decile": 0.634
+    },
+    "coefficients_logistique": {
+     "e0": 0.315,
+     "e1": 0.2,
+     "e2": 0.157,
+     "depuis": 0.148,
+     "emp_3": -0.128,
+     "lpop": 0.331,
+     "eq_rrf": 0.146,
+     "eq_moy": 0.042,
+     "eq_hausse": 0.068,
+     "fdr_j": 0.173,
+     "treso_j": -0.699,
+     "vfdr": 0.098,
+     "cbf": -0.101,
+     "teb": -0.007,
+     "ten": -0.066,
+     "dette_hab": 0.068,
+     "desend": -0.01,
+     "remb_enc": 0.06,
+     "subv_eq": -0.054,
+     "gap": -0.195,
+     "tv": 0.076,
+     "tv_gros": 0.035,
+     "tv_suiv": 0.047,
+     "tv_suiv_gros": -0.041
+    }
+   },
+   "horizon_2": {
+    "apprentissage": "cibles 2022-2024, 20476 lignes",
+    "test": "cible 2025, 6811 lignes",
+    "ensemble": {
+     "auc": 0.743,
+     "taux_moyen": 0.234,
+     "taux_premier_decile": 0.596
+    },
+    "logistique": {
+     "auc": 0.733,
+     "taux_moyen": 0.234,
+     "taux_premier_decile": 0.589
+    },
+    "gradient_boosting": {
+     "auc": 0.744,
+     "taux_moyen": 0.234,
+     "taux_premier_decile": 0.598
+    },
+    "coefficients_logistique": {
+     "e0": 0.227,
+     "e1": 0.242,
+     "e2": 0.071,
+     "depuis": 0.151,
+     "emp_3": -0.143,
+     "lpop": 0.412,
+     "eq_rrf": -0.087,
+     "eq_moy": -0.014,
+     "eq_hausse": -0.03,
+     "fdr_j": 0.211,
+     "treso_j": -0.686,
+     "vfdr": -0.07,
+     "cbf": 0.09,
+     "teb": 0.108,
+     "ten": -0.119,
+     "dette_hab": 0.066,
+     "desend": -0.046,
+     "remb_enc": 0.042,
+     "subv_eq": -0.056,
+     "gap": 0.018,
+     "tv": -0.01,
+     "tv_gros": -0.006,
+     "tv_suiv": 0.122,
+     "tv_suiv_gros": -0.004
+    }
+   },
    "ensemble": {
-    "auc": 0.756,
-    "taux_moyen": 0.234,
-    "taux_premier_decile": 0.639
-   },
-   "logistique": {
-    "auc": 0.741,
-    "taux_moyen": 0.234,
-    "taux_premier_decile": 0.62
-   },
-   "gradient_boosting": {
-    "auc": 0.757,
+    "auc": 0.759,
     "taux_moyen": 0.234,
     "taux_premier_decile": 0.636
-   },
-   "coefficients_logistique": {
-    "e0": 0.328,
-    "e1": 0.206,
-    "e2": 0.161,
-    "depuis": 0.158,
-    "emp_3": -0.13,
-    "lpop": 0.383,
-    "eq_rrf": 0.146,
-    "eq_moy": 0.037,
-    "eq_hausse": 0.069,
-    "fdr_j": 0.154,
-    "treso_j": -0.667,
-    "vfdr": 0.106,
-    "cbf": -0.106,
-    "teb": -0.03,
-    "ten": -0.051,
-    "dette_hab": 0.079,
-    "desend": -0.018,
-    "remb_enc": 0.066,
-    "subv_eq": -0.052,
-    "gap": -0.192
    }
   },
   "EPCI": {
-   "apprentissage": "cibles 2021-2024, 5052 lignes",
-   "test": "cible 2025, 1262 lignes",
+   "horizon_1": {
+    "apprentissage": "cibles 2021-2024, 5052 lignes",
+    "test": "cible 2025, 1262 lignes",
+    "ensemble": {
+     "auc": 0.82,
+     "taux_moyen": 0.596,
+     "taux_premier_decile": 0.984
+    },
+    "logistique": {
+     "auc": 0.815,
+     "taux_moyen": 0.596,
+     "taux_premier_decile": 0.968
+    },
+    "gradient_boosting": {
+     "auc": 0.808,
+     "taux_moyen": 0.596,
+     "taux_premier_decile": 0.984
+    },
+    "coefficients_logistique": {
+     "e0": 0.5,
+     "e1": 0.349,
+     "e2": 0.21,
+     "depuis": 0.048,
+     "emp_3": -0.15,
+     "lpop": 0.385,
+     "eq_rrf": 0.008,
+     "eq_moy": 0.207,
+     "eq_hausse": 0.145,
+     "fdr_j": 0.022,
+     "treso_j": -0.352,
+     "vfdr": 0.111,
+     "cbf": 0.108,
+     "teb": 0.145,
+     "ten": -0.269,
+     "dette_hab": 0.353,
+     "desend": -0.043,
+     "remb_enc": 0.043,
+     "subv_eq": -0.128,
+     "gap": -0.325
+    }
+   },
+   "horizon_2": {
+    "apprentissage": "cibles 2022-2024, 3786 lignes",
+    "test": "cible 2025, 1262 lignes",
+    "ensemble": {
+     "auc": 0.781,
+     "taux_moyen": 0.596,
+     "taux_premier_decile": 0.976
+    },
+    "logistique": {
+     "auc": 0.786,
+     "taux_moyen": 0.596,
+     "taux_premier_decile": 0.968
+    },
+    "gradient_boosting": {
+     "auc": 0.761,
+     "taux_moyen": 0.596,
+     "taux_premier_decile": 0.976
+    },
+    "coefficients_logistique": {
+     "e0": 0.415,
+     "e1": 0.255,
+     "e2": 0.25,
+     "depuis": 0.009,
+     "emp_3": -0.144,
+     "lpop": 0.436,
+     "eq_rrf": 0.252,
+     "eq_moy": 0.003,
+     "eq_hausse": -0.034,
+     "fdr_j": -0.073,
+     "treso_j": -0.25,
+     "vfdr": -0.0,
+     "cbf": 0.025,
+     "teb": 0.126,
+     "ten": -0.23,
+     "dette_hab": 0.353,
+     "desend": 0.004,
+     "remb_enc": 0.083,
+     "subv_eq": -0.074,
+     "gap": -0.254
+    }
+   },
    "ensemble": {
     "auc": 0.82,
     "taux_moyen": 0.596,
     "taux_premier_decile": 0.984
-   },
-   "logistique": {
-    "auc": 0.815,
-    "taux_moyen": 0.596,
-    "taux_premier_decile": 0.968
-   },
-   "gradient_boosting": {
-    "auc": 0.808,
-    "taux_moyen": 0.596,
-    "taux_premier_decile": 0.984
-   },
-   "coefficients_logistique": {
-    "e0": 0.5,
-    "e1": 0.349,
-    "e2": 0.21,
-    "depuis": 0.048,
-    "emp_3": -0.15,
-    "lpop": 0.385,
-    "eq_rrf": 0.008,
-    "eq_moy": 0.207,
-    "eq_hausse": 0.145,
-    "fdr_j": 0.022,
-    "treso_j": -0.352,
-    "vfdr": 0.111,
-    "cbf": 0.108,
-    "teb": 0.145,
-    "ten": -0.269,
-    "dette_hab": 0.353,
-    "desend": -0.043,
-    "remb_enc": 0.043,
-    "subv_eq": -0.128,
-    "gap": -0.325
    }
   }
  }

@@ -1,5 +1,6 @@
-"""Télécharge les comptes OFGL (2019 à l'année la plus récente) des communes des 20 départements
-et de tous les EPCI à fiscalité propre, pour le modèle prédictif.
+"""Télécharge les données du modèle prédictif : comptes OFGL (2019 à l'année la plus récente) des
+communes des 20 départements et de tous les EPCI à fiscalité propre, et avis de marchés de travaux
+publiés au BOAMP par les acheteurs des 20 départements (2019 à aujourd'hui).
 
 Usage : python3 ofgl_export.py DOSSIER
 """
@@ -25,6 +26,23 @@ def export(ds, where, select, chemin):
     open(chemin, "wb").write(b)
 
 
+BOAMP = "https://boamp-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/boamp/exports/csv"
+
+
+def travaux(out):
+    deps = ",".join(f'"{d}"' for d in sorted(DEPT2REG))
+    for an in range(2019, 2027):
+        chemin = os.path.join(out, f"boamp_travaux_{an}.csv")
+        if os.path.exists(chemin) and os.path.getsize(chemin) > 1000 and an < 2026:
+            continue
+        b = get(BOAMP, {"where": f'year(dateparution)={an} and nature="APPEL_OFFRE" and type_marche="TRAVAUX" '
+                                 f"and code_departement in ({deps})",
+                        "select": "idweb,dateparution,nomacheteur,famille,code_departement,objet",
+                        "delimiter": ";"}, tries=25, timeout=240)
+        open(chemin, "wb").write(b)
+        print("boamp", an, "ok", flush=True)
+
+
 def main():
     out = sys.argv[1]
     os.makedirs(out, exist_ok=True)
@@ -35,6 +53,7 @@ def main():
     export("ofgl-base-gfp-consolidee", f"year(exer)>=2019 and agregat in ({LISTE})",
            "epci_code,epci_name,dep_code,exer,agregat,montant,ptot", os.path.join(out, "epci_france.csv"))
     print("epci ok", flush=True)
+    travaux(out)
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from net import get, jget, jpost  # noqa: E402
 from perimetre import DEPT2REG, DEPT_NAME, norm  # noqa: E402
 from totem import emprunts  # noqa: E402
+import mairies  # noqa: E402
 import marches  # noqa: E402
 import presse  # noqa: E402
 
@@ -57,21 +58,28 @@ def tokens(s):
 
 # ---------- référentiel communes / EPCI du périmètre ----------
 def referentiel():
-    communes, epcis = {}, {}
-    def dep(d):
-        return d, jget(f"https://geo.api.gouv.fr/departements/{d}/communes",
-                       {"fields": "nom,code,population,siren,codeEpci"}, tries=10, timeout=60)
-    with ThreadPoolExecutor(5) as ex:
-        for d, rows in ex.map(dep, sorted(DEPT2REG)):
-            for c in rows:
-                communes[c["siren"]] = {"type": "Commune", "nom": c["nom"], "code_insee": c["code"],
-                                        "population": c.get("population"), "dept": d}
-    for e in jget("https://geo.api.gouv.fr/epcis", {"fields": "nom,code,population,codesDepartements"},
-                  tries=10, timeout=60):
-        ds = [x for x in (e.get("codesDepartements") or []) if x in DEPT2REG]
-        if ds:
-            epcis[e["code"]] = {"type": "EPCI", "nom": e["nom"], "population": e.get("population"), "dept": ds[0]}
-    return communes, epcis
+    """Communes et EPCI des 20 départements (geo.api.gouv.fr) ; copie de secours referentiel.json si l'API coupe."""
+    secours = os.path.join(os.path.dirname(os.path.abspath(__file__)), "referentiel.json")
+    try:
+        communes, epcis = {}, {}
+
+        def dep(d):
+            return d, jget(f"https://geo.api.gouv.fr/departements/{d}/communes",
+                           {"fields": "nom,code,population,siren,codeEpci"}, tries=25, timeout=60)
+        with ThreadPoolExecutor(5) as ex:
+            for d, rows in ex.map(dep, sorted(DEPT2REG)):
+                for c in rows:
+                    communes[c["siren"]] = {"type": "Commune", "nom": c["nom"], "code_insee": c["code"],
+                                            "population": c.get("population"), "dept": d}
+        for e in jget("https://geo.api.gouv.fr/epcis", {"fields": "nom,code,population,codesDepartements"},
+                      tries=25, timeout=60):
+            ds = [x for x in (e.get("codesDepartements") or []) if x in DEPT2REG]
+            if ds:
+                epcis[e["code"]] = {"type": "EPCI", "nom": e["nom"], "population": e.get("population"), "dept": ds[0]}
+        return communes, epcis
+    except Exception:
+        r = json.load(open(secours, encoding="utf-8"))
+        return r["communes"], r["epcis"]
 
 
 def entite(siren, communes, epcis):
@@ -333,6 +341,36 @@ def collecte_boamp(d, communes, epcis, stats):
     return out
 
 
+def collecte_travaux(d, communes, epcis, stats, jours=90):
+    """Marchés de travaux lancés par les communes et EPCI éligibles ces 90 derniers jours (BOAMP) :
+    un chantier engagé appelle un financement dans les mois qui suivent."""
+    idx = marches.index_acheteurs(communes, epcis)
+    deps = ",".join(f'"{x}"' for x in sorted(DEPT2REG))
+    try:
+        rows = json.loads(get(BOAMP, {"where": f'dateparution>=date\'{d - timedelta(days=jours)}\' and '
+                                                f'dateparution<=date\'{d}\' and nature="APPEL_OFFRE" and '
+                                                f'type_marche="TRAVAUX" and code_departement in ({deps})',
+                                       "select": "idweb,dateparution,nomacheteur,famille,code_departement,objet,url_avis"},
+                              tries=25, timeout=120))
+    except Exception as e:
+        stats["BOAMP travaux"] = f"ERREUR : {e}"
+        return {}
+    out = {}
+    for r in rows:
+        siren = marches.rattacher(r.get("nomacheteur"), r.get("code_departement"), idx)
+        e = entite(siren, communes, epcis) if siren else {}
+        if e.get("eligible"):
+            out.setdefault(siren, []).append({"date": r.get("dateparution"), "objet": r.get("objet"),
+                                              "taille": {"MAPA": "moins de 90 k€", "FNS": "90 k€ à 5,5 M€",
+                                                         "JOUE": "plus de 5,5 M€"}.get(r.get("famille"), ""),
+                                              "lien": r.get("url_avis")})
+    for v in out.values():
+        v.sort(key=lambda x: x["date"] or "", reverse=True)
+    stats["BOAMP travaux"] = (f"{len(rows)} marchés de travaux publiés en {jours} jours dans les 20 départements, "
+                              f"{sum(len(v) for v in out.values())} lancés par {len(out)} communes ou EPCI éligibles")
+    return out
+
+
 # ---------- TED ----------
 def collecte_ted(d, stats):
     q = (f"publication-date={d:%Y%m%d} AND buyer-country=FRA AND "
@@ -388,20 +426,24 @@ def main():
     communes, epcis = referentiel()
     stats["Référentiel"] = f"{len(communes)} communes et {len(epcis)} EPCI dans les 20 départements (INSEE)"
     debut, fin = presse.fenetre(d, PARIS)
-    with ThreadPoolExecutor(5) as ex:
+    plan = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plan_sites.json")
+    with ThreadPoolExecutor(7) as ex:
         f_actes = ex.submit(collecte_actes, d, outdir, communes, epcis, stats)
         f_boamp = ex.submit(collecte_boamp, d, communes, epcis, stats)
+        f_trav = ex.submit(collecte_travaux, d, communes, epcis, stats)
         f_ted = ex.submit(collecte_ted, d, stats)
         f_presse = ex.submit(presse.collecte, debut, fin, communes, epcis, entite, stats)
         f_marches = ex.submit(marches.collecte, d, communes, epcis, entite, stats)
-        actes, boamp, ted = f_actes.result(), f_boamp.result(), f_ted.result()
+        f_sites = ex.submit(mairies.scan, plan, d, communes, epcis, entite, stats) if os.path.exists(plan) else None
+        actes, boamp, ted, travaux = f_actes.result(), f_boamp.result(), f_ted.result(), f_trav.result()
         (articles, orphelins), consultations = f_presse.result(), f_marches.result()
+        sites = f_sites.result() if f_sites else []
     res = {"jour": d.isoformat(), "genere": datetime.now(PARIS).isoformat(timespec="minutes"),
            "fenetre_presse": f"{debut:%Y-%m-%d %H:%M} -> {fin:%Y-%m-%d %H:%M}",
            "couverture": stats, "actes": actes, "consultations": consultations, "boamp": boamp, "ted": ted,
-           "presse": articles, "presse_sans_collectivite": orphelins,
+           "presse": articles, "presse_sans_collectivite": orphelins, "sites": sites, "travaux": travaux,
            "non_couvert": "Pays de la Loire et Normandie : pas de plateforme publique des actes connue ; "
-                          "couverts par les appels d'offres, la presse locale et le modèle prédictif.",
+                          "couverts par les sites des mairies, les appels d'offres, la presse locale et le modèle.",
            "note": "Fiches (contacts, comptes, probabilité) dans 'fiches' ; pour une autre collectivité : "
                    "python3 veille.py --fiche SIREN"}
     chemin = os.path.join(outdir, "candidats.json")
@@ -412,7 +454,7 @@ def main():
     for c in actes:
         if c["entite"].get("eligible") and not c.get("motif_ecart"):
             pistes.setdefault(c["siren"], (c["entite"], (c.get("budget_emprunt") or {}).get("budget")))
-    for c in consultations + boamp:
+    for c in consultations + boamp + sites:
         e = c.get("entite") or {}
         if e.get("eligible"):
             pistes.setdefault(e["siren"], (e, None))
@@ -440,7 +482,8 @@ def main():
     print(json.dumps({"jour": res["jour"], "couverture": stats, "actes_candidats": len(actes),
                       "actes_eligibles_retenus": len(retenus),
                       "consultations": len(consultations), "boamp": len(boamp), "ted": len(ted),
-                      "presse": len(articles), "fiches": len(res["fiches"])}, ensure_ascii=False, indent=1))
+                      "presse": len(articles), "sites": len(sites), "travaux": len(travaux),
+                      "fiches": len(res["fiches"])}, ensure_ascii=False, indent=1))
 
 
 if __name__ == "__main__":
