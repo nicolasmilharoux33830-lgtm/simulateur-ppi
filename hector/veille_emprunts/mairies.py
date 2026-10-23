@@ -50,11 +50,13 @@ MOIS = {"janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6, 
 # Ce qui fait d'un document une piste : un emprunt nouveau, une consultation des banques
 EMPRUNT = re.compile(r"(recours a l.emprunt|contracter un (?:emprunt|pret)|souscrire un (?:emprunt|pret)|"
                      r"souscription d.un (?:emprunt|pret)|realisation d.un (?:emprunt|pret)|nouvel emprunt|"
-                     r"emprunt (?:de|d.un montant de) \d|pret (?:de|d.un montant de) \d|(?:emprunt|pret) aupres|"
+                     r"(?:emprunt|pret) (?:de|d.un montant de) (?:\d{1,3}(?:[ .]\d{3})+|\d+(?:[.,]\d+)? ?(?:k|m|millions?|euros?)\b)|"
+                     r"(?:emprunt|pret) aupres|"
                      r"offres? de (?:pret|financement)|consultation (?:bancaire|des banques|des etablissements|"
                      r"d.organismes|aupres)|etablissements (?:bancaires|de credit|financiers)|"
                      r"organismes? (?:bancaires?|preteurs?)|ligne de tresorerie|pret[- ]relais|preteur|"
-                     r"financement bancaire|contrat de pret|refinancement|renegociation d|reamenagement de (?:la )?dette)")
+                     r"financement bancaire|contrat de pret(?! a usage)(?! de \d+ (?:oeuvre|objet|tableau))|refinancement|"
+                     r"renegociation d|reamenagement de (?:la )?dette)")
 CONTEXTE = 260
 DOC_EXCLU = re.compile(r"\bcfu|compte financier|compte administratif|budget primitif|\bbp ?\d|"
                        r"presentation (?:sommaire|breve)|rapport financier|rpqs|rapport annuel|\barrete|\bmenu|"
@@ -269,6 +271,7 @@ def plan(sites_json, chemin, fils=64):
 def dates(s):
     """Dates écrites dans un texte ou une adresse (titre de séance, nom de fichier)."""
     n = norm(urllib.parse.unquote(s))
+    n = re.sub(r"/20\d\d/\d\d/", "/", n)          # dossier de dépôt WordPress, pas une date de séance
     out = []
     for j, m, a in re.findall(r"\b(\d{1,2})(?:er)?[ _-]+(" + "|".join(MOIS) + r")[ _-]+(20\d\d)\b", n):
         out.append((int(a), MOIS[m], int(j)))
@@ -280,6 +283,8 @@ def dates(s):
         out.append((int(a), int(m), int(j)))
     for j, m, a in re.findall(r"\b([0-2]\d|3[01])(0[1-9]|1[0-2])(20[2-3]\d)\b", n):
         out.append((int(a), int(m), int(j)))
+    for j, m, a in re.findall(r"\b([0-2]?\d|3[01])[._-](0?[1-9]|1[0-2])[._-](2[0-9])\b(?![./_-]?\d)", n):
+        out.append((2000 + int(a), int(m), int(j)))
     res = []
     for a, m, j in out:
         try:
