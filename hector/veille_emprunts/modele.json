@@ -27,9 +27,9 @@
    "apprentissage": "cibles 2021-2024, 27302 lignes",
    "test": "cible 2025, 6811 lignes",
    "ensemble": {
-    "auc": 0.755,
+    "auc": 0.756,
     "taux_moyen": 0.234,
-    "taux_premier_decile": 0.634
+    "taux_premier_decile": 0.639
    },
    "logistique": {
     "auc": 0.741,
@@ -37,9 +37,9 @@
     "taux_premier_decile": 0.62
    },
    "gradient_boosting": {
-    "auc": 0.756,
+    "auc": 0.757,
     "taux_moyen": 0.234,
-    "taux_premier_decile": 0.646
+    "taux_premier_decile": 0.636
    },
    "coefficients_logistique": {
     "e0": 0.328,

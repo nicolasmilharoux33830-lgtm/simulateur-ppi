@@ -35,7 +35,7 @@ COURT = {"Encours de dette": "enc", "Annuité de la dette": "ann", "Epargne brut
 # Libellé d'une variable selon qu'elle est haute ou basse pour la collectivité (pour expliquer un score)
 HAUT = {"e0": "a emprunté l'année des derniers comptes", "e1": "a emprunté l'année précédente",
         "e2": "a emprunté il y a deux ans", "depuis": "pas d'emprunt depuis plusieurs années",
-        "emp_3": "beaucoup emprunté ces 3 dernières années", "lpop": "taille importante",
+        "emp_3": "beaucoup emprunté ces 3 dernières années", "lpop": "population au-dessus de la moyenne",
         "eq_rrf": "investissement élevé par rapport aux recettes", "eq_moy": "investissement soutenu sur 3 ans",
         "eq_hausse": "investissement en hausse", "fdr_j": "fonds de roulement élevé", "treso_j": "trésorerie abondante",
         "vfdr": "fonds de roulement en baisse", "cbf": "besoin de financement",
@@ -44,7 +44,7 @@ HAUT = {"e0": "a emprunté l'année des derniers comptes", "e1": "a emprunté l'
         "subv_eq": "investissement très subventionné", "gap": "investissement non couvert par l'épargne et les subventions"}
 BAS = {"e0": "pas d'emprunt l'année des derniers comptes", "e1": "pas d'emprunt l'année précédente",
        "e2": "pas d'emprunt il y a deux ans", "depuis": "emprunt récent", "emp_3": "peu emprunté ces 3 dernières années",
-       "lpop": "petite taille", "eq_rrf": "investissement faible", "eq_moy": "investissement faible sur 3 ans",
+       "lpop": "petite population", "eq_rrf": "investissement faible", "eq_moy": "investissement faible sur 3 ans",
        "eq_hausse": "investissement en baisse", "fdr_j": "fonds de roulement faible", "treso_j": "trésorerie faible",
        "vfdr": "fonds de roulement reconstitué", "cbf": "capacité de financement", "teb": "épargne brute faible",
        "ten": "épargne nette faible", "dette_hab": "peu de dette", "desend": "désendettement court",
@@ -152,7 +152,7 @@ def facteurs(mod, z, k=3):
     for row in z:
         contrib = coef * row
         idx = [i for i in np.argsort(-contrib)[:k] if contrib[i] > 0.15]
-        out.append(" ; ".join((HAUT if row[i] > 0 else BAS)[X[i]] for i in idx))
+        out.append(", ".join((HAUT if row[i] > 0 else BAS)[X[i]] for i in idx))
     return out
 
 

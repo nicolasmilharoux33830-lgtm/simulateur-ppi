@@ -41,6 +41,7 @@ LIBELLE_SOURCE = {"Mégalis Bretagne": "Mégalis Bretagne, registre officiel des
                   "GIP RECIA (Centre-Val de Loire)": "GIP RECIA, registre officiel des actes transmis en préfecture"}
 LIENS = {}
 ECARTS_AUTO = []
+VIVIER = 100
 
 
 def fiches(cand_files):
@@ -231,12 +232,15 @@ def top_predit(n, exclus):
         return []
     rows = [r for r in csv.DictReader(open(chemin, encoding="utf-8"), delimiter=";")
             if r["siren"] not in exclus and int(r["population"] or 0) < (10000 if r["type"] == "Commune" else 20000)]
-    rows = sorted(rows, key=lambda r: -float(r["proba"]))[:n]
-    if not rows:
+    # Vivier des 100 plus probables, parcouru par roulement : de nouveaux noms chaque matin
+    vivier = sorted(rows, key=lambda r: -float(r["proba"]))[:VIVIER]
+    if not vivier:
         return []
+    k = (datetime.now(PARIS).date().toordinal() * n) % len(vivier)
+    rows = (vivier[k:] + vivier[:k])[:n]
     m = json.load(open(os.path.join(os.path.dirname(chemin), "modele.json")))
     auc = m["types"]["Commune"]["ensemble"]
-    L = [f"🔮 Top {len(rows)} prédit · qui va emprunter en {rows[0]['annee_prevue']} "
+    L = ["", f"🔮 À démarcher · {len(rows)} des {len(vivier)} collectivités éligibles les plus susceptibles d'emprunter en {rows[0]['annee_prevue']} "
          f"(modèle économétrique sur les comptes OFGL {rows[0]['annee_comptes']}, testé sur {int(rows[0]['annee_comptes'])} : "
          f"AUC {str(auc['auc']).replace('.', ',')}, {round(auc['taux_premier_decile'] * 100)} % d'emprunteurs dans le "
          f"premier décile contre {round(auc['taux_moyen'] * 100)} % en moyenne)", ""]

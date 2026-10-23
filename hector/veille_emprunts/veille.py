@@ -369,17 +369,12 @@ def fiche(siren):
 
 def scores(sirens):
     """Probabilité d'emprunt dans l'année (modele.py) pour les collectivités retenues."""
+    import csv
     chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scores.csv")
     if not os.path.exists(chemin):
         return {}
-    out = {}
     with open(chemin, encoding="utf-8") as f:
-        tete = f.readline().strip().split(";")
-        for ligne in f:
-            r = dict(zip(tete, ligne.rstrip("\n").split(";")))
-            if r.get("siren") in sirens:
-                out[r["siren"]] = r
-    return out
+        return {r["siren"]: r for r in csv.DictReader(f, delimiter=";") if r["siren"] in sirens}
 
 
 def main():
@@ -422,10 +417,9 @@ def main():
         if e.get("eligible"):
             pistes.setdefault(e["siren"], (e, None))
     for a in articles:
-        if a["signal"] != "budget / finances":
-            for e in a["collectivites_citees"]:
-                if e.get("eligible"):
-                    pistes.setdefault(e["siren"], (e, None))
+        for e in a["collectivites_citees"]:
+            if e.get("eligible"):
+                pistes.setdefault(e["siren"], (e, None))
     pistes = dict(list(pistes.items())[:MAX_FICHES])
 
     def enrichir(item):
