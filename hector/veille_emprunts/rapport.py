@@ -18,6 +18,7 @@ Identité, population, département et coordonnées sont repris des candidats v�
 """
 import json
 import sys
+import urllib.parse
 import urllib.request
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
@@ -311,7 +312,7 @@ def liste_calculee(n, exclus, jour_ref):
             dec = f"🧮 {r['facteurs'] or 'profil d emprunteur régulier'}"
             lien = None
         emp = float(r["emprunts_derniere_annee"] or 0)
-        fin = [f"emprunté {court(emp)} en {r['annee_comptes']}" if emp >= 1 else f"aucun emprunt en {r['annee_comptes']}",
+        fin = [f"emprunté {court(emp)} en {r['annee_comptes']}" if emp >= 20000 else f"aucun emprunt en {r['annee_comptes']}",
                f"investi {court(float(r['depense_equipement'] or 0))}"]
         if r.get("tresorerie") not in (None, ""):
             tj = f" ({r['tresorerie_jours']} j de dépenses)" if r.get("tresorerie_jours") not in (None, "") else ""
@@ -329,7 +330,7 @@ def bloc_lecture(couv, jours):
         return sum(int(x.replace(" ", "")) for x in re.findall(motif, v))
     actes = nb("Mégalis Bretagne", r"(\d+) actes publiés lus") + nb("RECIA", r"(\d+) actes publiés lus")
     articles = nb("Presse", r"(\d+) articles distincts")
-    sites = nb("Sites des mairies", r"(\d+) sites parcourus")
+    sites = nb("Sites des mairies", r"(\d+) sites lus")
     avis = nb("BOAMP", r"(\d+) avis encore ouverts") + nb("BOAMP", r"(\d+) avis publiés")
     morceaux = [f"{actes} actes", f"{articles} articles de presse", f"{sites} sites de mairies",
                 f"{avis} avis BOAMP", "Mégalis, e-marchespublics, AWS, TED"]
@@ -399,6 +400,17 @@ ENTETES = {"Liste calculée": ["Date", "Rang", "SIREN", "Collectivité", "Type",
 def main():
     qf, cfs, opts = args()
     q = json.load(open(qf))
+    if "--webhook" in opts:
+        # ce qui est déjà dans le Google Sheets n'est pas reproposé comme nouveau
+        try:
+            u = opts["--webhook"] + "?" + urllib.parse.urlencode({"secret": opts.get("--secret", "")})
+            with urllib.request.urlopen(u, timeout=60) as r:
+                vus = {x.get("lien"): x.get("date") for x in json.loads(r.read()).get("deja_signales", [])}
+            for o in q.get("opportunites", []):
+                if o.get("lien") in vus and o.get("niveau") in ("A", "B"):
+                    o["niveau"], o["statut"] = "C", f"déjà signalé le {vus[o['lien']]}"
+        except Exception:
+            pass
     idx, jours, couv = fiches(cfs)
     jour_ref = date.fromisoformat(jours[-1]) if jours else datetime.now(PARIS).date()
     certains = {o["siren"] for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")}
@@ -406,7 +418,7 @@ def main():
     objectif = int(opts.get("--objectif", 10 if lundi else 7))
     mini = int(opts.get("--calcules", opts.get("--top", 5)))
     calc = liste_calculee(max(objectif - len(certains), mini), {o["siren"] for o in q.get("opportunites", [])}, jour_ref)
-    msg = message(q, idx, jours, calc) + bloc_lecture(couv, jours)
+    msg = message(q, idx, jours, calc) + "\n" + bloc_lecture(couv, jours)
     if "--sortie" in opts:
         open(opts["--sortie"], "w").write(msg)
     print(msg)

@@ -58,7 +58,7 @@
     "ensemble": {
      "auc": 0.759,
      "taux_moyen": 0.234,
-     "taux_premier_decile": 0.636
+     "taux_premier_decile": 0.633
     },
     "logistique": {
      "auc": 0.743,
@@ -66,35 +66,35 @@
      "taux_premier_decile": 0.611
     },
     "gradient_boosting": {
-     "auc": 0.76,
+     "auc": 0.761,
      "taux_moyen": 0.234,
-     "taux_premier_decile": 0.634
+     "taux_premier_decile": 0.631
     },
     "coefficients_logistique": {
-     "e0": 0.315,
+     "e0": 0.313,
      "e1": 0.2,
-     "e2": 0.157,
-     "depuis": 0.148,
+     "e2": 0.158,
+     "depuis": 0.145,
      "emp_3": -0.128,
-     "lpop": 0.331,
-     "eq_rrf": 0.146,
-     "eq_moy": 0.042,
-     "eq_hausse": 0.068,
+     "lpop": 0.324,
+     "eq_rrf": 0.149,
+     "eq_moy": 0.039,
+     "eq_hausse": 0.066,
      "fdr_j": 0.173,
-     "treso_j": -0.699,
-     "vfdr": 0.098,
-     "cbf": -0.101,
-     "teb": -0.007,
-     "ten": -0.066,
-     "dette_hab": 0.068,
-     "desend": -0.01,
-     "remb_enc": 0.06,
-     "subv_eq": -0.054,
-     "gap": -0.195,
-     "tv": 0.076,
-     "tv_gros": 0.035,
-     "tv_suiv": 0.047,
-     "tv_suiv_gros": -0.041
+     "treso_j": -0.705,
+     "vfdr": 0.097,
+     "cbf": -0.1,
+     "teb": -0.001,
+     "ten": -0.068,
+     "dette_hab": 0.064,
+     "desend": -0.006,
+     "remb_enc": 0.059,
+     "subv_eq": -0.055,
+     "gap": -0.196,
+     "tv": 0.097,
+     "tv_gros": 0.024,
+     "tv_suiv": 0.082,
+     "tv_suiv_gros": -0.083
     }
    },
    "horizon_2": {
@@ -103,49 +103,49 @@
     "ensemble": {
      "auc": 0.743,
      "taux_moyen": 0.234,
-     "taux_premier_decile": 0.596
+     "taux_premier_decile": 0.59
     },
     "logistique": {
-     "auc": 0.733,
+     "auc": 0.734,
      "taux_moyen": 0.234,
-     "taux_premier_decile": 0.589
+     "taux_premier_decile": 0.592
     },
     "gradient_boosting": {
-     "auc": 0.744,
+     "auc": 0.743,
      "taux_moyen": 0.234,
-     "taux_premier_decile": 0.598
+     "taux_premier_decile": 0.59
     },
     "coefficients_logistique": {
-     "e0": 0.227,
-     "e1": 0.242,
-     "e2": 0.071,
-     "depuis": 0.151,
-     "emp_3": -0.143,
-     "lpop": 0.412,
-     "eq_rrf": -0.087,
-     "eq_moy": -0.014,
+     "e0": 0.226,
+     "e1": 0.24,
+     "e2": 0.07,
+     "depuis": 0.149,
+     "emp_3": -0.139,
+     "lpop": 0.404,
+     "eq_rrf": -0.085,
+     "eq_moy": -0.016,
      "eq_hausse": -0.03,
-     "fdr_j": 0.211,
-     "treso_j": -0.686,
-     "vfdr": -0.07,
-     "cbf": 0.09,
-     "teb": 0.108,
+     "fdr_j": 0.212,
+     "treso_j": -0.69,
+     "vfdr": -0.068,
+     "cbf": 0.086,
+     "teb": 0.111,
      "ten": -0.119,
-     "dette_hab": 0.066,
-     "desend": -0.046,
-     "remb_enc": 0.042,
-     "subv_eq": -0.056,
-     "gap": 0.018,
-     "tv": -0.01,
-     "tv_gros": -0.006,
-     "tv_suiv": 0.122,
-     "tv_suiv_gros": -0.004
+     "dette_hab": 0.062,
+     "desend": -0.043,
+     "remb_enc": 0.04,
+     "subv_eq": -0.057,
+     "gap": 0.017,
+     "tv": 0.003,
+     "tv_gros": -0.009,
+     "tv_suiv": 0.095,
+     "tv_suiv_gros": 0.024
     }
    },
    "ensemble": {
     "auc": 0.759,
     "taux_moyen": 0.234,
-    "taux_premier_decile": 0.636
+    "taux_premier_decile": 0.633
    }
   },
   "EPCI": {

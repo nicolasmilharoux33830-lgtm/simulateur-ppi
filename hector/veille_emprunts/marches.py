@@ -11,7 +11,7 @@ import json
 import re
 import urllib.parse
 import urllib.request
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 
 from net import get
 from perimetre import DEPT2REG, norm

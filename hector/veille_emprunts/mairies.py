@@ -24,7 +24,7 @@ import urllib.parse
 import urllib.request
 import urllib.robotparser
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta, timezone
 from email.utils import parsedate_to_datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -55,6 +55,7 @@ EMPRUNT = re.compile(r"(recours a l.emprunt|contracter un (emprunt|pret)|souscri
                      r"banque des territoires|caisse d.epargne|credit agricole|credit mutuel|banque postale|"
                      r"arkea|caisse des depots|refinancement|renegociation|reamenagement)")
 CONTEXTE = 260
+BUDGET_DOC = re.compile(r"budget|decision modificative|\bdm\b|emprunt|pret|financement|orientation")
 
 
 class Refus(Exception):
@@ -137,7 +138,11 @@ def ascii_url(url):
         hote = p.hostname.encode("idna").decode() if p.hostname else ""
     except UnicodeError:
         hote = p.hostname or ""
-    netloc = hote + (f":{p.port}" if p.port else "")
+    try:
+        port = p.port
+    except ValueError:
+        port = None
+    netloc = hote + (f":{port}" if port else "")
     chemin = urllib.parse.quote(p.path, safe="/%:@!$&'()*+,;=-._~")
     requete = urllib.parse.quote(p.query, safe="=&%/:+,;-._~")
     return urllib.parse.urlunsplit((p.scheme, netloc, chemin, requete, ""))
@@ -177,7 +182,7 @@ def liens(base, b):
     out = []
     for m in re.finditer(r'(?is)<a\b[^>]*href\s*=\s*["\']([^"\'#]+)["\'][^>]*>(.*?)</a>', s):
         href, txt = html.unescape(m.group(1)).strip(), html.unescape(re.sub(r"<[^>]+>", " ", m.group(2)))
-        if EXCLU.search(href) or "{{" in href:
+        if EXCLU.search(href) or "{{" in href or "[" in href or " id=" in href:
             continue
         u = urllib.parse.urljoin(base, href)
         if u.startswith("http"):
@@ -195,6 +200,13 @@ def meme_site(a, b):
 
 # ---------- 3. Plan : les pages utiles de chaque site ----------
 def plan_site(siren, info):
+    try:
+        return _plan_site(siren, info)
+    except Exception as e:
+        return {"siren": siren, "site": info["site"], "pages": [], "etat": f"erreur ({str(e)[:60]})"}
+
+
+def _plan_site(siren, info):
     out = {"siren": siren, "site": info["site"], "pages": [], "etat": "ok"}
     try:
         base, ctype, b, _ = lire(info["site"])
@@ -239,6 +251,7 @@ def plan(sites_json, chemin, fils=64):
             res[p["siren"]] = p
             if i % 250 == 0:
                 print(i, flush=True)
+                json.dump(res, open(chemin + ".part", "w"), ensure_ascii=False)
     json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=0)
     etats = {}
     for p in res.values():
@@ -311,14 +324,21 @@ def extraits(texte):
 
 def scan_site(p, jour, recent_jours=3, fenetre_seance=45):
     """Documents récents des pages utiles d'un site, avec les passages sur un emprunt."""
+    try:
+        return _scan_site(p, jour, recent_jours, fenetre_seance)
+    except Exception as e:
+        return {"siren": p["siren"], "etat": f"erreur ({str(e)[:60]})", "docs_vus": 0, "docs_recents": 0, "pistes": []}
+
+
+def _scan_site(p, jour, recent_jours, fenetre_seance):
     res = {"siren": p["siren"], "etat": "ok", "docs_vus": 0, "docs_recents": 0, "pistes": []}
     if not p.get("pages"):
         res["etat"] = "sans page utile"
         return res
     vus, n_head, n_get = set(), 0, 0
-    for page in p["pages"][:8]:
+    for page in p["pages"][:5]:
         try:
-            u, ctype, b, _ = lire(page)
+            u, ctype, b, _ = lire(page, essais=2)
         except Refus as e:
             res["etat"] = f"refus ({e})"
             break
@@ -342,30 +362,30 @@ def scan_site(p, jour, recent_jours=3, fenetre_seance=45):
             seance = max(ds) if ds else None
             if seance and seance < jour - timedelta(days=fenetre_seance):
                 continue
-            if not seance:
-                # sans date lisible : on demande seulement la date de mise en ligne (HEAD), dans la limite de 40
-                n_head += 1
-                if n_head > 40:
-                    continue
-                try:
-                    _, _, _, lm = lire(v, methode="HEAD", timeout=12)
-                except Exception:
-                    continue
-                if not recent(lm, jour, recent_jours):
-                    continue
-            n_get += 1
-            if n_get > 15:
+            dossier = re.search(r"/(20\d\d)/(0[1-9]|1[0-2])/", v)        # /uploads/2026/10/ des sites WordPress
+            if dossier and (int(dossier.group(1)), int(dossier.group(2))) < ((jour - timedelta(days=40)).year,
+                                                                         (jour - timedelta(days=40)).month):
+                continue
+            # date de mise en ligne demandée au serveur (HEAD), sans télécharger le document
+            n_head += 1
+            if n_head > 25:
                 break
             try:
-                v2, ct, bd, lm = lire(v, max_octets=25_000_000, timeout=40)
+                _, _, _, lm = lire(v, methode="HEAD", timeout=12, essais=2)
             except Exception:
-                continue
+                lm = None
             mise = recent(lm, jour, 3650)
-            dossier = re.search(r"/(20\d\d)/(0[1-9]|1[0-2])/", v2)       # /uploads/2026/10/ des sites WordPress
             mois_depot = dossier and (int(dossier.group(1)), int(dossier.group(2))) == (jour.year, jour.month)
             neuf = (mise and jour - timedelta(days=recent_jours) <= mise <= jour + timedelta(days=1)) or \
                    (not mise and seance and (seance >= jour - timedelta(days=recent_jours) or mois_depot))
             if not neuf:
+                continue
+            n_get += 1
+            if n_get > 6:
+                break
+            try:
+                v2, ct, bd, lm2 = lire(v, max_octets=12_000_000, timeout=40, essais=2)
+            except Exception:
                 continue
             res["docs_recents"] += 1
             if "pdf" in ct or v2.lower().split("?")[0].endswith(".pdf") or bd[:4] == b"%PDF":
@@ -375,9 +395,11 @@ def scan_site(p, jour, recent_jours=3, fenetre_seance=45):
             piste = {"type": "document", "url": v2, "page": u, "titre": txt[:160] or None,
                      "date_seance": seance.isoformat() if seance else None,
                      "mis_en_ligne": mise.isoformat() if mise else None}
-            if tx is None or (tx == "" and bd[:4] == b"%PDF"):
-                piste.update(mots=[], extraits=[], a_lire=True)   # scan ou format non lu : Hector le lit
-                res["pistes"].append(piste)
+            if not tx:
+                # scan, format non lu ou pypdf absent : Hector le lit lui-même, si c'est un acte du conseil
+                if FORT_PAGE.search(norm(f"{txt} {urllib.parse.unquote(v2)}")) or BUDGET_DOC.search(norm(f"{txt} {v2}")):
+                    piste.update(mots=[], extraits=[], a_lire=True)
+                    res["pistes"].append(piste)
                 continue
             ex, mots = extraits(tx)
             if ex:
@@ -389,12 +411,21 @@ def scan_site(p, jour, recent_jours=3, fenetre_seance=45):
     return res
 
 
-def scan(plan_json, jour, communes, epcis, entite, stats, fils=48):
+def scan(plan_json, jour, communes, epcis, entite, stats, fils=96, duree_max=1500):
+    """Lit les pages utiles de chaque site ; s'arrête proprement après duree_max secondes."""
+    from concurrent.futures import FIRST_COMPLETED, wait
     p = json.load(open(plan_json)) if isinstance(plan_json, str) else plan_json
+    # sites avec des pages utiles d'abord, communes éligibles seulement (le plan ne contient qu'elles)
+    sites = [x for x in p.values() if x.get("pages")]
     t0 = time.time()
-    out, etats, n_docs, n_rec = [], {}, 0, 0
-    with ThreadPoolExecutor(fils) as ex:
-        for r in ex.map(lambda x: scan_site(x, jour), p.values()):
+    out, etats, n_docs, n_rec, n_fini = [], {}, 0, 0, 0
+    ex = ThreadPoolExecutor(fils)
+    en_cours = {ex.submit(scan_site, x, jour) for x in sites}
+    while en_cours:
+        faits, en_cours = wait(en_cours, timeout=30, return_when=FIRST_COMPLETED)
+        for f in faits:
+            r = f.result()
+            n_fini += 1
             k = r["etat"].split(" ")[0]
             etats[k] = etats.get(k, 0) + 1
             n_docs += r["docs_vus"]
@@ -403,12 +434,17 @@ def scan(plan_json, jour, communes, epcis, entite, stats, fils=48):
                 piste.update(source="Site de la collectivité", type_signal="site internet",
                              siren=r["siren"], entite=entite(r["siren"], communes, epcis))
                 out.append(piste)
+        if time.time() - t0 > duree_max:
+            for f in en_cours:
+                f.cancel()
+            break
+    ex.shutdown(wait=False, cancel_futures=True)
+    reste = len(sites) - n_fini
     stats["Sites des mairies et EPCI"] = (
-        f"{len(p)} sites parcourus ({etats.get('ok', 0)} lus, {etats.get('refus', 0)} refus du site, "
-        f"{etats.get('sans', 0)} sans page délibérations ou marchés), {n_docs} documents listés, "
-        f"{n_rec} récents ouverts (séance de moins de 45 jours, mis en ligne depuis 3 jours), {len(out)} parlant "
-        f"d'emprunt ou de banque ou à lire "
-        f"({round(time.time() - t0)} s)")
+        f"{n_fini} sites lus sur {len(sites)} ayant une page délibérations, conseil ou marchés "
+        f"({etats.get('refus', 0)} refus du site{f', {reste} non lus faute de temps' if reste else ''}), "
+        f"{n_docs} documents listés, {n_rec} récents ouverts (séance de moins de 45 jours, mis en ligne "
+        f"depuis 3 jours), {len(out)} parlant d'emprunt ou de banque ou à lire ({round(time.time() - t0)} s)")
     return out
 
 

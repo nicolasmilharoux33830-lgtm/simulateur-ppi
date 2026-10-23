@@ -51,7 +51,7 @@ FORT = re.compile(r"\b(emprunt|emprunts|emprunter|empruntera|pret bancaire|prets
                   r"dettes|tresorerie|bancaire|bancaires|refinancement|renegociation)\b")
 CONSEIL = re.compile(r"\b(conseil municipal|conseil communautaire|conseillers|elus|maire|budget|travaux|projet|"
                      r"chantier|renovation|construction|investissement|finances|commune|communaute de communes)\b")
-MAX_CHAPEAUX = 250
+MAX_CHAPEAUX = 320
 PROJET = re.compile(r"\b(travaux|renovation|construction|reconstruction|amenagement|extension|rehabilitation|"
                     r"projet|chantier|equipement|investissement|investissements|programme)\b")
 BUDGET = re.compile(r"\b(budget|budgets|budgetaire|finances|financement|financements|financier|financiere|"
@@ -150,6 +150,10 @@ def requetes():
     for d in MEDIAS["ouest-france.fr"]:
         rq += [("google", f"site:ouest-france.fr {s} {DEPT_NAME[d]} when:2d", d) for s in OF_DEP]
     rq += [("google", f"emprunt {DEPT_NAME[d]} when:3d", d) for d in DEPT_NAME]
+    # comptes rendus de conseils, tous journaux confondus, département par département
+    rq += [("google", f'"conseil municipal" {DEPT_NAME[d]} when:1d', d) for d in DEPT_NAME]
+    rq += [("google", f'"conseil communautaire" {DEPT_NAME[d]} when:2d', d) for d in DEPT_NAME]
+    rq += [("bing", f"conseil municipal budget {DEPT_NAME[d]}", d) for d in DEPT_NAME]
     rq += [("google", q + " when:3d", None) for q in GOOGLE_GEN]
     rq += [("bing", f"{m} {DEPT_NAME[d]}", d) for d in DEPT_NAME for m in BING_DEP]
     rq += [("bing", m, None) for m in BING_GEN]
