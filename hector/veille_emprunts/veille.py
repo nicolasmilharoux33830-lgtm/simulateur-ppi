@@ -432,6 +432,31 @@ def fiche(siren):
     return e
 
 
+def historique(siren, mois=6):
+    """Actes des derniers mois d'une collectivité sur l'emprunt, le prêt ou la trésorerie (Mégalis, RECIA) :
+    sert à vérifier qu'aucune banque n'est déjà retenue avant de garder un A ou un B."""
+    communes, epcis = referentiel()
+    e = entite(siren, communes, epcis)
+    fin = datetime.now(PARIS).date()
+    debut = fin - timedelta(days=30 * mois)
+    vus = {}
+    for nom, api in PLATEFORMES.items():
+        for mot in ("emprunt", "prêt", "trésorerie", "bancaire"):
+            try:
+                r = jget(api, {"date_de_publication_debut": f"{debut}T00:00:00Z",
+                               "date_de_publication_fin": f"{fin}T23:59:59Z",
+                               "lignes": 100, "query": f"{e.get('nom', '')} {mot}"}, tries=4, timeout=60)
+            except Exception:
+                continue
+            for a in r.get("resultats", []):
+                if a.get("siren") == siren:
+                    vus.setdefault(a["url"], {"date_acte": (a.get("date_acte") or "")[:10], "plateforme": nom,
+                                              "classification": a.get("classification_code"),
+                                              "objet": a.get("objet"), "lien": a["url"]})
+    return {"siren": siren, "nom": e.get("nom"), "depuis": debut.isoformat(),
+            "actes": sorted(vus.values(), key=lambda a: a["date_acte"], reverse=True)}
+
+
 def scores(sirens):
     """Probabilité d'emprunt dans l'année (modele.py) pour les collectivités retenues."""
     import csv
@@ -445,6 +470,9 @@ def scores(sirens):
 def main():
     if len(sys.argv) > 2 and sys.argv[1] == "--fiche":
         print(json.dumps(fiche(sys.argv[2]), ensure_ascii=False, indent=1))
+        return
+    if len(sys.argv) > 2 and sys.argv[1] == "--historique":
+        print(json.dumps(historique(sys.argv[2]), ensure_ascii=False, indent=1))
         return
     sans_sites = "--sans-sites" in sys.argv     # le lundi, les sites ne sont lus qu'une fois (fenêtre de 3 jours)
     argv = [a for a in sys.argv if a != "--sans-sites"]
