@@ -143,7 +143,11 @@ def google(q):
     return out
 
 
-def requetes():
+def requetes(debut=None, fin=None):
+    """Requêtes des moteurs. Pour un jour passé, Google News est borné par dates (after/before) au lieu de « when »."""
+    if fin and fin < datetime.now(timezone.utc) - timedelta(hours=12):
+        borne = f" after:{(debut - timedelta(days=1)):%Y-%m-%d} before:{(fin + timedelta(days=1)):%Y-%m-%d}"
+        return [(m, re.sub(r" when:\d+d$", borne, q), d) for m, q, d in requetes()]
     rq = []
     for dom in MEDIAS:
         rq += [("google", f"site:{dom} {s} when:2d", None) for s in SUJETS]
@@ -284,7 +288,7 @@ def collecte(debut, fin, communes, epcis, entite, stats, cache=None):
         homo = homonymes()
     except Exception:
         homo = {}
-    rq = requetes()
+    rq = requetes(debut, fin)
     arts, err, n_lus = ramasse(debut, fin, rq) if cache is None else cache
     for a in arts:
         a["signal"] = classe(a)
