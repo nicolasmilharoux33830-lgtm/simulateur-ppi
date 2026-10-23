@@ -245,8 +245,9 @@ def message(q, idx, jours, calc):
             L.append(f"   {besoin}")
             quand = o.get("publie_le") or info.get("publie_le")
             src = o.get("source") or info.get("plateforme") or ""
-            pr = proba(e.get("prediction"))
-            L.append(f"   📅 {src}" + (f", publié le {date_heure(quand)}" if quand else "") + (f" · 🔮 {pr}" if pr else ""))
+            if o.get("extrait"):
+                L.append(f"   📝 « {o['extrait']} »")
+            L.append(f"   📅 {src}" + (f", publié le {date_heure(quand)}" if quand else ""))
             L.append(contact(e))
             L.append(f"   🔗 {o['lien']}")
         L.append("")
