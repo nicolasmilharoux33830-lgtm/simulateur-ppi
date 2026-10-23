@@ -1,7 +1,9 @@
 """Construit le rapport « Qui appeler » (Telegram) et les lignes du Google Sheets.
 
 Usage : python3 rapport.py qualifies.json candidats1.json [candidats2.json ...]
-        [--sortie message.txt] [--objectif 7] [--calcules 5] [--webhook URL --secret SECRET]
+        [--sortie message.txt] [--objectif 7] [--calcules 5] [--surs] [--webhook URL --secret SECRET]
+
+--surs : seulement les collectivités dont un document dit qu'elles vont emprunter (A et B), sans liste calculée.
 
 Deux listes :
 - « Ont décidé d'emprunter » : niveaux A et B qualifiés par Hector (acte, consultation, article, site) ;
@@ -34,7 +36,8 @@ CODES = {"Loire-Atlantique": "44", "Maine-et-Loire": "49", "Mayenne": "53", "Sar
 
 def args():
     a = sys.argv[1:]
-    opts = {}
+    opts = {"--surs": "--surs" in a}
+    a = [x for x in a if x != "--surs"]
     for k in ("--sortie", "--webhook", "--secret", "--top", "--objectif", "--calcules"):
         if k in a:
             i = a.index(k)
@@ -224,16 +227,23 @@ def proba(p):
     return t
 
 
-def message(q, idx, jours, calc):
+def message(q, idx, jours, calc, surs=False):
     today = datetime.now(PARIS).date()
     ops = [o for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")]
     ops.sort(key=lambda o: (o["niveau"], -float(((fiche_de(o, idx).get("prediction") or {}).get("proba")) or 0)))
-    suivis = [o for o in q.get("opportunites", []) if o.get("niveau") == "C"]
+    suivis = [] if surs else [o for o in q.get("opportunites", []) if o.get("niveau") == "C"]
     n = len(ops) + len(calc)
-    L = [f"📞 Hector · {today:%d/%m} · {n} collectivité{'s' if n > 1 else ''} à appeler", ""]
+    if surs:
+        L = [f"📞 Hector · {today:%d/%m} · {n} collectivité{'s' if n > 1 else ''} qui {'vont' if n > 1 else 'va'} emprunter", ""]
+        if not ops:
+            a, b = date.fromisoformat(jours[0]), date.fromisoformat(jours[-1])
+            quand = f"le {a:%d/%m}" if a == b else f"entre le {a:%d/%m} et le {b:%d/%m}"
+            L += [f"Aucune collectivité n'a écrit {quand} qu'elle va emprunter sans avoir déjà choisi sa banque.", ""]
+    else:
+        L = [f"📞 Hector · {today:%d/%m} · {n} collectivité{'s' if n > 1 else ''} à appeler", ""]
     i = 0
     if ops:
-        L.append(f"✅ ONT DÉCIDÉ D'EMPRUNTER ({len(ops)})")
+        L.append(f"✅ C'EST ÉCRIT : ILS VONT EMPRUNTER ({len(ops)})" if surs else f"✅ ONT DÉCIDÉ D'EMPRUNTER ({len(ops)})")
         for o in ops:
             i += 1
             e = fiche_de(o, idx)
@@ -262,7 +272,7 @@ def message(q, idx, jours, calc):
             if c.get("lien"):
                 L.append(f"   🔗 {c['lien']}")
         L.append("")
-    if SURPLUS:
+    if SURPLUS and not surs:
         def court_dec(p):
             r, genre = p[2], p[6]
             quoi = {"ligne": "ligne de trésorerie", "emprunt": "emprunt annuel", "chantier": "chantier"}.get(genre, "modèle")
@@ -273,7 +283,7 @@ def message(q, idx, jours, calc):
         L.append(f"👀 À SUIVRE ({len(suivis)}) : " + " · ".join(
             f"{(fiche_de(o, idx).get('nom') or o['siren'])} ({o.get('statut') or 'signal'})" for o in suivis))
         L.append("")
-    if not n:
+    if not n and not surs:
         L += ["Personne à appeler ce matin.", ""]
     return "\n".join(L)
 
@@ -486,8 +496,9 @@ def main():
     lundi = datetime.now(PARIS).weekday() == 0
     objectif = int(opts.get("--objectif", 10 if lundi else 7))
     mini = int(opts.get("--calcules", opts.get("--top", 5)))
-    calc = liste_calculee(max(objectif - len(certains), mini), {o["siren"] for o in q.get("opportunites", [])}, jour_ref)
-    msg = message(q, idx, jours, calc) + "\n" + bloc_lecture(couv, jours)
+    calc = [] if opts["--surs"] else liste_calculee(max(objectif - len(certains), mini),
+                                                   {o["siren"] for o in q.get("opportunites", [])}, jour_ref)
+    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + bloc_lecture(couv, jours)
     if "--sortie" in opts:
         open(opts["--sortie"], "w").write(msg)
     print(msg)
