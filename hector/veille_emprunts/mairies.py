@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -47,14 +48,17 @@ EXCLU = re.compile(r"facebook|twitter|instagram|linkedin|youtube|mailto:|tel:|ja
 MOIS = {"janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6, "juillet": 7, "aout": 8,
         "septembre": 9, "octobre": 10, "novembre": 11, "decembre": 12}
 # Ce qui fait d'un document une piste : un emprunt nouveau, une consultation des banques
-EMPRUNT = re.compile(r"(recours a l.emprunt|contracter un (emprunt|pret)|souscrire un (emprunt|pret)|"
-                     r"realisation d.un (emprunt|pret)|nouvel emprunt|emprunt (de|d.un montant)|pret (de|d.un montant)|"
-                     r"offres? de (pret|financement)|consultation (bancaire|des banques|des etablissements)|"
-                     r"etablissements (bancaires|de credit|financiers)|organismes? bancaires?|"
-                     r"ligne de tresorerie|pret relais|pret[- ]relais|preteur|financement bancaire|"
-                     r"banque des territoires|caisse d.epargne|credit agricole|credit mutuel|banque postale|"
-                     r"arkea|caisse des depots|refinancement|renegociation|reamenagement)")
+EMPRUNT = re.compile(r"(recours a l.emprunt|contracter un (?:emprunt|pret)|souscrire un (?:emprunt|pret)|"
+                     r"souscription d.un (?:emprunt|pret)|realisation d.un (?:emprunt|pret)|nouvel emprunt|"
+                     r"emprunt (?:de|d.un montant de) \d|pret (?:de|d.un montant de) \d|(?:emprunt|pret) aupres|"
+                     r"offres? de (?:pret|financement)|consultation (?:bancaire|des banques|des etablissements|"
+                     r"d.organismes|aupres)|etablissements (?:bancaires|de credit|financiers)|"
+                     r"organismes? (?:bancaires?|preteurs?)|ligne de tresorerie|pret[- ]relais|preteur|"
+                     r"financement bancaire|contrat de pret|refinancement|renegociation d|reamenagement de (?:la )?dette)")
 CONTEXTE = 260
+DOC_EXCLU = re.compile(r"\bcfu|compte financier|compte administratif|budget primitif|\bbp ?\d|"
+                       r"presentation (?:sommaire|breve)|rapport financier|rpqs|rapport annuel|\barrete|\bmenu|"
+                       r"cantine|\btarif|urbanisme|\bplu\b|enquete publique")
 BUDGET_DOC = re.compile(r"budget|decision modificative|\bdm\b|emprunt|pret|financement|orientation")
 
 
@@ -298,7 +302,11 @@ def recent(lm, jour, jours):
 
 def texte_pdf(b):
     try:
+        import logging
+        import warnings
         from pypdf import PdfReader
+        logging.getLogger("pypdf").setLevel(logging.CRITICAL)
+        warnings.filterwarnings("ignore")
     except Exception:
         return None
     try:
@@ -308,10 +316,28 @@ def texte_pdf(b):
         return ""
 
 
-def extraits(texte):
-    n = norm(texte)
-    out, fin = [], -1
+def plat(texte):
+    """Texte sans accents ni majuscules, de même longueur que l'original (positions conservées)."""
+    out = []
+    for ch in texte:
+        a = unicodedata.normalize("NFKD", ch).encode("ascii", "ignore").decode().lower()
+        out.append(a[:1] if a else " ")
+    return "".join(out)
+
+
+def extraits(texte, jour=None, fenetre=45):
+    """Passages sur un emprunt ; avec jour, seulement ceux qui ont une date récente à proximité
+    (une page liste souvent des délibérations de plusieurs années)."""
+    n = plat(texte)
+    out, mots, fin, recentes = [], set(), -1, []
     for m in EMPRUNT.finditer(n):
+        if jour is not None:
+            proches = [d for d in dates(texte[max(0, m.start() - 700):m.end() + 300])
+                       if jour - timedelta(days=fenetre) <= d <= jour + timedelta(days=30)]
+            if not proches:
+                continue
+            recentes += proches
+        mots.add(m.group(1))
         if m.start() < fin:
             continue
         a, b = max(0, m.start() - CONTEXTE), min(len(texte), m.end() + CONTEXTE)
@@ -319,7 +345,9 @@ def extraits(texte):
         fin = b
         if len(out) >= 4:
             break
-    return out, sorted({m.group(1) for m in EMPRUNT.finditer(n)})
+    if jour is not None:
+        return out, sorted(mots), recentes
+    return out, sorted(mots)
 
 
 def scan_site(p, jour, recent_jours=3, fenetre_seance=45):
@@ -348,8 +376,7 @@ def _scan_site(p, jour, recent_jours, fenetre_seance):
             continue
         # la page elle-même (annonces de séance, comptes rendus en ligne)
         t = texte_html(b)
-        ex, mots = extraits(t)
-        recentes = [d for d in dates(t) if jour - timedelta(days=fenetre_seance) <= d <= jour]
+        ex, mots, recentes = extraits(t, jour, fenetre_seance)
         if ex and recentes:
             res["pistes"].append({"type": "page", "url": u, "titre": None, "date_seance": max(recentes).isoformat(),
                                   "mis_en_ligne": None, "mots": mots, "extraits": ex})
@@ -358,7 +385,9 @@ def _scan_site(p, jour, recent_jours, fenetre_seance):
                 continue
             vus.add(v)
             res["docs_vus"] += 1
-            ds = [d for d in dates(f"{txt} {v}") or dates(autour) if d <= jour + timedelta(days=1)]
+            if DOC_EXCLU.search(re.sub(r"[^a-z0-9]+", " ", norm(f"{txt} {urllib.parse.unquote(v)}"))):
+                continue
+            ds = [d for d in dates(f"{txt} {v}") or dates(autour) if d <= jour + timedelta(days=30)]
             seance = max(ds) if ds else None
             if seance and seance < jour - timedelta(days=fenetre_seance):
                 continue
@@ -411,7 +440,7 @@ def _scan_site(p, jour, recent_jours, fenetre_seance):
     return res
 
 
-def scan(plan_json, jour, communes, epcis, entite, stats, fils=96, duree_max=1500):
+def scan(plan_json, jour, communes, epcis, entite, stats, fils=128, duree_max=1500):
     """Lit les pages utiles de chaque site ; s'arrête proprement après duree_max secondes."""
     from concurrent.futures import FIRST_COMPLETED, wait
     p = json.load(open(plan_json)) if isinstance(plan_json, str) else plan_json

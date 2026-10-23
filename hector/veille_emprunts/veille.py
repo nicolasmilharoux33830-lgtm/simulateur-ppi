@@ -1,7 +1,7 @@
 """Collecte J-1 des signaux d'emprunt des communes (<10 000 hab.) et EPCI (<20 000 hab.)
 de Pays de la Loire, Bretagne, Centre-Val de Loire et Normandie.
 
-Usage : python3 veille.py [AAAA-MM-JJ] [dossier_sortie]
+Usage : python3 veille.py [AAAA-MM-JJ] [dossier_sortie] [--sans-sites]
 Écrit candidats.json et les PDF des actes à lire dans le dossier de sortie.
 """
 import json
@@ -419,8 +419,10 @@ def main():
     if len(sys.argv) > 2 and sys.argv[1] == "--fiche":
         print(json.dumps(fiche(sys.argv[2]), ensure_ascii=False, indent=1))
         return
-    d = jour(sys.argv)
-    outdir = sys.argv[2] if len(sys.argv) > 2 else f"veille_{d}"
+    sans_sites = "--sans-sites" in sys.argv     # le lundi, les sites ne sont lus qu'une fois (fenêtre de 3 jours)
+    argv = [a for a in sys.argv if a != "--sans-sites"]
+    d = jour(argv)
+    outdir = argv[2] if len(argv) > 2 else f"veille_{d}"
     os.makedirs(os.path.join(outdir, "pdf"), exist_ok=True)
     stats = {}
     communes, epcis = referentiel()
@@ -434,7 +436,8 @@ def main():
         f_ted = ex.submit(collecte_ted, d, stats)
         f_presse = ex.submit(presse.collecte, debut, fin, communes, epcis, entite, stats)
         f_marches = ex.submit(marches.collecte, d, communes, epcis, entite, stats)
-        f_sites = ex.submit(mairies.scan, plan, d, communes, epcis, entite, stats) if os.path.exists(plan) else None
+        f_sites = (ex.submit(mairies.scan, plan, d, communes, epcis, entite, stats)
+                   if os.path.exists(plan) and not sans_sites else None)
         actes, boamp, ted, travaux = f_actes.result(), f_boamp.result(), f_ted.result(), f_trav.result()
         (articles, orphelins), consultations = f_presse.result(), f_marches.result()
         sites = f_sites.result() if f_sites else []
