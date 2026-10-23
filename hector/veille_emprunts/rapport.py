@@ -94,6 +94,15 @@ def ligne_prediction(p):
     return [txt + "."]
 
 
+def fiche_de(o, idx):
+    """Entité vérifiée d'une opportunité : candidats.json, complété par la fiche jointe par Hector."""
+    e = dict(o.get("fiche") or {})
+    for k, v in (idx.get(o["siren"]) or {}).items():
+        if v or k not in e:
+            e[k] = v
+    return e
+
+
 def court(x):
     x = float(x)
     if abs(x) >= 1e6:
@@ -179,7 +188,7 @@ def message(q, idx, jours):
         L.append(f"{puce} {niv} · {titre} ({len(ops)})")
         L.append("")
         for o in ops:
-            e = idx.get(o["siren"]) or o.get("fiche") or {}
+            e = fiche_de(o, idx)
             nom, fonction, tel, mail = interlocuteur(e)
             dep = e.get("departement", "")
             pop = f"{e.get('population'):,}".replace(",", " ") if e.get("population") else "?"
@@ -276,7 +285,7 @@ def lignes_sheet(q, idx, jours, couv):
     detect = datetime.now(PARIS).strftime("%d/%m/%Y")
     opp, ec = [], []
     for o in q.get("opportunites", []):
-        e = idx.get(o["siren"]) or o.get("fiche") or {}
+        e = fiche_de(o, idx)
         nom, fonction, tel, mail = interlocuteur(e)
         opp.append([detect, e.get("region", ""), e.get("departement", ""), CODES.get(e.get("departement"), ""),
                     e.get("type", ""), (e.get("contacts") or {}).get("nom_officiel") or e.get("nom", ""),
@@ -294,7 +303,7 @@ def lignes_sheet(q, idx, jours, couv):
     ouvertes = sum(1 for o in q.get("opportunites", []) if o.get("niveau") == "A")
     regions = {}
     for o in q.get("opportunites", []):
-        e = idx.get(o["siren"]) or o.get("fiche") or {}
+        e = fiche_de(o, idx)
         regions.setdefault(e.get("region", "?"), {}).setdefault(e.get("departement", "?"), 0)
         regions[e.get("region", "?")][e.get("departement", "?")] += 1
     rep = " ".join(f"{r} : {sum(d.values())} ({', '.join(f'{k} {v}' for k, v in d.items())})."
