@@ -105,24 +105,31 @@ def construire(sortie, mois=14):
             except Exception as e:
                 print(nom, t, "ERREUR", str(e)[:80], flush=True)
             t = u + timedelta(days=1)
-    dernier = {}
+    par_siren = {}
     for nom, a in budgets:
-        if re.search(r"annexe|lotissement|zac\b|assainissement|eau\b|ccas|spic", norm(a.get("objet"))):
+        if re.search(r"annexe|lotissement|zac\b|assainissement|eau\b|ccas|spic|mouillage|camping|regie|"
+                     r"photovolta|chaufferie|transport", norm(a.get("objet"))):
             continue                        # le budget principal porte l'essentiel de la dette
-        k = a["siren"]
-        if k not in dernier or (a.get("date_publication") or "") > (dernier[k][1].get("date_publication") or ""):
-            dernier[k] = (nom, a)
-    print(len(budgets), "budgets XML ;", len(dernier), "collectivités avec un budget principal", flush=True)
+        par_siren.setdefault(a["siren"], []).append((nom, a))
+    for v in par_siren.values():
+        v.sort(key=lambda x: x[1].get("date_publication") or "", reverse=True)
+    print(len(budgets), "budgets XML ;", len(par_siren), "collectivités avec un budget principal", flush=True)
 
-    def lit(item):
-        nom, a = item
-        try:
-            return a, nom, emprunts_xml(get(a["url"], tries=5, timeout=120))
-        except Exception:
-            return a, nom, None
+    def lit(liste):
+        """Le budget le plus récent qui contient l'état de la dette (3 essais au plus)."""
+        vu = None
+        for nom, a in liste[:3]:
+            try:
+                d = emprunts_xml(get(a["url"], tries=5, timeout=120))
+            except Exception:
+                continue
+            vu = vu or (a, nom, d)
+            if d["emprunts"]:
+                return a, nom, d
+        return vu or (liste[0][1], liste[0][0], None)
 
     with ThreadPoolExecutor(8) as ex:
-        for a, nom, d in ex.map(lit, dernier.values()):
+        for a, nom, d in ex.map(lit, par_siren.values()):
             if not d:
                 continue
             e = reg.setdefault(a["siren"], {"nom": eligibles[a["siren"]]["nom"], "emprunts": [], "actes": []})

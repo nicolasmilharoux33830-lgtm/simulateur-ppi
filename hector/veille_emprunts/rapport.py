@@ -587,6 +587,25 @@ def famille(o):
     return o.get("source") or "Autre"
 
 
+VOLUMES = {"Mégalis": ["Mégalis Bretagne"], "RECIA": ["GIP RECIA (Centre-Val de Loire)"],
+           "Sites des mairies": ["Sites des mairies et EPCI", "OCR des scans des sites"],
+           "PanneauPocket": ["PanneauPocket"], "Presse": ["Presse locale (Google News + Bing News)"],
+           "Appels d'offres (BOAMP)": ["BOAMP"], "Appels d'offres (TED)": ["TED"],
+           "Appels d'offres (Mégalis Bretagne)": ["Mégalis Bretagne (marchés)"],
+           "Appels d'offres (e-marchespublics.com)": ["e-marchespublics.com"],
+           "Appels d'offres (AWS marches-publics.info)": ["AWS marches-publics.info"],
+           "Appels d'offres (Marchés publics Pays de la Loire)": ["Marchés publics Pays de la Loire"],
+           "DECP (marchés attribués)": [], "Échéances (imminence)": ["Échéances (historique des emprunts)"],
+           "Signaux C de la semaine": [], "Modèle": []}
+
+
+def volume(fam, couv):
+    """Ce qui a été lu pour une famille de sources sur les jours couverts (chaque texte une seule fois)."""
+    cles = VOLUMES.get(fam.split(" ·")[0], [fam])
+    vals = [f"{k} : {x}" if len(cles) > 1 else x for k in cles for x in couv.get(k, [])]
+    return " / ".join(dict.fromkeys(vals))[:300]
+
+
 def mesure(q, probs, detect, couv):
     """Une ligne par source et par jour : A, B, C et probables trouvés (bilan des sources à 2 semaines)."""
     cpt = {}
@@ -599,15 +618,13 @@ def mesure(q, probs, detect, couv):
         fam = ("DECP (marchés attribués)" if r.startswith("🏗") else "Échéances (imminence)" if r[:1] in "🔁📅"
                else "Signaux C de la semaine" if r.startswith("👀") else "Modèle")
         cpt.setdefault(fam, {"A": 0, "B": 0, "C": 0, "P": 0})["P"] += 1
-    lus = {k: " / ".join(v)[:300] for k, v in couv.items()}
     familles = sorted(set(cpt) | {"Mégalis · actes", "Mégalis · budgets PDF", "RECIA · actes", "Sites des mairies",
-                                  "Sites des mairies · convocations", "Presse", "Appels d'offres (BOAMP)"})
+                                  "Sites des mairies · convocations", "Presse", "Appels d'offres (BOAMP)"}
+                      | ({"PanneauPocket"} if "PanneauPocket" in couv else set()))
     out = []
     for fam in familles:
         f = cpt.get(fam, {"A": 0, "B": 0, "C": 0, "P": 0})
-        cle = fam.split(" ·")[0].split(" (")[0]
-        detail = next((v for k, v in lus.items() if cle.lower()[:6] in k.lower()), "")
-        out.append([detect, fam, f["A"], f["B"], f["C"], f["P"], f["A"] + f["B"], detail])
+        out.append([detect, fam, f["A"], f["B"], f["C"], f["P"], f["A"] + f["B"], volume(fam, couv)])
     return out
 
 
@@ -638,12 +655,10 @@ def lignes_sheet(q, idx, jours, couv, calc=(), probs=()):
         regions[e.get("region", "?")][e.get("departement", "?")] += 1
     rep = " ".join(f"{r} : {sum(d.values())} ({', '.join(f'{k} {v}' for k, v in d.items())})."
                    for r, d in regions.items()) or "Aucune opportunité."
-    sources = " ".join(f"{k} : {' / '.join(v)}." for k, v in couv.items())
-    f = "INDIRECT(\"A\"&ROW())"
-    journal = [[detect, f"Publications {periode(jours)}", f"=COUNTIF('Opportunités'!$A:$A,{f})",
-                f"=COUNTIFS('Opportunités'!$A:$A,{f},'Opportunités'!$P:$P,\"A\")",
-                f"=COUNTIFS('Opportunités'!$A:$A,{f},'Opportunités'!$P:$P,\"B\")",
-                f"=COUNTIFS('Opportunités'!$A:$A,{f},'Opportunités'!$P:$P,\"C\")",
+    sources = " ".join(f"{k} : {' / '.join(dict.fromkeys(v))}." for k, v in couv.items())
+    # des nombres et non des formules : un classeur en français lit mal les formules envoyées par le script
+    niv = [o.get("niveau") for o in q.get("opportunites", [])]
+    journal = [[detect, f"Publications {periode(jours)}", len(niv), niv.count("A"), niv.count("B"), niv.count("C"),
                 ouvertes, rep, sources,
                 "Pays de la Loire et Normandie : pas de plateforme publique des actes ; couverture par les sites "
                 "des mairies, les appels d'offres, la presse locale et le modèle prédictif. Presse lue sur les "
