@@ -8,7 +8,8 @@ Usage : python3 rapport.py qualifies.json candidats1.json [candidats2.json ...]
 --probables N : second message, séparé et étiqueté « probable » (le lundi) : les N collectivités à appeler
   dans la semaine (modèle 2027, chantiers attribués DECP, échéances, signaux C de la semaine).
 Avec --webhook, les collectivités déjà appelées (colonne « Résultat de l'appel » du Google Sheets) ne sont
-jamais reproposées.
+jamais reproposées, et les lignes du jour sont écrites dans le Google Sheets ; --lecture-seule lit le
+Google Sheets sans y écrire (relecture du message avant l'envoi, la dernière commande écrit).
 
 Deux listes :
 - « Ont décidé d'emprunter » : niveaux A et B qualifiés par Hector (acte, consultation, article, site) ;
@@ -49,8 +50,8 @@ CODES = {"Loire-Atlantique": "44", "Maine-et-Loire": "49", "Mayenne": "53", "Sar
 
 def args():
     a = sys.argv[1:]
-    opts = {"--surs": "--surs" in a}
-    a = [x for x in a if x != "--surs"]
+    opts = {k: k in a for k in ("--surs", "--lecture-seule")}
+    a = [x for x in a if x not in opts]
     for k in ("--sortie", "--webhook", "--secret", "--top", "--objectif", "--calcules", "--probables",
               "--sortie-probables", "--decp", "--subventions", "--registre"):
         if k in a:
@@ -240,6 +241,22 @@ def entete(e, siren):
 def contact(e):
     nom, fonction, tel, mail = interlocuteur(e)
     return f"   ☎ {nom}, {fonction.lower()} · {tel} · {mail}"
+
+
+def page_facebook(siren):
+    """Page Facebook officielle déclarée à l'Annuaire de l'administration (reseaux.json), sinon None."""
+    global _RESEAUX
+    if _RESEAUX is None:
+        import os
+        try:
+            chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reseaux.json")
+            _RESEAUX = json.load(open(chemin, encoding="utf-8")).get("collectivites", {})
+        except Exception:
+            _RESEAUX = {}
+    return next(iter((_RESEAUX.get(siren) or {}).get("facebook") or []), None)
+
+
+_RESEAUX = None
 
 
 def proba(p):
@@ -524,6 +541,7 @@ def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3, su
         ent = {"type": r["type"], "siren": r["siren"], "code_insee": r.get("code_insee"), "nom": r["nom"],
                "population": r["population"], "dept": r["dept"], "departement": noms.get(r["dept"], "")}
         ent["contacts"] = veille.contacts(ent)
+        ent["facebook"] = page_facebook(r["siren"])
         out.append({"siren": r["siren"], "entite": ent, "prediction": r, "score": round(score, 3),
                     "raisons": raisons, "travaux": (d or {}).get("travaux", [])[:3]})
         if len(out) >= n:
@@ -547,6 +565,8 @@ def message_probables(probs, jour_ref, exclus_appeles=0):
         if banques:
             L.append(f"   {banques[0]}")
         L.append(contact(c["entite"]))
+        if c["entite"].get("facebook"):
+            L.append(f"   📘 {c['entite']['facebook']}")
     if not probs:
         L.append("Aucune collectivité avec une raison d'appeler cette semaine.")
     if exclus_appeles:
@@ -679,7 +699,8 @@ def lignes_sheet(q, idx, jours, couv, calc=(), probs=()):
         nom, fonction, tel, mail = interlocuteur(e)
         probables.append([detect, rang, c["siren"], e.get("nom", ""), e.get("type", ""), e.get("departement", ""),
                           e.get("population", ""), p.get("proba_annee_suivante", ""), c["score"], c["raisons"][0],
-                          " | ".join(c["raisons"][1:]), nom, fonction, tel, mail, "Non", "", ""])
+                          " | ".join(c["raisons"][1:]), nom, fonction, tel, mail, "Non", "", "",
+                          e.get("facebook") or ""])
     out = {"Opportunités": opp, "Actes écartés": ec, "Journal de veille": journal,
            "Mesure par source": mesure(q, probs, detect, couv)}
     if calcul:
@@ -695,7 +716,8 @@ ENTETES = {"Liste calculée": ["Date", "Rang", "SIREN", "Collectivité", "Type",
                               "Téléphone", "Courriel", "Lien", "Appelé", "Notes"],
            "Probables": ["Date", "Rang", "SIREN", "Collectivité", "Type", "Département", "Population",
                          "Probabilité 2027 (modèle)", "Score de la semaine", "Raison d'appeler", "Autres signaux",
-                         "Interlocuteur", "Fonction", "Téléphone", "Courriel", "Appelé", "Résultat de l'appel", "Notes"],
+                         "Interlocuteur", "Fonction", "Téléphone", "Courriel", "Appelé", "Résultat de l'appel", "Notes",
+                         "Page Facebook"],
            "Mesure par source": ["Date", "Source", "A (consultation en cours)", "B (emprunt décidé)", "C (à suivre)",
                                  "Probables", "Sûrs (A + B)", "Volume lu"]}
 
@@ -711,7 +733,10 @@ def main():
             u = opts["--webhook"] + "?" + urllib.parse.urlencode({"secret": opts.get("--secret", "")})
             with urllib.request.urlopen(u, timeout=60) as r:
                 rep = json.loads(r.read())
-            vus = {x.get("lien"): x.get("date") for x in rep.get("deja_signales", [])}
+            # une ligne écrite aujourd'hui vient de ce rapport-ci (commande relancée) : pas un doublon
+            aujourdhui = datetime.now(PARIS).strftime("%d/%m/%Y")
+            vus = {x.get("lien"): x.get("date") for x in rep.get("deja_signales", [])
+                   if str(x.get("date") or "").strip() != aujourdhui}
             appeles = set(rep.get("deja_appeles", []))
             c_recents = rep.get("c_recents", [])
             for o in q.get("opportunites", []):
@@ -764,7 +789,7 @@ def main():
         if "--sortie-probables" in opts:
             open(opts["--sortie-probables"], "w").write(mp)
         print("\n" + mp)
-    if "--webhook" in opts:
+    if "--webhook" in opts and not opts["--lecture-seule"]:
         body = json.dumps({"secret": opts.get("--secret", ""), "entetes": ENTETES,
                            "lignes": lignes_sheet(q, idx, jours, couv, calc, probs)}).encode()
         req = urllib.request.Request(opts["--webhook"], data=body, headers={"Content-Type": "application/json"})
