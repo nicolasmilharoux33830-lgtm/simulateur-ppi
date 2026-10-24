@@ -550,12 +550,31 @@ def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3, su
         par[r["dept"]] = par.get(r["dept"], 0) + 1
         ent = {"type": r["type"], "siren": r["siren"], "code_insee": r.get("code_insee"), "nom": r["nom"],
                "population": r["population"], "dept": r["dept"], "departement": noms.get(r["dept"], "")}
-        ent["contacts"] = veille.contacts(ent)
         ent["facebook"] = page_facebook(r["siren"])
         out.append({"siren": r["siren"], "entite": ent, "prediction": r, "score": round(score, 3),
                     "raisons": raisons, "travaux": (d or {}).get("travaux", [])[:3]})
         if len(out) >= n:
             break
+    # coordonnées : l'annuaire coupe souvent les connexions, d'où les appels en parallèle et le cache (la
+    # routine lance le rapport deux fois : relecture puis écriture)
+    from concurrent.futures import ThreadPoolExecutor
+    cache_f = os.path.join(os.path.dirname(os.path.abspath(__file__)), "contacts_cache.json")
+    try:
+        cache = json.load(open(cache_f))
+    except (OSError, ValueError):
+        cache = {}
+    manquants = [c["entite"] for c in out if c["siren"] not in cache]
+    with ThreadPoolExecutor(8) as ex:
+        for ent, ct in zip(manquants, ex.map(veille.contacts, manquants)):
+            if not ct.get("annuaire_erreur"):
+                cache[ent["siren"]] = ct
+            ent["contacts"] = ct
+    for c in out:
+        c["entite"].setdefault("contacts", cache.get(c["siren"], {}))
+    try:
+        json.dump(cache, open(cache_f, "w"), ensure_ascii=False)
+    except OSError:
+        pass
     return out
 
 
