@@ -21,6 +21,7 @@ try:
 except ImportError:          # fichier absent : pas d'échéances, le reste de la veille tourne
     imminence = None
 import budgets_pdf  # noqa: E402
+import facebook  # noqa: E402
 import mairies  # noqa: E402
 import marches  # noqa: E402
 import panneaupocket  # noqa: E402
@@ -588,7 +589,7 @@ def main():
     stats["Référentiel"] = f"{len(communes)} communes et {len(epcis)} EPCI dans les 20 départements (INSEE)"
     debut, fin = presse.fenetre(d, PARIS)
     plan = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plan_sites.json")
-    with ThreadPoolExecutor(10) as ex:
+    with ThreadPoolExecutor(12) as ex:
         f_actes = ex.submit(collecte_actes, d, outdir, communes, epcis, stats)
         f_boamp = ex.submit(collecte_boamp, d, communes, epcis, stats)
         f_trav = ex.submit(collecte_travaux, d, communes, epcis, stats)
@@ -603,10 +604,17 @@ def main():
         pp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "panneaupocket.json")
         f_pp = (ex.submit(panneaupocket.scan, pp, d, communes, epcis, entite, stats, 3, 12, 600)
                 if os.path.exists(pp) and not sans_sites else None)
+        # Facebook : fils republiés par les mairies sur leur site, et API officielle de Meta si un jeton existe
+        rs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reseaux.json")
+        f_fb = ([ex.submit(facebook.flux_sites, rs, d, communes, epcis, entite, stats, 3),
+                 ex.submit(facebook.api_meta, rs, d, communes, epcis, entite, stats, 3)]
+                if os.path.exists(rs) and not sans_sites else [])
         actes, boamp, ted, travaux = f_actes.result(), f_boamp.result(), f_ted.result(), f_trav.result()
         echeances, recents = f_ech.result()
         (articles, orphelins), consultations = f_presse.result(), f_marches.result()
         sites = (f_sites.result() if f_sites else []) + (f_pp.result() if f_pp else [])
+        for f in f_fb:
+            sites += f.result()
     res = {"jour": d.isoformat(), "genere": datetime.now(PARIS).isoformat(timespec="minutes"),
            "fenetre_presse": f"{debut:%Y-%m-%d %H:%M} -> {fin:%Y-%m-%d %H:%M}",
            "couverture": stats, "actes": actes, "consultations": consultations, "boamp": boamp, "ted": ted,

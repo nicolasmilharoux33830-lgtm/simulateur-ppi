@@ -121,9 +121,10 @@ def fiches(cand_files):
         for p in c.get("sites", []):
             ents.append(p["entite"])
             LIENS[p["url"]] = {"publie_le": p.get("mis_en_ligne"), "date_acte": p.get("date_seance"),
-                               "plateforme": "PanneauPocket" if p.get("type") == "PanneauPocket"
+                               "plateforme": p.get("source") if p.get("type") in ("PanneauPocket", "Facebook")
                                else "le site de la collectivité"}
             FAMILLES[p["url"]] = ("PanneauPocket" if p.get("type") == "PanneauPocket"
+                                  else p["source"] if p.get("type") == "Facebook"
                                   else "Sites des mairies · convocations" if p.get("convocation")
                                   else "Sites des mairies · OCR" if p.get("ocr") else "Sites des mairies")
         for e in ents:
@@ -303,6 +304,9 @@ def message(q, idx, jours, calc, surs=False):
             L.append(f"   📅 {src}" + (f", publié le {date_heure(quand)}" if quand else ""))
             L.append(contact(e))
             L.append(f"   🔗 {o['lien']}")
+            fb = page_facebook(o["siren"])
+            if fb:
+                L.append(f"   📘 {fb}")
         L.append("")
     if calc:
         L.append(f"📈 VONT EMPRUNTER · calcul économétrique ({len(calc)})")
@@ -616,6 +620,8 @@ def famille(o):
 VOLUMES = {"Mégalis": ["Mégalis Bretagne"], "RECIA": ["GIP RECIA (Centre-Val de Loire)"],
            "Sites des mairies": ["Sites des mairies et EPCI", "OCR des scans des sites"],
            "PanneauPocket": ["PanneauPocket"], "Presse": ["Presse locale (Google News + Bing News)"],
+           "Facebook (repris sur le site)": ["Facebook (fils repris sur les sites)"],
+           "Facebook (page officielle, API Meta)": ["Facebook (API Meta)"],
            "Appels d'offres (BOAMP)": ["BOAMP"], "Appels d'offres (TED)": ["TED"],
            "Appels d'offres (Mégalis Bretagne)": ["Mégalis Bretagne (marchés)"],
            "Appels d'offres (e-marchespublics.com)": ["e-marchespublics.com"],
@@ -646,7 +652,9 @@ def mesure(q, probs, detect, couv):
         cpt.setdefault(fam, {"A": 0, "B": 0, "C": 0, "P": 0})["P"] += 1
     familles = sorted(set(cpt) | {"Mégalis · actes", "Mégalis · budgets PDF", "RECIA · actes", "Sites des mairies",
                                   "Sites des mairies · convocations", "Presse", "Appels d'offres (BOAMP)"}
-                      | ({"PanneauPocket"} if "PanneauPocket" in couv else set()))
+                      | ({"PanneauPocket"} if "PanneauPocket" in couv else set())
+                      | ({"Facebook (repris sur le site)"} if "Facebook (fils repris sur les sites)" in couv else set())
+                      | ({"Facebook (page officielle, API Meta)"} if "Facebook (API Meta)" in couv else set()))
     out = []
     for fam in familles:
         f = cpt.get(fam, {"A": 0, "B": 0, "C": 0, "P": 0})
