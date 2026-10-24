@@ -63,7 +63,9 @@ def liens(r):
     for x in _liste(r.get("reseau_social")):
         u, genre = (x.get("valeur") or "").strip(), norm(x.get("custom_dico2") or "")
         if "facebook" in genre or "facebook.com" in u:
-            out["facebook"].append(u)
+            p = page_fb(u if u.startswith("http") else "https://" + u)
+            if p:
+                out["facebook"].append(p)
         elif "instagram" in genre or "instagram.com" in u:
             out["instagram"].append(u)
     for x in _liste(r.get("application_mobile")):
