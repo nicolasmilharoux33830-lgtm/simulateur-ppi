@@ -82,8 +82,9 @@ def moteur_ocr():
     return _ocr
 
 
-def ocr_page(page, moteur, echelle=1.6):
-    """Texte d'une page scannée, reconstitué ligne par ligne (les cellules d'un tableau restent sur leur ligne)."""
+def ocr_page(page, moteur, echelle=1.0):
+    """Texte d'une page scannée, reconstitué ligne par ligne (les cellules d'un tableau restent sur leur ligne).
+    À l'échelle 1, l'OCR sépare bien les mots ; au-delà il les colle (« souscrireunemprunt »)."""
     im = page.render(scale=echelle).to_pil().convert("RGB")
     with _verrou_ocr:
         res, _ = moteur(im)

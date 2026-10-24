@@ -270,13 +270,22 @@ def score_page(cle):
 def plan(sites_json, chemin, fils=64):
     sites = json.load(open(sites_json))
     res = {}
+    if os.path.exists(chemin + ".part"):         # reprise après une interruption
+        try:
+            res = {k: p for k, p in json.load(open(chemin + ".part")).items() if k in sites}
+        except ValueError:
+            res = {}
+        print(len(res), "sites déjà repérés, reprise", flush=True)
+    reste = [(k, v) for k, v in sites.items() if k not in res]
     with ThreadPoolExecutor(fils) as ex:
-        for i, p in enumerate(ex.map(lambda kv: plan_site(*kv), sites.items())):
+        for i, p in enumerate(ex.map(lambda kv: plan_site(*kv), reste)):
             res[p["siren"]] = p
             if i % 250 == 0:
                 print(i, flush=True)
                 json.dump(res, open(chemin + ".part", "w"), ensure_ascii=False)
     json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=0)
+    if os.path.exists(chemin + ".part"):
+        os.remove(chemin + ".part")
     etats = {}
     for p in res.values():
         k = p["etat"].split(" ")[0]
@@ -346,6 +355,34 @@ def plat(texte):
         a = unicodedata.normalize("NFKD", ch).encode("ascii", "ignore").decode().lower()
         out.append(a[:1] if a else " ")
     return "".join(out)
+
+
+# Les mêmes expressions sans espaces : l'OCR colle parfois les mots (« choixorganismebancaire »)
+COLLE = re.compile(r"recoursalemprunt|contracterun(?:emprunt|pret)|souscrireun(?:emprunt|pret)|"
+                   r"souscriptiondun(?:emprunt|pret)|realisationdun(?:emprunt|pret)|nouvelemprunt|"
+                   r"(?:emprunt|pret)(?:dun)?(?:montant)?de\d{3,}|(?:emprunt|pret)aupres|offresdepret|offredepret|"
+                   r"consultation(?:bancaire|desbanques|desetablissements)|etablissementsbancaires|"
+                   r"organismes?bancaires?|organismes?preteurs?|lignedetresorerie|pretrelais|financementbancaire|"
+                   r"contratdepret(?!ausage)|refinancement|renegociationd|reamenagementdeladette|choixdelabanque")
+
+
+def extraits_colles(texte):
+    """Passages d'un texte OCR aux mots collés qui parlent d'emprunt ou de banque."""
+    n = plat(texte)
+    garde = [i for i, ch in enumerate(n) if ch.isalnum()]
+    serre = "".join(n[i] for i in garde)
+    out, mots, fin = [], set(), -1
+    for m in COLLE.finditer(serre):
+        mots.add(m.group(0)[:30])
+        a = garde[m.start()]
+        if a < fin:
+            continue
+        a, b = max(0, a - CONTEXTE), min(len(texte), garde[min(m.end(), len(garde)) - 1] + CONTEXTE)
+        out.append(texte[a:b].strip())
+        fin = b
+        if len(out) >= 4:
+            break
+    return out, sorted(mots)
 
 
 def extraits(texte, jour=None, fenetre=45):
@@ -518,7 +555,9 @@ def ocr_pistes(pistes, duree_max=480, stats=None):
         if time.time() - t0 > duree_max:
             return x, None
         try:
-            textes, faits, _ = budgets_pdf.pages_texte(open(x["fichier"], "rb").read(), max_ocr=3)
+            # une convocation tient en 1 à 3 pages ; un recueil de délibérations se lit sur 8 pages au plus
+            textes, faits, _ = budgets_pdf.pages_texte(open(x["fichier"], "rb").read(),
+                                                       max_ocr=3 if x.get("convocation") else 8)
         except Exception:
             return x, None
         return x, (textes if faits else None)
@@ -530,6 +569,8 @@ def ocr_pistes(pistes, duree_max=480, stats=None):
             lus += 1
             brut = re.sub(r"\s+", " ", " ".join(textes))
             exs, mots = extraits(brut)
+            if not exs:
+                exs, mots = extraits_colles(brut)
             for h in budgets_pdf.lignes_emprunt(textes):
                 if h["cote"] in ("recette", "inconnu") and max(h["montants"]) >= 1000:
                     exs.append(f"[budget, page {h['page']}, {h['cote']}] {h['ligne']}")
@@ -605,6 +646,8 @@ def _formes(nom):
 
 def _candidats(nom, dept):
     formes = _formes(nom)
+    if not formes:
+        return []
     out = [f"https://www.{formes[0]}.fr/"]
     for f in formes[:5]:
         out += [f"https://{f}.fr/", f"https://www.mairie-{f}.fr/", f"https://{f}{dept}.fr/",
@@ -640,7 +683,7 @@ def _existe(hote):
     return True                     # en cas de doute, on essaie la connexion
 
 
-def decouvrir(sites_json, fils=48):
+def decouvrir(sites_json, fils=64):
     """Cherche le site des communes éligibles absentes de l'annuaire (adresses usuelles), le valide
     (nom de la commune, « mairie », code postal sur la page) et l'ajoute à sites.json."""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -656,27 +699,41 @@ def decouvrir(sites_json, fils=48):
     sans = [(s, c) for s, c in communes.items() if (c.get("population") or 0) < 10000 and s not in sites]
     print(len(sans), "communes éligibles sans site dans l'annuaire", flush=True)
 
+    # reprise : les communes déjà examinées (trouvées ou non) ne sont pas refaites
+    suivi = sites_json + ".decouverte"
+    faits = json.load(open(suivi)) if os.path.exists(suivi) else {}
+    for s, info in faits.items():
+        if info:
+            sites[s] = info
+    sans = [(s, c) for s, c in sans if s not in faits]
+
     def un(sc):
         s, c = sc
-        for u in _candidats(c["nom"], c["dept"]):
-            if not _existe(urllib.parse.urlparse(u).netloc):
-                continue
-            try:
-                base, ctype, b, _ = lire(u, max_octets=600_000, timeout=8, essais=1)
-            except Exception:
-                continue
-            if "html" in ctype and _valide(b, c["nom"], cps.get(c["code_insee"], []), c["dept"]):
-                return s, {"nom": c["nom"], "type": "Commune", "dept": c["dept"], "site": base, "decouvert": True}
+        try:
+            for u in _candidats(c["nom"], c["dept"]):
+                if not _existe(urllib.parse.urlparse(u).netloc):
+                    continue
+                try:
+                    base, ctype, b, _ = lire(u, max_octets=600_000, timeout=8, essais=1)
+                except Exception:
+                    continue
+                if "html" in ctype and _valide(b, c["nom"], cps.get(c["code_insee"], []), c["dept"]):
+                    return s, {"nom": c["nom"], "type": "Commune", "dept": c["dept"], "site": base, "decouvert": True}
+        except Exception:
+            pass
         return s, None
 
-    trouves = 0
+    trouves = sum(1 for v in faits.values() if v)
     with ThreadPoolExecutor(fils) as ex:
         for i, (s, info) in enumerate(ex.map(un, sans)):
+            faits[s] = info
             if info:
                 sites[s] = info
                 trouves += 1
-            if i % 200 == 0:
+            if i % 100 == 0:
                 print(i, trouves, flush=True)
+                json.dump(faits, open(suivi, "w"), ensure_ascii=False)
+    json.dump(faits, open(suivi, "w"), ensure_ascii=False)
     json.dump(sites, open(sites_json, "w"), ensure_ascii=False, indent=0)
     print(trouves, "sites trouvés")
     return trouves

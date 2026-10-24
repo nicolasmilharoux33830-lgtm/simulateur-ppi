@@ -52,7 +52,7 @@ def args():
     opts = {"--surs": "--surs" in a}
     a = [x for x in a if x != "--surs"]
     for k in ("--sortie", "--webhook", "--secret", "--top", "--objectif", "--calcules", "--probables",
-              "--sortie-probables", "--decp"):
+              "--sortie-probables", "--decp", "--subventions", "--registre"):
         if k in a:
             i = a.index(k)
             opts[k] = a[i + 1]
@@ -120,8 +120,10 @@ def fiches(cand_files):
         for p in c.get("sites", []):
             ents.append(p["entite"])
             LIENS[p["url"]] = {"publie_le": p.get("mis_en_ligne"), "date_acte": p.get("date_seance"),
-                               "plateforme": "le site de la collectivité"}
-            FAMILLES[p["url"]] = ("Sites des mairies · convocations" if p.get("convocation")
+                               "plateforme": "PanneauPocket" if p.get("type") == "PanneauPocket"
+                               else "le site de la collectivité"}
+            FAMILLES[p["url"]] = ("PanneauPocket" if p.get("type") == "PanneauPocket"
+                                  else "Sites des mairies · convocations" if p.get("convocation")
                                   else "Sites des mairies · OCR" if p.get("ocr") else "Sites des mairies")
         for e in ents:
             if e.get("siren") and e["siren"] not in idx:
@@ -426,7 +428,7 @@ def liste_calculee(n, exclus, jour_ref):
     return out
 
 
-def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3):
+def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3, subv=None, registre=None):
     """Les n collectivités les plus susceptibles d'emprunter dans les semaines qui viennent, à appeler sans
     attendre qu'elles l'écrivent. Jamais mêlées aux sûrs. Signaux combinés (« ou » probabiliste) :
     - probabilité 2027 du modèle (comptes OFGL 2019-2025, scores.csv) ;
@@ -449,6 +451,15 @@ def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3):
         return []
     scores = {r["siren"]: r for r in csv.DictReader(open(chemin, encoding="utf-8"), delimiter=";")}
     decp = (decp or {}).get("collectivites", {})
+    subv = (subv or {}).get("collectivites", {})
+    reg = (registre or {}).get("collectivites", {})
+    lignes_reg = {}
+    if registre:
+        try:
+            import registre as regmod
+            lignes_reg = {x["siren"]: x for x in regmod.echeances_lignes(registre, jour_ref, 60)}
+        except Exception:
+            pass
     c_par_siren = {}
     for o in c_semaine:
         c_par_siren.setdefault(o["siren"], o)
@@ -484,6 +495,20 @@ def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3):
         if c:
             ou.append(0.5)
             raisons.append((0.5, f"👀 {c.get('nature') or c.get('statut') or 'signal écrit, pas encore décidé'}"))
+        sv = [x for x in subv.get(siren, []) if x["annee"] >= jour_ref.year - 1 and x["montant"] >= 20000]
+        if sv:
+            s0 = sv[0]
+            ou.append(0.25)
+            raisons.append((0.25, f"💶 Subvention {s0['dispositif']} {s0['annee']} de {court(s0['montant'])} pour "
+                                  f"« {s0['projet'][:70]} » : le reste du projet est à financer"))
+        lr = lignes_reg.get(siren)
+        if lr and not e:
+            ou.append(taux_obs["ligne"])
+            raisons.append((taux_obs["ligne"], f"🔁 Ligne de trésorerie du {fr_date(lr['date'])}"
+                                               + (f" chez {lr['banque']}" if lr.get("banque") else "")
+                                               + f" : renouvellement vers le {fr_date(lr['echeance'])[:5]}"))
+        if reg.get(siren, {}).get("banques") and raisons:
+            raisons.append((0, "🏦 Banques en place : " + ", ".join(reg[siren]["banques"][:3])))
         if not raisons:
             continue                       # le modèle seul ne suffit pas : il faut une raison d'appeler cette semaine
         score = 1 - math.prod(1 - x for x in ou)
@@ -515,8 +540,12 @@ def message_probables(probs, jour_ref, exclus_appeles=0):
         L.append(f"{i}. {entete(c['entite'], c['siren'])} · {p27} % d'emprunter en "
                  f"{int(p.get('annee_prevue') or jour_ref.year) + 1}")
         L.append(f"   {c['raisons'][0]}")
-        if len(c["raisons"]) > 1:
-            L.append(f"   + {c['raisons'][1]}")
+        autres = [r for r in c["raisons"][1:] if not r.startswith("🏦")]
+        if autres:
+            L.append(f"   + {autres[0]}")
+        banques = [r for r in c["raisons"] if r.startswith("🏦")]
+        if banques:
+            L.append(f"   {banques[0]}")
         L.append(contact(c["entite"]))
     if not probs:
         L.append("Aucune collectivité avec une raison d'appeler cette semaine.")
@@ -707,7 +736,15 @@ def main():
                                 r"banque postale|\bcmb\b|caisse des depots|banque populaire|societe generale")
         c_semaine = [o for o in q.get("opportunites", []) + c_recents if o.get("niveau") == "C"
                      and not deja_signe.search(norm(f"{o.get('nature', '')} {o.get('statut', '')}"))]
-        probs = liste_probables(int(opts["--probables"]), exclus, jour_ref, decp, c_semaine)
+        extra = {}
+        for k in ("--subventions", "--registre"):
+            if opts.get(k):
+                try:
+                    extra[k] = json.load(open(opts[k]))
+                except Exception as e:
+                    print(k, "illisible :", str(e)[:120])
+        probs = liste_probables(int(opts["--probables"]), exclus, jour_ref, decp, c_semaine,
+                                subv=extra.get("--subventions"), registre=extra.get("--registre"))
         mp = message_probables(probs, datetime.now(PARIS).date(), len(appeles))
         if "--sortie-probables" in opts:
             open(opts["--sortie-probables"], "w").write(mp)

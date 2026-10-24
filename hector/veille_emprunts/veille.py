@@ -23,6 +23,7 @@ except ImportError:          # fichier absent : pas d'échéances, le reste de l
 import budgets_pdf  # noqa: E402
 import mairies  # noqa: E402
 import marches  # noqa: E402
+import panneaupocket  # noqa: E402
 import presse  # noqa: E402
 
 PARIS = ZoneInfo("Europe/Paris")
@@ -587,7 +588,7 @@ def main():
     stats["Référentiel"] = f"{len(communes)} communes et {len(epcis)} EPCI dans les 20 départements (INSEE)"
     debut, fin = presse.fenetre(d, PARIS)
     plan = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plan_sites.json")
-    with ThreadPoolExecutor(8) as ex:
+    with ThreadPoolExecutor(10) as ex:
         f_actes = ex.submit(collecte_actes, d, outdir, communes, epcis, stats)
         f_boamp = ex.submit(collecte_boamp, d, communes, epcis, stats)
         f_trav = ex.submit(collecte_travaux, d, communes, epcis, stats)
@@ -599,10 +600,13 @@ def main():
         os.makedirs(mairies.DOSSIER_OCR, exist_ok=True)
         f_sites = (ex.submit(mairies.scan, plan, d, communes, epcis, entite, stats, priorite=priorite_sites(epcis))
                    if os.path.exists(plan) and not sans_sites else None)
+        pp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "panneaupocket.json")
+        f_pp = (ex.submit(panneaupocket.scan, pp, d, communes, epcis, entite, stats, 3, 12, 600)
+                if os.path.exists(pp) and not sans_sites else None)
         actes, boamp, ted, travaux = f_actes.result(), f_boamp.result(), f_ted.result(), f_trav.result()
         echeances, recents = f_ech.result()
         (articles, orphelins), consultations = f_presse.result(), f_marches.result()
-        sites = f_sites.result() if f_sites else []
+        sites = (f_sites.result() if f_sites else []) + (f_pp.result() if f_pp else [])
     res = {"jour": d.isoformat(), "genere": datetime.now(PARIS).isoformat(timespec="minutes"),
            "fenetre_presse": f"{debut:%Y-%m-%d %H:%M} -> {fin:%Y-%m-%d %H:%M}",
            "couverture": stats, "actes": actes, "consultations": consultations, "boamp": boamp, "ted": ted,
