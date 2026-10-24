@@ -3351,8 +3351,14 @@
 "211407192": {
 "siren": "211407192",
 "site": "https://urville-cingal.suisse-normande.com",
-"pages": [],
-"etat": "injoignable (<urlopen error [Errno 104] Connection reset by peer>)"
+"pages": [
+"https://urville-cingal.suisse-normande.com/la-commune/le-conseil-municipal-urville/",
+"https://urville-cingal.suisse-normande.com/bulletins-municipaux/",
+"https://urville-cingal.suisse-normande.com/category/actualites-urville/",
+"https://urville-cingal.suisse-normande.com/2018/12/fermeture-mairie/"
+],
+"etat": "ok",
+"prio": []
 },
 "200060432": {
 "siren": "200060432",
@@ -3615,8 +3621,16 @@
 "211406434": {
 "siren": "211406434",
 "site": "https://saintpaulduvernay.fr/",
-"pages": [],
-"etat": "injoignable (<urlopen error [Errno 104] Connection reset by peer>)"
+"pages": [
+"https://saintpaulduvernay.fr/prochain-conseil-municipal-le-21-09-26/",
+"https://saintpaulduvernay.fr/deliberations/",
+"https://saintpaulduvernay.fr/actualites/",
+"https://saintpaulduvernay.fr/teleconsultation-medicale/"
+],
+"etat": "ok",
+"prio": [
+"https://saintpaulduvernay.fr/prochain-conseil-municipal-le-21-09-26/"
+]
 },
 "211400155": {
 "siren": "211400155",
@@ -8040,9 +8054,19 @@
 },
 "212202287": {
 "siren": "212202287",
-"site": "http://www.plounevez-moedec.fr",
-"pages": [],
-"etat": "injoignable (timed out)"
+"site": "https://plounevez-moedec.fr/",
+"pages": [
+"https://plounevez-moedec.fr/mairie/conseil-municipal/",
+"https://plounevez-moedec.fr/mairie/bulletins-municipaux/",
+"http://plounevez-moedec.fr/accueil/toute-lactualite/",
+"http://plounevez-moedec.fr/accueil/agenda/",
+"https://plounevez-moedec.fr/mairie/",
+"https://plounevez-moedec.fr/mairie/horaires-douverture/",
+"https://plounevez-moedec.fr/mairie/permanences/",
+"https://plounevez-moedec.fr/mairie/vos-demarches/"
+],
+"etat": "ok",
+"prio": []
 },
 "212202501": {
 "siren": "212202501",
@@ -11954,9 +11978,30 @@
 },
 "212703326": {
 "siren": "212703326",
-"site": "http://www.heudebouville.fr",
-"pages": [],
-"etat": "injoignable (HTTP Error 500: Internal Server Error)"
+"site": "https://heudebouville.fr/",
+"pages": [
+"https://heudebouville.fr/reunion-du-conseil-municipal-lundi-30-mars-2026/",
+"https://heudebouville.fr/lundi-2-juin-reunion-du-conseil-municipal/",
+"https://heudebouville.fr/lundi-12-fevrier-2024-reunion-du-conseil-municipal/",
+"https://heudebouville.fr/mardi-12-decembre-2023-reunion-du-conseil-municipal/",
+"https://heudebouville.fr/lundi-25-septembre-2023-reunion-du-conseil-municipal/",
+"https://heudebouville.fr/conseil-municipal/",
+"https://heudebouville.fr/conseil-municipal-2026/",
+"https://heudebouville.fr/services/publications-municipales/",
+"https://heudebouville.fr/lundi-20-octobre-2025-reunion-de-conseil-municipal/",
+"https://heudebouville.fr/lundi-2-decembre-reunion-de-conseil-municipal/",
+"https://heudebouville.fr/lundi-14-octobre-reunion-de-conseil-municipal/",
+"https://heudebouville.fr/lundi-9-septembre-2024-reunion-de-conseil-municipal/"
+],
+"etat": "ok",
+"prio": [
+"https://heudebouville.fr/reunion-du-conseil-municipal-lundi-30-mars-2026/",
+"https://heudebouville.fr/lundi-2-juin-reunion-du-conseil-municipal/",
+"https://heudebouville.fr/lundi-12-fevrier-2024-reunion-du-conseil-municipal/",
+"https://heudebouville.fr/mardi-12-decembre-2023-reunion-du-conseil-municipal/",
+"https://heudebouville.fr/lundi-25-septembre-2023-reunion-du-conseil-municipal/",
+"https://heudebouville.fr/conseil-municipal/"
+]
 },
 "212703482": {
 "siren": "212703482",
@@ -46577,8 +46622,13 @@
 "215005513": {
 "siren": "215005513",
 "site": "https://ville-saint-sauveur-le-vicomte.fr/",
-"pages": [],
-"etat": "injoignable (<urlopen error [Errno 104] Connection reset by peer>)"
+"pages": [
+"https://ville-saint-sauveur-le-vicomte.fr/conseil-municipal-cr/",
+"https://ville-saint-sauveur-le-vicomte.fr/le-conseil-municipal-des-jeunes/",
+"https://ville-saint-sauveur-le-vicomte.fr/"
+],
+"etat": "ok",
+"prio": []
 },
 "215005281": {
 "siren": "215005281",
@@ -55198,9 +55248,22 @@
 },
 "215602046": {
 "siren": "215602046",
-"site": "http://www.stallouestre.fr",
-"pages": [],
-"etat": "injoignable (timed out)"
+"site": "https://stallouestre.fr/",
+"pages": [
+"https://stallouestre.fr/mairie/le-conseil-municipal-des-jeunes/",
+"https://stallouestre.fr/mairie/bulletin-st-allouestre/",
+"https://stallouestre.fr/bienvenue-a-saint-allouestre/toute-lactualite/",
+"http://stallouestre.fr/bienvenue-a-saint-allouestre/toute-lactualite/",
+"https://stallouestre.fr/mairie/bulletin-st-allouestre/transports-publics-2",
+"https://stallouestre.fr/mairie/",
+"https://stallouestre.fr/mairie/equipe-municipale/",
+"https://stallouestre.fr/mairie/commissions/",
+"https://stallouestre.fr/mairie/reunions-du-conseil/",
+"https://stallouestre.fr/mairie/carte-communale-rapport-denquete/",
+"https://stallouestre.fr/pratique/mairie/"
+],
+"etat": "ok",
+"prio": []
 },
 "215601741": {
 "siren": "215601741",
