@@ -45,7 +45,10 @@ def page_fb(u):
         q = urllib.parse.parse_qs(p.query).get("id")
         return f"https://www.facebook.com/profile.php?id={q[0]}" if q else None
     morceaux = [x for x in chemin.split("/") if x]
-    garde = 3 if morceaux[0].lower() in ("pages", "groups", "people", "pg") else 1
+    # /pages/Nom/ID et /people/Nom/ID : 3 segments ; /p/Nom-ID, /groups/nom, /pg/nom : 2 ; sinon le nom seul
+    garde = {"pages": 3, "people": 3, "p": 2, "groups": 2, "pg": 2}.get(morceaux[0].lower(), 1)
+    if len(morceaux) < garde:
+        return None
     return "https://www.facebook.com/" + "/".join(morceaux[:garde])
 
 
