@@ -525,8 +525,9 @@ def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3, su
                      f"{court(s0['verse'])} versés au {fr_date(s0['date'])[:5]} : {court(s0['reste'])} restent à "
                      f"percevoir (préfinancement possible)")
             else:
-                t = (f"💶 Subvention {s0['dispositif']} {s0['annee']} de {court(s0['montant'])} pour "
-                     f"« {s0['projet'][:70]} » : le reste du projet est à financer")
+                pour = f" pour « {s0['projet'].strip()[:70]} »" if s0["projet"].strip() else ""
+                t = (f"💶 Subvention {s0['dispositif']} {s0['annee']} de {court(s0['montant'])}{pour} : "
+                     f"le reste du projet est à financer")
             raisons.append((0.25, t))
         lr = lignes_reg.get(siren)
         if lr and not e:
