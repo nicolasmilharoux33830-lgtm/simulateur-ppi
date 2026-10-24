@@ -50,7 +50,8 @@ function doPost(e) {
       sh.setFrozenRows(1);
     }
     if (onglet === 'Opportunités') colonneAppel(sh);
-    const cles = CLES[onglet] || [];
+    // onglet sans clé déclarée : une ligne est un doublon seulement si elle est identique en tout point
+    const cles = CLES[onglet] || (lignes[0] || []).map(function (_, i) { return i + 1; });
     const deja = new Set();
     const fin = sh.getLastRow();
     if (fin > 1 && cles.length) {
