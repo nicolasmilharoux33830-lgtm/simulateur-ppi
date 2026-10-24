@@ -2,8 +2,13 @@
 
 Usage : python3 rapport.py qualifies.json candidats1.json [candidats2.json ...]
         [--sortie message.txt] [--objectif 7] [--calcules 5] [--surs] [--webhook URL --secret SECRET]
+        [--probables 10 --sortie-probables probables.txt --decp signaux_decp.json]
 
 --surs : seulement les collectivités dont un document dit qu'elles vont emprunter (A et B), sans liste calculée.
+--probables N : second message, séparé et étiqueté « probable » (le lundi) : les N collectivités à appeler
+  dans la semaine (modèle 2027, chantiers attribués DECP, échéances, signaux C de la semaine).
+Avec --webhook, les collectivités déjà appelées (colonne « Résultat de l'appel » du Google Sheets) ne sont
+jamais reproposées.
 
 Deux listes :
 - « Ont décidé d'emprunter » : niveaux A et B qualifiés par Hector (acte, consultation, article, site) ;
@@ -19,13 +24,21 @@ qualifies.json (rédigé par Hector après lecture des actes) :
 Identité, population, département et coordonnées sont repris des candidats vérifiés (pas de saisie).
 """
 import json
+import re
 import sys
+import unicodedata
 import urllib.parse
 import urllib.request
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
 PARIS = ZoneInfo("Europe/Paris")
+
+
+def norm(s):
+    return unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode().lower()
+
+
 NIVEAUX = [("A", "🔴", "Consultation bancaire en cours"), ("B", "🟠", "Emprunt prévu, banque à trouver"),
            ("C", "⚪", "Signaux à suivre")]
 CODES = {"Loire-Atlantique": "44", "Maine-et-Loire": "49", "Mayenne": "53", "Sarthe": "72", "Vendée": "85",
@@ -38,7 +51,8 @@ def args():
     a = sys.argv[1:]
     opts = {"--surs": "--surs" in a}
     a = [x for x in a if x != "--surs"]
-    for k in ("--sortie", "--webhook", "--secret", "--top", "--objectif", "--calcules"):
+    for k in ("--sortie", "--webhook", "--secret", "--top", "--objectif", "--calcules", "--probables",
+              "--sortie-probables", "--decp"):
         if k in a:
             i = a.index(k)
             opts[k] = a[i + 1]
@@ -49,6 +63,7 @@ def args():
 LIBELLE_SOURCE = {"Mégalis Bretagne": "Mégalis Bretagne, registre officiel des actes transmis en préfecture",
                   "GIP RECIA (Centre-Val de Loire)": "GIP RECIA, registre officiel des actes transmis en préfecture"}
 LIENS = {}
+FAMILLES = {}                 # lien -> famille de source (mesure du rendement de chaque source)
 ECARTS_AUTO = []
 TRAVAUX = {}
 SURPLUS = []
@@ -73,8 +88,12 @@ def fiches(cand_files):
             info = {"publie_le": a.get("publie_le"), "date_acte": a.get("date_acte"),
                     "plateforme": LIBELLE_SOURCE.get(a["source"], a["source"]), "objet": a.get("objet"),
                     "budget": a.get("budget_emprunt")}
+            plateforme = "Mégalis" if a["source"].startswith("Mégalis") else "RECIA"
+            fam = {"budget": f"{plateforme} · budgets XML", "budget (PDF)": f"{plateforme} · budgets PDF"}.get(
+                a.get("type_signal"), f"{plateforme} · actes")
             for u in [a["lien"]] + a.get("annexes", []):
                 LIENS[u] = info
+                FAMILLES[u] = fam
             if a.get("motif_ecart") and a["entite"].get("eligible"):
                 ECARTS_AUTO.append({"siren": a["siren"], "nom": a["entite"].get("nom"), "acte": a.get("objet"),
                                     "date_publication": c["jour"], "motif": a["motif_ecart"], "lien": a["lien"]})
@@ -82,12 +101,15 @@ def fiches(cand_files):
             ents += p.get("collectivites_citees", [])
             info = {"publie_le": p.get("publie_le"), "plateforme": p.get("media_nom") or p.get("media")}
             LIENS[p["lien"]] = info
+            FAMILLES[p["lien"]] = "Presse"
             if p.get("lien_article"):
                 LIENS[p["lien_article"]] = info
+                FAMILLES[p["lien_article"]] = "Presse"
         for b in c.get("consultations", []) + c.get("boamp", []) + c.get("ted", []):
             if b.get("entite", {}).get("siren"):
                 ents.append(b["entite"])
             LIENS[b["lien"]] = {"publie_le": b.get("date_publication"), "plateforme": b["source"]}
+            FAMILLES[b["lien"]] = "Appels d'offres (" + str(b["source"]).split(" (")[0] + ")"
         for siren, v in (c.get("travaux") or {}).items():
             TRAVAUX.setdefault(siren, []).extend(v)
         for e in c.get("echeances") or []:
@@ -99,6 +121,8 @@ def fiches(cand_files):
             ents.append(p["entite"])
             LIENS[p["url"]] = {"publie_le": p.get("mis_en_ligne"), "date_acte": p.get("date_seance"),
                                "plateforme": "le site de la collectivité"}
+            FAMILLES[p["url"]] = ("Sites des mairies · convocations" if p.get("convocation")
+                                  else "Sites des mairies · OCR" if p.get("ocr") else "Sites des mairies")
         for e in ents:
             if e.get("siren") and e["siren"] not in idx:
                 idx[e["siren"]] = dict(e)
@@ -402,6 +426,106 @@ def liste_calculee(n, exclus, jour_ref):
     return out
 
 
+def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3):
+    """Les n collectivités les plus susceptibles d'emprunter dans les semaines qui viennent, à appeler sans
+    attendre qu'elles l'écrivent. Jamais mêlées aux sûrs. Signaux combinés (« ou » probabiliste) :
+    - probabilité 2027 du modèle (comptes OFGL 2019-2025, scores.csv) ;
+    - chantier attribué depuis 180 jours (DECP), à proportion de son poids dans les finances ;
+    - ligne de trésorerie ou emprunt de l'an dernier arrivant à échéance dans les 60 jours (imminence) ;
+    - signal C de la semaine (projet chiffré, emprunt envisagé, étude financière), écrit mais pas décidé.
+    Les collectivités qui viennent de signer un emprunt et celles déjà appelées sont écartées."""
+    import csv
+    import math
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import veille
+    try:
+        import imminence
+        taux_obs = imminence.TAUX
+    except ImportError:
+        taux_obs = {"ligne": 0.41, "emprunt": 0.22, "travaux_90j": 0.29}
+    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scores.csv")
+    if not os.path.exists(chemin) or n <= 0:
+        return []
+    scores = {r["siren"]: r for r in csv.DictReader(open(chemin, encoding="utf-8"), delimiter=";")}
+    decp = (decp or {}).get("collectivites", {})
+    c_par_siren = {}
+    for o in c_semaine:
+        c_par_siren.setdefault(o["siren"], o)
+
+    def eligible(r):
+        return int(r["population"] or 0) < (10000 if r["type"] == "Commune" else 20000)
+
+    pistes = []
+    for siren, r in scores.items():
+        if siren in exclus or not eligible(r) or RECENTS.get(siren):
+            continue
+        p27 = float(r.get("proba_annee_suivante") or r.get("proba") or 0)
+        raisons, ou = [], [p27]
+        d = decp.get(siren) or {}
+        if d.get("travaux_180j"):
+            fr = max(float(r.get("fonds_roulement") or 0), 50_000)
+            poids = d["travaux_180j"] / fr
+            ou.append(min(0.6, taux_obs["travaux_90j"] * (1 + math.log2(1 + poids)) / 2))
+            raisons.append((ou[-1], "🏗 " + d["phrase"]))
+        e = ECHEANCES.get(siren)
+        if e:
+            ecart = (date.fromisoformat(e["attendu"]) - jour_ref).days
+            if -15 <= ecart <= 60:
+                tx = taux_obs[e["genre"]]
+                ou.append(tx)
+                if e["genre"] == "ligne":
+                    raisons.append((tx, f"🔁 Ligne de trésorerie du {fr_date(e['dernier_acte'])} : renouvellement attendu "
+                                        f"vers le {fr_date(e['attendu'])[:5]} ({round(tx * 100)} % renouvellent à cette date)"))
+                else:
+                    raisons.append((tx, f"📅 Emprunt du {fr_date(e['dernier_acte'])} : {round(tx * 100)} % réempruntent "
+                                        f"à la même période l'année suivante"))
+        c = c_par_siren.get(siren)
+        if c:
+            ou.append(0.5)
+            raisons.append((0.5, f"👀 {c.get('nature') or c.get('statut') or 'signal écrit, pas encore décidé'}"))
+        if not raisons:
+            continue                       # le modèle seul ne suffit pas : il faut une raison d'appeler cette semaine
+        score = 1 - math.prod(1 - x for x in ou)
+        raisons.sort(key=lambda x: -x[0])
+        pistes.append((score, r, [x[1] for x in raisons], d))
+    pistes.sort(key=lambda x: -x[0])
+    noms = {v: k for k, v in CODES.items()}
+    out, par = [], {}
+    for score, r, raisons, d in pistes:
+        if par.get(r["dept"], 0) >= par_dept:
+            continue
+        par[r["dept"]] = par.get(r["dept"], 0) + 1
+        ent = {"type": r["type"], "siren": r["siren"], "code_insee": r.get("code_insee"), "nom": r["nom"],
+               "population": r["population"], "dept": r["dept"], "departement": noms.get(r["dept"], "")}
+        ent["contacts"] = veille.contacts(ent)
+        out.append({"siren": r["siren"], "entite": ent, "prediction": r, "score": round(score, 3),
+                    "raisons": raisons, "travaux": (d or {}).get("travaux", [])[:3]})
+        if len(out) >= n:
+            break
+    return out
+
+
+def message_probables(probs, jour_ref, exclus_appeles=0):
+    L = [f"📈 Hector · PROBABLES · semaine du {jour_ref:%d/%m}", "",
+         "Pas encore écrit : à appeler dans la semaine, avant qu'ils consultent les banques.", ""]
+    for i, c in enumerate(probs, 1):
+        p = c["prediction"]
+        p27 = round(float(p.get("proba_annee_suivante") or p.get("proba") or 0) * 100)
+        L.append(f"{i}. {entete(c['entite'], c['siren'])} · {p27} % d'emprunter en "
+                 f"{int(p.get('annee_prevue') or jour_ref.year) + 1}")
+        L.append(f"   {c['raisons'][0]}")
+        if len(c["raisons"]) > 1:
+            L.append(f"   + {c['raisons'][1]}")
+        L.append(contact(c["entite"]))
+    if not probs:
+        L.append("Aucune collectivité avec une raison d'appeler cette semaine.")
+    if exclus_appeles:
+        L += ["", f"({exclus_appeles} collectivité{'s' if exclus_appeles > 1 else ''} déjà appelée{'s' if exclus_appeles > 1 else ''} "
+                  f"non reproposée{'s' if exclus_appeles > 1 else ''}.)"]
+    return "\n".join(L)
+
+
 def bloc_lecture(couv, jours, sheet=False):
     def nb(cle, motif, total=sum):
         import re
@@ -421,7 +545,44 @@ def bloc_lecture(couv, jours, sheet=False):
     return "\n".join(L)
 
 
-def lignes_sheet(q, idx, jours, couv, calc=()):
+def famille(o):
+    """Famille de source d'une opportunité qualifiée (lien du candidat, sinon libellé de la source)."""
+    if o.get("lien") in FAMILLES:
+        return FAMILLES[o["lien"]]
+    s = (o.get("source") or "").lower()
+    for cle, fam in (("site", "Sites des mairies"), ("mégalis", "Mégalis · actes"), ("recia", "RECIA · actes"),
+                     ("boamp", "Appels d'offres (BOAMP)"), ("marches", "Appels d'offres (e-marchespublics, AWS)"),
+                     ("ted", "Appels d'offres (TED)"), ("ouest", "Presse"), ("télégramme", "Presse")):
+        if cle in s:
+            return fam
+    return o.get("source") or "Autre"
+
+
+def mesure(q, probs, detect, couv):
+    """Une ligne par source et par jour : A, B, C et probables trouvés (bilan des sources à 2 semaines)."""
+    cpt = {}
+    for o in q.get("opportunites", []):
+        f = cpt.setdefault(famille(o), {"A": 0, "B": 0, "C": 0, "P": 0})
+        if o.get("niveau") in f:
+            f[o["niveau"]] += 1
+    for c in probs:
+        r = c["raisons"][0]
+        fam = ("DECP (marchés attribués)" if r.startswith("🏗") else "Échéances (imminence)" if r[:1] in "🔁📅"
+               else "Signaux C de la semaine" if r.startswith("👀") else "Modèle")
+        cpt.setdefault(fam, {"A": 0, "B": 0, "C": 0, "P": 0})["P"] += 1
+    lus = {k: " / ".join(v)[:300] for k, v in couv.items()}
+    familles = sorted(set(cpt) | {"Mégalis · actes", "Mégalis · budgets PDF", "RECIA · actes", "Sites des mairies",
+                                  "Sites des mairies · convocations", "Presse", "Appels d'offres (BOAMP)"})
+    out = []
+    for fam in familles:
+        f = cpt.get(fam, {"A": 0, "B": 0, "C": 0, "P": 0})
+        cle = fam.split(" ·")[0].split(" (")[0]
+        detail = next((v for k, v in lus.items() if cle.lower()[:6] in k.lower()), "")
+        out.append([detect, fam, f["A"], f["B"], f["C"], f["P"], f["A"] + f["B"], detail])
+    return out
+
+
+def lignes_sheet(q, idx, jours, couv, calc=(), probs=()):
     detect = datetime.now(PARIS).strftime("%d/%m/%Y")
     opp, ec = [], []
     for o in q.get("opportunites", []):
@@ -432,7 +593,7 @@ def lignes_sheet(q, idx, jours, couv, calc=()):
                     e.get("population", ""), e.get("annee_population", ""), o["siren"], nom, fonction, tel, mail,
                     o["nature"], o.get("montant") if o.get("montant") is not None else "", o["niveau"],
                     o.get("statut", ""), fr_date(o.get("date_publication")), fr_date(o.get("date_limite")),
-                    o.get("source", ""), o["lien"], "Non", ""])
+                    o.get("source", ""), o["lien"], "Non", "", ""])
     deja = {x.get("lien") for x in q.get("ecartes", [])}
     for x in q.get("ecartes", []) + [x for x in ECARTS_AUTO if x["lien"] not in deja]:
         e = idx.get(x.get("siren"), {})
@@ -468,29 +629,55 @@ def lignes_sheet(q, idx, jours, couv, calc=()):
                        e.get("population", ""), p.get("proba", ""), p.get("proba_annee_suivante", ""),
                        c["declencheur"], fr_date(t.get("date")) if t.get("date") else "", c["finances"],
                        c.get("facteurs") or "", nom, fonction, tel, mail, c.get("lien") or "", "Non", ""])
-    return {"Opportunités": opp, "Actes écartés": ec, "Journal de veille": journal, "Liste calculée": calcul}
+    probables = []
+    for rang, c in enumerate(probs, 1):
+        e, p = c["entite"], c["prediction"]
+        nom, fonction, tel, mail = interlocuteur(e)
+        probables.append([detect, rang, c["siren"], e.get("nom", ""), e.get("type", ""), e.get("departement", ""),
+                          e.get("population", ""), p.get("proba_annee_suivante", ""), c["score"], c["raisons"][0],
+                          " | ".join(c["raisons"][1:]), nom, fonction, tel, mail, "Non", "", ""])
+    out = {"Opportunités": opp, "Actes écartés": ec, "Journal de veille": journal,
+           "Mesure par source": mesure(q, probs, detect, couv)}
+    if calcul:
+        out["Liste calculée"] = calcul
+    if probables:
+        out["Probables"] = probables
+    return out
 
 
 ENTETES = {"Liste calculée": ["Date", "Rang", "SIREN", "Collectivité", "Type", "Département", "Population",
                               "Probabilité année en cours", "Probabilité année suivante", "Déclencheur",
                               "Date du chantier", "Comptes", "Facteurs du modèle", "Interlocuteur", "Fonction",
-                              "Téléphone", "Courriel", "Lien", "Appelé", "Notes"]}
+                              "Téléphone", "Courriel", "Lien", "Appelé", "Notes"],
+           "Probables": ["Date", "Rang", "SIREN", "Collectivité", "Type", "Département", "Population",
+                         "Probabilité 2027 (modèle)", "Score de la semaine", "Raison d'appeler", "Autres signaux",
+                         "Interlocuteur", "Fonction", "Téléphone", "Courriel", "Appelé", "Résultat de l'appel", "Notes"],
+           "Mesure par source": ["Date", "Source", "A (consultation en cours)", "B (emprunt décidé)", "C (à suivre)",
+                                 "Probables", "Sûrs (A + B)", "Volume lu"]}
 
 
 def main():
     qf, cfs, opts = args()
     q = json.load(open(qf))
+    appeles, c_recents = set(), []
     if "--webhook" in opts:
-        # ce qui est déjà dans le Google Sheets n'est pas reproposé comme nouveau
+        # ce qui est déjà dans le Google Sheets n'est pas reproposé comme nouveau ; une collectivité déjà
+        # appelée (« Résultat de l'appel » rempli ou « Appelé » à Oui) n'est plus jamais proposée
         try:
             u = opts["--webhook"] + "?" + urllib.parse.urlencode({"secret": opts.get("--secret", "")})
             with urllib.request.urlopen(u, timeout=60) as r:
-                vus = {x.get("lien"): x.get("date") for x in json.loads(r.read()).get("deja_signales", [])}
+                rep = json.loads(r.read())
+            vus = {x.get("lien"): x.get("date") for x in rep.get("deja_signales", [])}
+            appeles = set(rep.get("deja_appeles", []))
+            c_recents = rep.get("c_recents", [])
             for o in q.get("opportunites", []):
                 if o.get("lien") in vus and o.get("niveau") in ("A", "B"):
                     o["niveau"], o["statut"] = "C", f"déjà signalé le {vus[o['lien']]}"
-        except Exception:
-            pass
+        except Exception as e:
+            print("Google Sheets illisible :", str(e)[:120])
+    n_avant = len(q.get("opportunites", []))
+    q["opportunites"] = [o for o in q.get("opportunites", []) if o.get("siren") not in appeles]
+    n_appeles = n_avant - len(q["opportunites"])
     idx, jours, couv = fiches(cfs)
     jour_ref = date.fromisoformat(jours[-1]) if jours else datetime.now(PARIS).date()
     certains = {o["siren"] for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")}
@@ -500,12 +687,34 @@ def main():
     calc = [] if opts["--surs"] else liste_calculee(max(objectif - len(certains), mini),
                                                    {o["siren"] for o in q.get("opportunites", [])}, jour_ref)
     msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + bloc_lecture(couv, jours, "--webhook" in opts)
+    if n_appeles:
+        msg += f"\n({n_appeles} collectivité{'s' if n_appeles > 1 else ''} déjà appelée{'s' if n_appeles > 1 else ''} non reproposée{'s' if n_appeles > 1 else ''}.)"
     if "--sortie" in opts:
         open(opts["--sortie"], "w").write(msg)
     print(msg)
+    probs = []
+    if "--probables" in opts:
+        decp = None
+        if opts.get("--decp"):
+            try:
+                decp = json.load(open(opts["--decp"]))
+            except Exception as e:
+                print("signaux DECP illisibles :", str(e)[:120])
+        exclus = {o["siren"] for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")} | appeles
+        # un C « banque déjà retenue, contrat signé » n'annonce pas un nouvel emprunt : il ne compte pas
+        deja_signe = re.compile(r"souscri|signe|retenu|accept|contracte|reconduit|renouvele|"
+                                r"banque des territoires|credit agricole|caisse d.epargne|credit mutuel|arkea|"
+                                r"banque postale|\bcmb\b|caisse des depots|banque populaire|societe generale")
+        c_semaine = [o for o in q.get("opportunites", []) + c_recents if o.get("niveau") == "C"
+                     and not deja_signe.search(norm(f"{o.get('nature', '')} {o.get('statut', '')}"))]
+        probs = liste_probables(int(opts["--probables"]), exclus, jour_ref, decp, c_semaine)
+        mp = message_probables(probs, datetime.now(PARIS).date(), len(appeles))
+        if "--sortie-probables" in opts:
+            open(opts["--sortie-probables"], "w").write(mp)
+        print("\n" + mp)
     if "--webhook" in opts:
         body = json.dumps({"secret": opts.get("--secret", ""), "entetes": ENTETES,
-                           "lignes": lignes_sheet(q, idx, jours, couv, calc)}).encode()
+                           "lignes": lignes_sheet(q, idx, jours, couv, calc, probs)}).encode()
         req = urllib.request.Request(opts["--webhook"], data=body, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=90) as r:
             print("\nGoogle Sheets :", r.read().decode()[:500])

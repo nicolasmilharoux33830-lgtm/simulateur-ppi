@@ -20,6 +20,7 @@ try:
     import imminence  # noqa: E402
 except ImportError:          # fichier absent : pas d'échéances, le reste de la veille tourne
     imminence = None
+import budgets_pdf  # noqa: E402
 import mairies  # noqa: E402
 import marches  # noqa: E402
 import presse  # noqa: E402
@@ -306,11 +307,96 @@ def collecte_actes(d, outdir, communes, epcis, stats):
                         except Exception:
                             pass
             cands.append(c)
-        stats[nom] = (f"{len(actes)} actes publiés lus (sur {annonces} annoncés), {n_bud} budgets XML analysés "
+        n_annexes = sum(len(a.get("annexes") or []) for a in actes)
+        bpdf = budgets_en_pdf(actes, cands, d, outdir, communes, epcis, nom)
+        stats[nom] = (f"{len(actes)} actes publiés lus avec leurs {n_annexes} annexes ({annonces} documents annoncés), "
+                      f"{n_bud} budgets XML analysés "
                       f"({n_bp} écartés : budget primitif, compte administratif ou aucun emprunt nouveau), "
+                      f"{bpdf}, "
                       f"{len(texte)} actes trouvés en texte intégral ({n_txt} de plus que par leur objet), "
                       f"{n_vieux} décisions de plus de {AGE_MAX} jours écartées")
     return cands
+
+
+def telecharge_pdf(a, outdir, n_max=4):
+    """Document principal et annexes PDF d'un acte : (chemins locaux, contenus)."""
+    chemins, contenus = [], []
+    for i, u in enumerate(([a["url"]] + [x["url"] for x in a.get("annexes", [])])[:n_max]):
+        if not u.lower().endswith(".pdf"):
+            continue
+        fn = os.path.join(outdir, "pdf", f"{a['siren']}_{a.get('id_publication', 'x')}_{i}.pdf")
+        try:
+            b = open(fn, "rb").read() if os.path.exists(fn) else get(u, tries=6, timeout=90)
+            if not os.path.exists(fn):
+                open(fn, "wb").write(b)
+            chemins.append(fn)
+            contenus.append(b)
+        except Exception:
+            pass
+    return chemins, contenus
+
+
+def budgets_en_pdf(actes, cands, d, outdir, communes, epcis, nom):
+    """Décisions modificatives et budgets supplémentaires publiés seulement en PDF (souvent scannés) :
+    lecture ligne à ligne de l'emprunt inscrit en recettes (compte 1641), annexes comprises, OCR si besoin.
+    Les actes d'emprunt (7.3) scannés reçoivent aussi leur texte OCR, pour être triés sans être ouverts."""
+    deja = {c["lien"]: c for c in cands}
+    a_lire = []
+    for a in actes:
+        if a["url"].endswith(".xml"):
+            continue
+        cl, o = a.get("classification_code") or "", norm(a.get("objet"))
+        budget = cl.startswith("7.1") and budgets_pdf.OBJET_BUDGET.search(o) and not budgets_pdf.OBJET_EXCLU.search(o)
+        emprunt_scanne = a["url"] in deja and not deja[a["url"]].get("motif_ecart") and \
+            deja[a["url"]]["type_signal"] == "acte"
+        if not (budget or emprunt_scanne):
+            continue
+        ent = entite(a["siren"], communes, epcis)
+        if not ent.get("eligible"):
+            continue
+        if age((a.get("date_acte") or "")[:10], d) is not None and age((a.get("date_acte") or "")[:10], d) > AGE_MAX:
+            continue
+        a_lire.append((a, ent, bool(budget)))
+
+    def un(item):
+        a, ent, budget = item
+        chemins, contenus = telecharge_pdf(a, outdir)
+        if not contenus:
+            return item, chemins, None, None
+        res = budgets_pdf.analyse(contenus, ocr=True, max_ocr=4) if budget else None
+        texte = None
+        if not budget:
+            textes, faits, _ = budgets_pdf.pages_texte(contenus[0], max_pages=3, max_ocr=2)
+            if faits:
+                texte = re.sub(r"\s+", " ", " ".join(textes))[:1500]
+        return item, chemins, res, texte
+
+    n_bud, n_ocr, n_pistes = 0, 0, 0
+    with ThreadPoolExecutor(4) as ex:
+        for (a, ent, budget), chemins, res, texte in ex.map(un, a_lire):
+            c = deja.get(a["url"])
+            if texte and c is not None:
+                c["texte_ocr"] = texte
+            if not budget:
+                continue
+            n_bud += 1
+            n_ocr += bool(res and res["pages_ocr"])
+            if not res or not res["force"]:
+                continue
+            n_pistes += 1
+            if c is None:
+                c = {"source": nom, "type_signal": "budget (PDF)", "siren": a["siren"], "objet": a.get("objet"),
+                     "classification": f"{a.get('classification_code', '')} {a.get('classification_libelle', '')}".strip(),
+                     "date_acte": (a.get("date_acte") or "")[:10], "date_publication": d.isoformat(),
+                     "publie_le": a_paris(a.get("date_publication")), "id_publication": a.get("id_publication"),
+                     "typologie": a.get("typologie"), "lien": a["url"],
+                     "annexes": [x["url"] for x in a.get("annexes", [])], "budget_emprunt": None, "entite": ent,
+                     "age_jours": age((a.get("date_acte") or "")[:10], d)}
+                cands.append(c)
+            c["budget_pdf"] = res
+            c["pdf_locaux"] = chemins
+    return (f"{n_bud} décisions budgétaires en PDF analysées ligne à ligne ({n_ocr} scannées lues par OCR), "
+            f"{n_pistes} avec un emprunt en recettes")
 
 
 # ---------- BOAMP ----------
@@ -457,6 +543,23 @@ def historique(siren, mois=6):
             "actes": sorted(vus.values(), key=lambda a: a["date_acte"], reverse=True)}
 
 
+def priorite_sites(epcis):
+    """Ordre de lecture des sites : les intercommunalités, puis les communes les plus probables (scores.csv)."""
+    import csv
+    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scores.csv")
+    out = {}
+    if os.path.exists(chemin):
+        with open(chemin, encoding="utf-8") as f:
+            for r in csv.DictReader(f, delimiter=";"):
+                try:
+                    out[r["siren"]] = max(float(r.get("proba") or 0), float(r.get("proba_annee_suivante") or 0))
+                except ValueError:
+                    pass
+    for s in epcis:
+        out[s] = out.get(s, 0) + 1.0
+    return out
+
+
 def scores(sirens):
     """Probabilité d'emprunt dans l'année (modele.py) pour les collectivités retenues."""
     import csv
@@ -492,7 +595,9 @@ def main():
         f_ted = ex.submit(collecte_ted, d, stats)
         f_presse = ex.submit(presse.collecte, debut, fin, communes, epcis, entite, stats)
         f_marches = ex.submit(marches.collecte, d, communes, epcis, entite, stats)
-        f_sites = (ex.submit(mairies.scan, plan, d, communes, epcis, entite, stats)
+        mairies.DOSSIER_OCR = os.path.join(outdir, "scans")
+        os.makedirs(mairies.DOSSIER_OCR, exist_ok=True)
+        f_sites = (ex.submit(mairies.scan, plan, d, communes, epcis, entite, stats, priorite=priorite_sites(epcis))
                    if os.path.exists(plan) and not sans_sites else None)
         actes, boamp, ted, travaux = f_actes.result(), f_boamp.result(), f_ted.result(), f_trav.result()
         echeances, recents = f_ech.result()
