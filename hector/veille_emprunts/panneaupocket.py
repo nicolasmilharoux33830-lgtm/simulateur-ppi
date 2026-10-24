@@ -111,7 +111,7 @@ def ocr_image(octets):
         return None
 
 
-def scan(chemin, jour, communes, epcis, entite, stats, jours=3, fils=4, duree_max=600):
+def scan(chemin, jour, communes, epcis, entite, stats, jours=3, fils=4, duree_max=600, priorite=None):
     """Panneaux publiés ou modifiés depuis `jours` jours : ceux qui parlent d'emprunt ou de banque, et les
     annonces de conseil dont l'affiche (image ou PDF) en parle."""
     import mairies
@@ -171,7 +171,9 @@ def scan(chemin, jour, communes, epcis, entite, stats, jours=3, fils=4, duree_ma
 
     res = []
     with ThreadPoolExecutor(fils) as ex:
-        for r in ex.map(un, ents.items()):
+        # les plus probables d'abord : si le temps manque, ce sont les derniers de la liste qui ne sont pas lus
+        ordre = sorted(ents.items(), key=lambda kv: -(priorite or {}).get(kv[0], 0))
+        for r in ex.map(un, ordre):
             res += r
     stats["PanneauPocket"] = (f"{n_lus} pages de communes et EPCI lues sur {len(ents)}, {n_recents} panneaux "
                               f"publiés depuis {jours} jours, {n_ocr} affiches lues par OCR, {len(res)} parlant "
