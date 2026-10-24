@@ -514,10 +514,16 @@ def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3, su
             raisons.append((0.5, f"👀 {c.get('nature') or c.get('statut') or 'signal écrit, pas encore décidé'}"))
         sv = [x for x in subv.get(siren, []) if x["annee"] >= jour_ref.year - 1 and x["montant"] >= 20000]
         if sv:
-            s0 = sv[0]
+            s0 = max(sv, key=lambda x: (x.get("reste", 0) > 0, x["annee"], x["montant"]))
             ou.append(0.25)
-            raisons.append((0.25, f"💶 Subvention {s0['dispositif']} {s0['annee']} de {court(s0['montant'])} pour "
-                                  f"« {s0['projet'][:70]} » : le reste du projet est à financer"))
+            if s0.get("reste"):
+                t = (f"💶 {s0['dispositif']} : {court(s0['montant'])} votés pour « {s0['projet'][:60]} », "
+                     f"{court(s0['verse'])} versés au {fr_date(s0['date'])[:5]} : {court(s0['reste'])} restent à "
+                     f"percevoir (préfinancement possible)")
+            else:
+                t = (f"💶 Subvention {s0['dispositif']} {s0['annee']} de {court(s0['montant'])} pour "
+                     f"« {s0['projet'][:70]} » : le reste du projet est à financer")
+            raisons.append((0.25, t))
         lr = lignes_reg.get(siren)
         if lr and not e:
             ou.append(taux_obs["ligne"])
