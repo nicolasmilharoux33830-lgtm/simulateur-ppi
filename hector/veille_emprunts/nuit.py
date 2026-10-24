@@ -7,7 +7,8 @@ Chaque nuit : marchés attribués (DECP) -> signaux_decp.json.
 Le dimanche (ou --tout) : subventions (Fonds vert) -> subventions.json ; registre des prêts, lignes de
 trésorerie et adhésions à l'Agence France Locale -> registre.json ; entités PanneauPocket ->
 panneaupocket.json ; plan des sites des mairies -> plan_sites.json.
-Le premier dimanche du mois (ou --tout) : recherche des sites absents de l'annuaire -> sites.json.
+Le premier dimanche du mois (ou --tout) : recherche des sites absents de l'annuaire -> sites.json ;
+pages Facebook et applications officielles (Annuaire de l'administration) -> reseaux.json.
 Un fichier n'est remplacé que si sa nouvelle version est complète (sinon l'ancien reste en place).
 """
 import json
@@ -39,6 +40,26 @@ def lance(args, sortie, minimum, timeout):
         os.remove(tmp)
     print(f"{'OK' if ok else 'ÉCHEC'} {sortie} ({round(time.time() - t0)} s) : {log.strip()[-300:]}", flush=True)
     return ok
+
+
+def plan_sites():
+    """Nouveau plan des sites ; un site injoignable cette nuit garde ses pages de la fois précédente
+    (un site refusant désormais la lecture, lui, les perd)."""
+    ok = lance(lambda f: ["mairies.py", "--plan", "sites.json", f], "plan_sites.nouveau.json", 500_000, 7200)
+    src, tmp = os.path.join(ICI, "plan_sites.json"), os.path.join(ICI, "plan_sites.nouveau.json")
+    if not ok:
+        return False
+    ancien, nouveau = json.load(open(src)), json.load(open(tmp))
+    gardes = 0
+    for k, p in nouveau.items():
+        if not p["pages"] and p["etat"].startswith("injoignable") and ancien.get(k, {}).get("pages"):
+            nouveau[k] = ancien[k]
+            gardes += 1
+    json.dump(nouveau, open(src, "w"), ensure_ascii=False, indent=0)
+    os.remove(tmp)
+    print(f"plan_sites.json : {sum(1 for p in nouveau.values() if p['pages'])} sites avec pages utiles "
+          f"({gardes} injoignables cette nuit gardés)", flush=True)
+    return True
 
 
 def decouverte():
@@ -73,7 +94,8 @@ def main():
                                        50_000, 1800)
         if jour.day <= 7 or tout:
             bilan["sites"] = decouverte()
-        bilan["plan"] = lance(lambda f: ["mairies.py", "--plan", "sites.json", f], "plan_sites.json", 500_000, 7200)
+            bilan["reseaux"] = lance(lambda f: ["reseaux.py", f], "reseaux.json", 20_000, 3600)
+        bilan["plan"] = plan_sites()
         for f in os.listdir(ICI):
             if f.endswith(".part"):
                 os.remove(os.path.join(ICI, f))

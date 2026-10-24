@@ -283,6 +283,13 @@ def plan(sites_json, chemin, fils=64):
             if i % 250 == 0:
                 print(i, flush=True)
                 json.dump(res, open(chemin + ".part", "w"), ensure_ascii=False)
+    # les coupures du réseau sont fréquentes à 64 connexions : second essai, lent, des sites injoignables
+    reessai = [(k, sites[k]) for k, p in res.items() if p["etat"].startswith("injoignable")]
+    print(len(reessai), "sites injoignables, second essai", flush=True)
+    with ThreadPoolExecutor(8) as ex:
+        for p in ex.map(lambda kv: plan_site(*kv), reessai):
+            if not p["etat"].startswith("injoignable"):
+                res[p["siren"]] = p
     json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=0)
     if os.path.exists(chemin + ".part"):
         os.remove(chemin + ".part")
