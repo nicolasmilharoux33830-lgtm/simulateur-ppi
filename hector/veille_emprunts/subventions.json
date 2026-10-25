@@ -1,5 +1,5 @@
 {
-"genere": "2026-10-24",
+"genere": "2026-10-25",
 "lignes_lues": 17166,
 "collectivites": {
 "214902942": [
@@ -16499,156 +16499,6 @@
 "projet": "les travaux de restauration du transept et du choeur de l'église Saint-Etienne"
 }
 ],
-"217202696": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
-"annee": 2025,
-"date": "2025-07-30",
-"montant": 78044,
-"verse": 78044,
-"reste": 0,
-"projet": "L'aménagement du lac (phase 1)"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2025,
-"date": "2025-08-21",
-"montant": 37405,
-"verse": 37405,
-"reste": 0,
-"projet": "Rénovation de l'éclairage public - commune de Saint Calais"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Relance Investissement Intercommunal - Territoires CTR",
-"annee": 2025,
-"date": "2025-07-10",
-"montant": 35000,
-"verse": 35000,
-"reste": 0,
-"projet": "L'aménagement du lac (phase 1)"
-}
-],
-"218501443": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2026,
-"date": "2026-01-22",
-"montant": 100000,
-"verse": 50000,
-"reste": 50000,
-"projet": "les travaux de restauration du choeur, du clocher et la sauvegarde des décors peints de l'église"
-}
-],
-"218502599": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2026,
-"date": "2026-06-25",
-"montant": 63071,
-"verse": 50457,
-"reste": 12614,
-"projet": "Restauration (tranche 1) extérieurs élévation Nord et tour clocher de l'église"
-}
-],
-"217202233": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Aménagement liés au Vélo",
-"annee": 2026,
-"date": "2026-02-09",
-"montant": 190000,
-"verse": 94791,
-"reste": 95209,
-"projet": "l'aménagement d'une passerelle à Noyen sur Sarthe - itinéraire Sablé sur Sarthe - La Suze"
-}
-],
-"215301276": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2026,
-"date": "2026-05-28",
-"montant": 90000,
-"verse": 90000,
-"reste": 0,
-"projet": "Aménagement de la rue de Couterne (tranche 1)"
-}
-],
-"215300872": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2026,
-"date": "2026-06-16",
-"montant": 29796,
-"verse": 29796,
-"reste": 0,
-"projet": "ERNP - Eglise Saint-Pierre et Saint-Paul- Restauration des toitures"
-}
-],
-"214901308": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Relance Investissement Intercommunal  Territoires CDM",
-"annee": 2026,
-"date": "2026-07-02",
-"montant": 150000,
-"verse": 150000,
-"reste": 0,
-"projet": "Le réaménagement d'un bâtiment partagé en cœur de bourg"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2025,
-"date": "2025-05-07",
-"montant": 34884,
-"verse": 34884,
-"reste": 0,
-"projet": "la préservation et la mise en sécurité de l'église Saint Martin de Vertou"
-}
-],
-"214401309": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds de revitalisation des centres villes en Pays de la Loire",
-"annee": 2026,
-"date": "2026-09-15",
-"montant": 99059,
-"verse": 88937,
-"reste": 10122,
-"projet": "FRCV : AIRE DE LOISIRS ET PUMPTRACK"
-}
-],
-"218500726": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds régional de développement des communes",
-"annee": 2026,
-"date": "2026-04-03",
-"montant": 50000,
-"verse": 25000,
-"reste": 25000,
-"projet": "FRDC : Restructuration de la salle des sports"
-}
-],
-"218501963": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2026,
-"date": "2026-10-14",
-"montant": 50000,
-"verse": 30817,
-"reste": 19183,
-"projet": "PLIC : contruction d'une salle polyvalente à dominante culturelle"
-}
-],
 "217201193": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -16681,74 +16531,136 @@
 "projet": "PLIC : Aménagement du centre bourg"
 }
 ],
-"214400566": [
+"200075547": [
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-05-21",
-"montant": 97220,
-"verse": 97220,
+"aide": "Revital.centres bourgs-Fonds rég.reconquête centre ville, ville moyennes,bourg",
+"annee": 2025,
+"date": "2025-11-03",
+"montant": 40000,
+"verse": 40000,
 "reste": 0,
-"projet": "Contrat Pays de la Loire 2026, Conception et réalisation d'un pumptrack à Faye de Bretagne"
-}
-],
-"218501898": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
-"annee": 2026,
-"date": "2026-02-20",
-"montant": 53035,
-"verse": 42428,
-"reste": 10607,
-"projet": "La création de vestiaires au stade de football François Praud"
+"projet": "Création de la Maison France Services (travaux d'implantation) sur la commune déléguée de Gennes à l'échelle de la commune nouvelle de Gennes-Val-de-Loire"
 },
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "Pays de La Loire Relance Investissement Communal",
-"annee": 2026,
-"date": "2026-02-20",
-"montant": 23614,
-"verse": 23614,
+"aide": "réserves naturelles régionales",
+"annee": 2025,
+"date": "2025-12-09",
+"montant": 36645,
+"verse": 36645,
 "reste": 0,
-"projet": "PLRIC : Travaux de rénovation énergétique, de restructuration et d'extension de la salle polyvalente Constant Guyon"
+"projet": "les actions d'investissement (TU2 A 4-TU7-TE9-SE1-SE3 A 5-SE7 A 17-SE19-SE21-AD5), pour l'année 2025, dans le cadre de la RNR Joreau 2022-2025"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2025,
+"date": "2025-11-13",
+"montant": 28953,
+"verse": 28953,
+"reste": 0,
+"projet": "Aménagement de la rue du Comté de Castellanne à Chênehutte Trèves Cunault - Gennes Val de Loire"
 }
 ],
-"217202084": [
+"217202696": [
 {
 "dispositif": "Région Pays de la Loire",
 "aide": "Contrats Territoires - Région 2020 (CTR 2020)",
-"annee": 2026,
-"date": "2026-04-07",
-"montant": 60000,
-"verse": 60000,
+"annee": 2025,
+"date": "2025-07-30",
+"montant": 78044,
+"verse": 78044,
 "reste": 0,
-"projet": "La reconstruction d'un restaurant"
+"projet": "L'aménagement du lac (phase 1)"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2025,
+"date": "2025-08-21",
+"montant": 37405,
+"verse": 37405,
+"reste": 0,
+"projet": "Rénovation de l'éclairage public - commune de Saint Calais"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Relance Investissement Intercommunal - Territoires CTR",
+"annee": 2025,
+"date": "2025-07-10",
+"montant": 35000,
+"verse": 35000,
+"reste": 0,
+"projet": "L'aménagement du lac (phase 1)"
 }
 ],
-"218500056": [
+"218500171": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2025,
+"date": "2025-05-06",
+"montant": 84099,
+"verse": 84099,
+"reste": 0,
+"projet": "Restauration du clocher de l'église Saint-Laurent (phase 1)"
+},
 {
 "dispositif": "Région Pays de la Loire",
 "aide": "Pays de la Loire Investissement Communal",
-"annee": 2026,
-"date": "2026-04-15",
+"annee": 2025,
+"date": "2025-07-04",
 "montant": 50000,
-"verse": 48290,
-"reste": 1710,
-"projet": "PLIC : ACCUEIL PERISCOLAIRE ET CENTRE DE LOISIRS"
+"verse": 50000,
+"reste": 0,
+"projet": "PLIC : Construction Ilôt Place Saint Laurent (construction d'un Bar et d'une halle)"
 }
 ],
-"214402166": [
+"215300724": [
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-10-09",
-"montant": 192649,
-"verse": 154119,
-"reste": 38530,
-"projet": "extension d'une maison de santé pluridisciplinaire de Vieillevigne"
+"aide": "Pays de La Loire Relance Investissement Communal",
+"annee": 2025,
+"date": "2025-02-27",
+"montant": 37500,
+"verse": 37500,
+"reste": 0,
+"projet": "PLRIC : Construction d'une nouvelle salle polyvalente"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2025,
+"date": "2025-02-11",
+"montant": 27123,
+"verse": 27123,
+"reste": 0,
+"projet": "la restauration de la rose Sud et d'une partie de la façade sud - ouest de l'église communale de Commer"
+}
+],
+"214901092": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds d'urgence santé aux communes et intercommunalités",
+"annee": 2025,
+"date": "2025-08-28",
+"montant": 35000,
+"verse": 35000,
+"reste": 0,
+"projet": "Construction d'un pôle santé, au titre du dispositif régional Fonds d'urgence pour le maintien des professionnels de santé"
+}
+],
+"218502003": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de La Loire Relance Investissement Communal",
+"annee": 2025,
+"date": "2025-04-01",
+"montant": 75000,
+"verse": 75000,
+"reste": 0,
+"projet": "PLRIC : Pays de la Loire Relance Investissement Communal - COMMUNE DE ST AVAUGOURD DES LANDES"
 }
 ],
 "200082543": [
@@ -16863,116 +16775,6 @@
 "projet": "FRCV : AMENAGEMENT D'UNE MEDIATHEQUE EN COEUR DE BOURG"
 }
 ],
-"217201821": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
-"annee": 2025,
-"date": "2025-02-03",
-"montant": 62490,
-"verse": 62490,
-"reste": 0,
-"projet": "La rénovation des vestiaires et l'agrandissement du terrain de football du stade Roland Boussard"
-}
-],
-"200054815": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-06-18",
-"montant": 49086,
-"verse": 35405,
-"reste": 13681,
-"projet": "Construction d'un accueil périscolaire au sein du groupe scolaire Robert Doisneau à Divatte sur Loire"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
-"annee": 2025,
-"date": "2025-09-12",
-"montant": 77724,
-"verse": 77724,
-"reste": 0,
-"projet": "L'acquisition d'un bâtiment pour la création d'un espace à vocation dernier commerce sur la commune déléguée de Barbechat"
-}
-],
-"218500171": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2025,
-"date": "2025-05-06",
-"montant": 84099,
-"verse": 84099,
-"reste": 0,
-"projet": "Restauration du clocher de l'église Saint-Laurent (phase 1)"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-07-04",
-"montant": 50000,
-"verse": 50000,
-"reste": 0,
-"projet": "PLIC : Construction Ilôt Place Saint Laurent (construction d'un Bar et d'une halle)"
-}
-],
-"217203157": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "430 - Logements locatifs communaux",
-"annee": 2026,
-"date": "2026-04-24",
-"montant": 200000,
-"verse": 140000,
-"reste": 60000,
-"projet": "Réhabilitation de logements pour personnes âgées - rue des Epinettes à SAINT REMY DE SILLE"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-09-07",
-"montant": 156000,
-"verse": 156000,
-"reste": 0,
-"projet": "la construction de salles d'activités"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-11-18",
-"montant": 82010,
-"verse": 82010,
-"reste": 0,
-"projet": "Création d'une mobilité active"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-12-17",
-"montant": 32000,
-"verse": 32000,
-"reste": 0,
-"projet": "Création d'un terrain double PADEL"
-}
-],
-"218502003": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de La Loire Relance Investissement Communal",
-"annee": 2025,
-"date": "2025-04-01",
-"montant": 75000,
-"verse": 75000,
-"reste": 0,
-"projet": "PLRIC : Pays de la Loire Relance Investissement Communal - COMMUNE DE ST AVAUGOURD DES LANDES"
-}
-],
 "217203405": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -16985,94 +16787,16 @@
 "projet": "Fonds école : Construction d'un nouveau restaurant scolaire"
 }
 ],
-"214400392": [
+"217201821": [
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
+"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
 "annee": 2025,
-"date": "2025-10-13",
-"montant": 34726,
-"verse": 34726,
+"date": "2025-02-03",
+"montant": 62490,
+"verse": 62490,
 "reste": 0,
-"projet": "PLIC : Construction d'un commerce multiservices sur la commune de Cheix-en-Retz"
-}
-],
-"217200997": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-06-24",
-"montant": 50000,
-"verse": 50000,
-"reste": 0,
-"projet": "PLIC : Aménagement de la rue des Tisserands avec création de parkings végétalisés et liaisons douces PMR"
-}
-],
-"200075547": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Revital.centres bourgs-Fonds rég.reconquête centre ville, ville moyennes,bourg",
-"annee": 2025,
-"date": "2025-11-03",
-"montant": 40000,
-"verse": 40000,
-"reste": 0,
-"projet": "Création de la Maison France Services (travaux d'implantation) sur la commune déléguée de Gennes à l'échelle de la commune nouvelle de Gennes-Val-de-Loire"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "réserves naturelles régionales",
-"annee": 2025,
-"date": "2025-12-09",
-"montant": 36645,
-"verse": 36645,
-"reste": 0,
-"projet": "les actions d'investissement (TU2 A 4-TU7-TE9-SE1-SE3 A 5-SE7 A 17-SE19-SE21-AD5), pour l'année 2025, dans le cadre de la RNR Joreau 2022-2025"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2025,
-"date": "2025-11-13",
-"montant": 28953,
-"verse": 28953,
-"reste": 0,
-"projet": "Aménagement de la rue du Comté de Castellanne à Chênehutte Trèves Cunault - Gennes Val de Loire"
-}
-],
-"215300724": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de La Loire Relance Investissement Communal",
-"annee": 2025,
-"date": "2025-02-27",
-"montant": 37500,
-"verse": 37500,
-"reste": 0,
-"projet": "PLRIC : Construction d'une nouvelle salle polyvalente"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2025,
-"date": "2025-02-11",
-"montant": 27123,
-"verse": 27123,
-"reste": 0,
-"projet": "la restauration de la rose Sud et d'une partie de la façade sud - ouest de l'église communale de Commer"
-}
-],
-"214901092": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds d'urgence santé aux communes et intercommunalités",
-"annee": 2025,
-"date": "2025-08-28",
-"montant": 35000,
-"verse": 35000,
-"reste": 0,
-"projet": "Construction d'un pôle santé, au titre du dispositif régional Fonds d'urgence pour le maintien des professionnels de santé"
+"projet": "La rénovation des vestiaires et l'agrandissement du terrain de football du stade Roland Boussard"
 }
 ],
 "200057032": [
@@ -17117,6 +16841,352 @@
 "projet": "La réhabilitation de la salle Polyvalente Benjamin Merchin - Aménagement d'une salle de spectacles et de loisirs"
 }
 ],
+"200054815": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-06-18",
+"montant": 49086,
+"verse": 35405,
+"reste": 13681,
+"projet": "Construction d'un accueil périscolaire au sein du groupe scolaire Robert Doisneau à Divatte sur Loire"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
+"annee": 2025,
+"date": "2025-09-12",
+"montant": 77724,
+"verse": 77724,
+"reste": 0,
+"projet": "L'acquisition d'un bâtiment pour la création d'un espace à vocation dernier commerce sur la commune déléguée de Barbechat"
+}
+],
+"214400392": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-10-13",
+"montant": 34726,
+"verse": 34726,
+"reste": 0,
+"projet": "PLIC : Construction d'un commerce multiservices sur la commune de Cheix-en-Retz"
+}
+],
+"217200997": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-06-24",
+"montant": 50000,
+"verse": 50000,
+"reste": 0,
+"projet": "PLIC : Aménagement de la rue des Tisserands avec création de parkings végétalisés et liaisons douces PMR"
+}
+],
+"217203157": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "430 - Logements locatifs communaux",
+"annee": 2026,
+"date": "2026-04-24",
+"montant": 200000,
+"verse": 140000,
+"reste": 60000,
+"projet": "Réhabilitation de logements pour personnes âgées - rue des Epinettes à SAINT REMY DE SILLE"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-09-07",
+"montant": 156000,
+"verse": 156000,
+"reste": 0,
+"projet": "la construction de salles d'activités"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-11-18",
+"montant": 82010,
+"verse": 82010,
+"reste": 0,
+"projet": "Création d'une mobilité active"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-12-17",
+"montant": 32000,
+"verse": 32000,
+"reste": 0,
+"projet": "Création d'un terrain double PADEL"
+}
+],
+"218501443": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2026,
+"date": "2026-01-22",
+"montant": 100000,
+"verse": 50000,
+"reste": 50000,
+"projet": "les travaux de restauration du choeur, du clocher et la sauvegarde des décors peints de l'église"
+}
+],
+"218502599": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2026,
+"date": "2026-06-25",
+"montant": 63071,
+"verse": 50457,
+"reste": 12614,
+"projet": "Restauration (tranche 1) extérieurs élévation Nord et tour clocher de l'église"
+}
+],
+"215301276": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2026,
+"date": "2026-05-28",
+"montant": 90000,
+"verse": 90000,
+"reste": 0,
+"projet": "Aménagement de la rue de Couterne (tranche 1)"
+}
+],
+"215300872": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2026,
+"date": "2026-06-16",
+"montant": 29796,
+"verse": 29796,
+"reste": 0,
+"projet": "ERNP - Eglise Saint-Pierre et Saint-Paul- Restauration des toitures"
+}
+],
+"217202233": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Aménagement liés au Vélo",
+"annee": 2026,
+"date": "2026-02-09",
+"montant": 190000,
+"verse": 94791,
+"reste": 95209,
+"projet": "l'aménagement d'une passerelle à Noyen sur Sarthe - itinéraire Sablé sur Sarthe - La Suze"
+}
+],
+"214901308": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Relance Investissement Intercommunal  Territoires CDM",
+"annee": 2026,
+"date": "2026-07-02",
+"montant": 150000,
+"verse": 150000,
+"reste": 0,
+"projet": "Le réaménagement d'un bâtiment partagé en cœur de bourg"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2025,
+"date": "2025-05-07",
+"montant": 34884,
+"verse": 34884,
+"reste": 0,
+"projet": "la préservation et la mise en sécurité de l'église Saint Martin de Vertou"
+}
+],
+"214401309": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds de revitalisation des centres villes en Pays de la Loire",
+"annee": 2026,
+"date": "2026-09-15",
+"montant": 99059,
+"verse": 88937,
+"reste": 10122,
+"projet": "FRCV : AIRE DE LOISIRS ET PUMPTRACK"
+}
+],
+"218500726": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds régional de développement des communes",
+"annee": 2026,
+"date": "2026-04-03",
+"montant": 50000,
+"verse": 25000,
+"reste": 25000,
+"projet": "FRDC : Restructuration de la salle des sports"
+}
+],
+"217202084": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
+"annee": 2026,
+"date": "2026-04-07",
+"montant": 60000,
+"verse": 60000,
+"reste": 0,
+"projet": "La reconstruction d'un restaurant"
+}
+],
+"218501898": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
+"annee": 2026,
+"date": "2026-02-20",
+"montant": 53035,
+"verse": 42428,
+"reste": 10607,
+"projet": "La création de vestiaires au stade de football François Praud"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de La Loire Relance Investissement Communal",
+"annee": 2026,
+"date": "2026-02-20",
+"montant": 23614,
+"verse": 23614,
+"reste": 0,
+"projet": "PLRIC : Travaux de rénovation énergétique, de restructuration et d'extension de la salle polyvalente Constant Guyon"
+}
+],
+"218500056": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2026,
+"date": "2026-04-15",
+"montant": 50000,
+"verse": 48290,
+"reste": 1710,
+"projet": "PLIC : ACCUEIL PERISCOLAIRE ET CENTRE DE LOISIRS"
+}
+],
+"218501963": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2026,
+"date": "2026-10-14",
+"montant": 50000,
+"verse": 30817,
+"reste": 19183,
+"projet": "PLIC : contruction d'une salle polyvalente à dominante culturelle"
+}
+],
+"214402166": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-10-09",
+"montant": 192649,
+"verse": 154119,
+"reste": 38530,
+"projet": "extension d'une maison de santé pluridisciplinaire de Vieillevigne"
+}
+],
+"214400566": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-05-21",
+"montant": 97220,
+"verse": 97220,
+"reste": 0,
+"projet": "Contrat Pays de la Loire 2026, Conception et réalisation d'un pumptrack à Faye de Bretagne"
+}
+],
+"200047629": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Soutien à linvestissement de maisons de santé pluriprofessionnelles",
+"annee": 2026,
+"date": "2026-09-24",
+"montant": 150000,
+"verse": 150000,
+"reste": 0,
+"projet": "Construction d'une maison de   santé pluriprofessionnelle, au titre du dispositif régional aide régionale en faveur des maisons de santé pluriprofessionnelles"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Natura 2000",
+"annee": 2025,
+"date": "2025-12-12",
+"montant": 28489,
+"verse": 28489,
+"reste": 0,
+"projet": "COMMUNE DE VILLENEUVE EN PERSEIGNE - Animation du site Natura 2000 Bocage à Osmoderma eremita au nord de la forêt de perseigne 2023-2024 - ZSC FR 520004 sur la "
+}
+],
+"214401440": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "430 - Bätiments publics",
+"annee": 2025,
+"date": "2025-03-25",
+"montant": 26800,
+"verse": 26800,
+"reste": 0,
+"projet": "Rénovation du Groupe scolaire Robert Doisneau- 224 rue des Rochettes à RIAILLE"
+}
+],
+"217201037": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2025,
+"date": "2025-08-22",
+"montant": 91766,
+"verse": 91766,
+"reste": 0,
+"projet": "Restauration des toitures du choeur, du transept et de la sacristie de l'église Notre-Dame"
+}
+],
+"215302068": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2025,
+"date": "2025-04-30",
+"montant": 28812,
+"verse": 28812,
+"reste": 0,
+"projet": "rénovation de la toiture de l'église Saint-Charles Borromée"
+}
+],
+"214901142": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2025,
+"date": "2025-08-21",
+"montant": 25422,
+"verse": 25422,
+"reste": 0,
+"projet": "la restauration des toitures et façades de l'église"
+}
+],
 "214401424": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -17159,42 +17229,6 @@
 "verse": 31585,
 "reste": 0,
 "projet": "la subvention exceptionnelle pour les travaux liés à l'oeuvre de Fabrice HYBER dans le cadre de la restauration de l'église de Notre Dame de la Nativité à Châte"
-}
-],
-"217201037": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2025,
-"date": "2025-08-22",
-"montant": 91766,
-"verse": 91766,
-"reste": 0,
-"projet": "Restauration des toitures du choeur, du transept et de la sacristie de l'église Notre-Dame"
-}
-],
-"215302068": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2025,
-"date": "2025-04-30",
-"montant": 28812,
-"verse": 28812,
-"reste": 0,
-"projet": "rénovation de la toiture de l'église Saint-Charles Borromée"
-}
-],
-"214901142": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2025,
-"date": "2025-08-21",
-"montant": 25422,
-"verse": 25422,
-"reste": 0,
-"projet": "la restauration des toitures et façades de l'église"
 }
 ],
 "217200906": [
@@ -17271,40 +17305,6 @@
 "projet": "La construction d'un pÃ'le culturel \"Le Petit Chiron\""
 }
 ],
-"200047629": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Soutien à linvestissement de maisons de santé pluriprofessionnelles",
-"annee": 2026,
-"date": "2026-09-24",
-"montant": 150000,
-"verse": 150000,
-"reste": 0,
-"projet": "Construction d'une maison de   santé pluriprofessionnelle, au titre du dispositif régional aide régionale en faveur des maisons de santé pluriprofessionnelles"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Natura 2000",
-"annee": 2025,
-"date": "2025-12-12",
-"montant": 28489,
-"verse": 28489,
-"reste": 0,
-"projet": "COMMUNE DE VILLENEUVE EN PERSEIGNE - Animation du site Natura 2000 Bocage à Osmoderma eremita au nord de la forêt de perseigne 2023-2024 - ZSC FR 520004 sur la "
-}
-],
-"214401440": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "430 - Bätiments publics",
-"annee": 2025,
-"date": "2025-03-25",
-"montant": 26800,
-"verse": 26800,
-"reste": 0,
-"projet": "Rénovation du Groupe scolaire Robert Doisneau- 224 rue des Rochettes à RIAILLE"
-}
-],
 "218502946": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -17327,6 +17327,18 @@
 "verse": 50000,
 "reste": 0,
 "projet": "Fonds régional Jeunesse et Territoire - Restructuration du restaurant scolaire"
+}
+],
+"214401564": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
+"annee": 2025,
+"date": "2025-10-13",
+"montant": 23218,
+"verse": 23218,
+"reste": 0,
+"projet": "La restructuration et l'agrandissement des services administratifs de la mairie"
 }
 ],
 "217203348": [
@@ -17399,6 +17411,18 @@
 "projet": "Aménagement de liaisons cyclables pour desservir le centre bourg de La Plaine sur Mer"
 }
 ],
+"217200567": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-10-13",
+"montant": 49849,
+"verse": 49849,
+"reste": 0,
+"projet": "PLIC : Aménagement du centre-bourg (cheminement piéton et végétalisation)"
+}
+],
 "214402141": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -17411,6 +17435,18 @@
 "projet": "PLIC : EXTENSION & REHABILITATION D'UN COMMERCE DE PROXIMITE SUPERETTE"
 }
 ],
+"217203199": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-02-27",
+"montant": 30000,
+"verse": 30000,
+"reste": 0,
+"projet": "Réfection énergétique de l'éclairage public"
+}
+],
 "217200351": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -17421,6 +17457,18 @@
 "verse": 70374,
 "reste": 0,
 "projet": "la construction d'un city-stade"
+}
+],
+"217200641": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-10-15",
+"montant": 60329,
+"verse": 60329,
+"reste": 0,
+"projet": "la création d'une maison d'assistantes maternelles"
 }
 ],
 "217201326": [
@@ -17443,54 +17491,6 @@
 "verse": 460000,
 "reste": 0,
 "projet": "la réfection du complexe sportif évolutif couvert (COSEC) incluant l'aménagement des salles d'activités et la réhabilitation du restaurant scolaire"
-}
-],
-"214401564": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
-"annee": 2025,
-"date": "2025-10-13",
-"montant": 23218,
-"verse": 23218,
-"reste": 0,
-"projet": "La restructuration et l'agrandissement des services administratifs de la mairie"
-}
-],
-"217200567": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-10-13",
-"montant": 49849,
-"verse": 49849,
-"reste": 0,
-"projet": "PLIC : Aménagement du centre-bourg (cheminement piéton et végétalisation)"
-}
-],
-"217203199": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-02-27",
-"montant": 30000,
-"verse": 30000,
-"reste": 0,
-"projet": "Réfection énergétique de l'éclairage public"
-}
-],
-"217200641": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-10-15",
-"montant": 60329,
-"verse": 60329,
-"reste": 0,
-"projet": "la création d'une maison d'assistantes maternelles"
 }
 ],
 "214400491": [
@@ -17605,18 +17605,6 @@
 "projet": "La rénovation du complexe sportif"
 }
 ],
-"218502425": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-06-03",
-"montant": 189600,
-"verse": 58249,
-"reste": 131351,
-"projet": "reconstruction du théâtre Saint Joseph et de la salle de convivialité à Saint-Mars-La-Réorthe"
-}
-],
 "217202167": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -17651,284 +17639,16 @@
 "projet": "la restructuration du complexe sportif - Phase 1"
 }
 ],
-"214902157": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2025,
-"date": "2025-11-17",
-"montant": 68179,
-"verse": 68179,
-"reste": 0,
-"projet": "l'aménagement du secteur du Prieuré des Nobis de Montreuil Bellay"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2025,
-"date": "2025-09-10",
-"montant": 40250,
-"verse": 40250,
-"reste": 0,
-"projet": "Aménagements des espaces extérieurs de l'Hôtel de Ville"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2025,
-"date": "2025-11-13",
-"montant": 34348,
-"verse": 34348,
-"reste": 0,
-"projet": "Restauration de la courtine Nord 'Dovalle' phase 1/2 et sécurisation"
-}
-],
-"215301953": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de La Loire Relance Investissement Communal",
-"annee": 2025,
-"date": "2025-09-09",
-"montant": 35000,
-"verse": 35000,
-"reste": 0,
-"projet": "PLRIC : Pays de la Loire Relance Investissement Communal - MAIRIE DE SACE"
-}
-],
-"218501385": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de La Loire Relance Investissement Communal",
-"annee": 2025,
-"date": "2025-11-03",
-"montant": 37500,
-"verse": 37500,
-"reste": 0,
-"projet": "PLRIC : Travaux de rénovation et d'extension de la salle polyvalente"
-}
-],
-"215302191": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "PIE - Projets EnR",
-"annee": 2025,
-"date": "2025-11-06",
-"montant": 64598,
-"verse": 64598,
-"reste": 0,
-"projet": "Appel à projets 2022 Energies Renouvelables et Réseaux - COMMUNE DE SAINT GEORGES BUTTAVENT"
-}
-],
-"217202514": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2025,
-"date": "2025-03-20",
-"montant": 50000,
-"verse": 50000,
-"reste": 0,
-"projet": "la restauration du clocher de l'église Saint-Pierre (tranche 1)"
-}
-],
-"218501112": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Relance Investissement Intercommunal - Territoires CTR",
-"annee": 2026,
-"date": "2026-03-16",
-"montant": 126000,
-"verse": 110347,
-"reste": 15653,
-"projet": "La construction d'un pôle enfance-jeunesse à l'Ile d'Elle"
-}
-],
-"218502045": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds Régional Jeunesse et Territoires",
-"annee": 2025,
-"date": "2025-05-20",
-"montant": 25000,
-"verse": 25000,
-"reste": 0,
-"projet": "Fonds Régional Jeunesse et Territoires - COMMUNE DE ST CHRISTOPHE DU LIGNERON"
-}
-],
-"218500262": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-12-08",
-"montant": 40000,
-"verse": 40000,
-"reste": 0,
-"projet": "PLIC : RENOVATION ET EXTENSION DE LA BIBLIOTHEQUE ET AGENCE POSTALE"
-}
-],
-"218502771": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-03-20",
-"montant": 46440,
-"verse": 46440,
-"reste": 0,
-"projet": "PLIC :"
-}
-],
-"214400905": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds d'urgence santé aux communes et intercommunalités",
-"annee": 2025,
-"date": "2025-12-12",
-"montant": 35000,
-"verse": 35000,
-"reste": 0,
-"projet": "Construction d'un pôle santé, au titre du dispositif régional Fonds d'urgence pour le maintien des professionnels de santé"
-},
+"218502425": [
 {
 "dispositif": "Région Pays de la Loire",
 "aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-11-06",
-"montant": 32732,
-"verse": 32732,
-"reste": 0,
-"projet": "l'aménagement d'un espace jeunes à La Marne"
-}
-],
-"214401556": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-11-03",
-"montant": 65776,
-"verse": 65776,
-"reste": 0,
-"projet": "la construction d'un pump track à Saint-Colomban"
-}
-],
-"218500163": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds régional de développement des communes",
 "annee": 2026,
-"date": "2026-05-28",
-"montant": 50000,
-"verse": 48325,
-"reste": 1675,
-"projet": "FRDC : Renouvellement urbain d'îlot de centre bourg (commerce + logements)"
-}
-],
-"218502029": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-07-23",
-"montant": 50000,
-"verse": 50000,
-"reste": 0,
-"projet": "PLIC : Rénovation énergétique, mise en accessibilité PMR, restructuration et extension de la salle polyvalente FAMISOL"
-}
-],
-"218502102": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2026,
-"date": "2026-09-02",
-"montant": 67864,
-"verse": 67864,
-"reste": 0,
-"projet": "la restauration de l'église Saint-Etienne"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-03-20",
-"montant": 50000,
-"verse": 50000,
-"reste": 0,
-"projet": "PLIC : Extension de l'école publique 'Les Petits Papiers'"
-}
-],
-"217201227": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-09-18",
-"montant": 34890,
-"verse": 34890,
-"reste": 0,
-"projet": "PLIC : Cheminement piétonnier/Liaison douce"
-}
-],
-"217200674": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-05-20",
-"montant": 52757,
-"verse": 52757,
-"reste": 0,
-"projet": "l'aménagement d'un accueil périscolaire"
-}
-],
-"218500189": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "PEEL  AAP Rénovation exemplaire",
-"annee": 2026,
-"date": "2026-06-25",
-"montant": 200000,
-"verse": 160000,
-"reste": 40000,
-"projet": "Appel à projets rénovations exemplaires des bâtiments - COMMUNE DE BEAUVOIR-SUR-MER"
-}
-],
-"217200492": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2026,
-"date": "2026-08-11",
-"montant": 71309,
-"verse": 71309,
-"reste": 0,
-"projet": "Restauration générale extérieure de l'église Saint-Martin - tranche ferme (nef et clocher-partie Ouest)"
-}
-],
-"214401374": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2026,
-"date": "2026-06-05",
-"montant": 62934,
-"verse": 50347,
-"reste": 12587,
-"projet": "Aide à la restauration des monuments historiques - COMMUNE DE PRINQUIAU - Phase 1 :Restauration tour escalier château Escuray"
-}
-],
-"218501054": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "PEEL  AAP Rénovation exemplaire",
-"annee": 2026,
-"date": "2026-10-16",
-"montant": 34990,
-"verse": 24493,
-"reste": 10497,
-"projet": "Appel à projets rénovations exemplaires des bâtiments - COMMUNE DU GUE-DE-VELLUIRE"
+"date": "2026-06-03",
+"montant": 189600,
+"verse": 58249,
+"reste": 131351,
+"projet": "reconstruction du théâtre Saint Joseph et de la salle de convivialité à Saint-Mars-La-Réorthe"
 }
 ],
 "248500563": [
@@ -17941,6 +17661,18 @@
 "verse": 96848,
 "reste": 146052,
 "projet": "L'extension et le réaménagement du bâtiment administratif de la Communauté de communes"
+}
+],
+"218501112": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Relance Investissement Intercommunal - Territoires CTR",
+"annee": 2026,
+"date": "2026-03-16",
+"montant": 126000,
+"verse": 110347,
+"reste": 15653,
+"projet": "La construction d'un pôle enfance-jeunesse à l'Ile d'Elle"
 }
 ],
 "200058121": [
@@ -18057,38 +17789,374 @@
 "projet": "le complexe sportif d'Eventard - Restructuration et extension"
 }
 ],
-"218501351": [
+"215302191": [
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
+"aide": "PIE - Projets EnR",
 "annee": 2025,
-"date": "2025-05-22",
-"montant": 80000,
-"verse": 80000,
+"date": "2025-11-06",
+"montant": 64598,
+"verse": 64598,
 "reste": 0,
-"projet": "la restauration de l'Eglise Saint-Sauveur de Mareuil-sur-Lay-Dissais (phase 3 - tranche optionnelle 1"
+"projet": "Appel à projets 2022 Energies Renouvelables et Réseaux - COMMUNE DE SAINT GEORGES BUTTAVENT"
 }
 ],
-"218503050": [
+"217202514": [
 {
 "dispositif": "Région Pays de la Loire",
 "aide": "monuments historiques protégés",
 "annee": 2025,
-"date": "2025-03-14",
-"montant": 48261,
-"verse": 48261,
+"date": "2025-03-20",
+"montant": 50000,
+"verse": 50000,
 "reste": 0,
-"projet": "la restauration (tranche 1) du clocher de l'église Notre-Dame-de-l'Assomption à Vouvant"
+"projet": "la restauration du clocher de l'église Saint-Pierre (tranche 1)"
+}
+],
+"214902157": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2025,
+"date": "2025-11-17",
+"montant": 68179,
+"verse": 68179,
+"reste": 0,
+"projet": "l'aménagement du secteur du Prieuré des Nobis de Montreuil Bellay"
 },
 {
 "dispositif": "Région Pays de la Loire",
 "aide": "petites cités de caractères",
 "annee": 2025,
-"date": "2025-12-17",
-"montant": 45660,
-"verse": 45660,
+"date": "2025-09-10",
+"montant": 40250,
+"verse": 40250,
 "reste": 0,
-"projet": "Aménagement de la rue de Lusignan et des espaces voisins"
+"projet": "Aménagements des espaces extérieurs de l'Hôtel de Ville"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2025,
+"date": "2025-11-13",
+"montant": 34348,
+"verse": 34348,
+"reste": 0,
+"projet": "Restauration de la courtine Nord 'Dovalle' phase 1/2 et sécurisation"
+}
+],
+"218500189": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "PEEL  AAP Rénovation exemplaire",
+"annee": 2026,
+"date": "2026-06-25",
+"montant": 200000,
+"verse": 160000,
+"reste": 40000,
+"projet": "Appel à projets rénovations exemplaires des bâtiments - COMMUNE DE BEAUVOIR-SUR-MER"
+}
+],
+"218501054": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "PEEL  AAP Rénovation exemplaire",
+"annee": 2026,
+"date": "2026-10-16",
+"montant": 34990,
+"verse": 24493,
+"reste": 10497,
+"projet": "Appel à projets rénovations exemplaires des bâtiments - COMMUNE DU GUE-DE-VELLUIRE"
+}
+],
+"217200492": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2026,
+"date": "2026-08-11",
+"montant": 71309,
+"verse": 71309,
+"reste": 0,
+"projet": "Restauration générale extérieure de l'église Saint-Martin - tranche ferme (nef et clocher-partie Ouest)"
+}
+],
+"214401374": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2026,
+"date": "2026-06-05",
+"montant": 62934,
+"verse": 50347,
+"reste": 12587,
+"projet": "Aide à la restauration des monuments historiques - COMMUNE DE PRINQUIAU - Phase 1 :Restauration tour escalier château Escuray"
+}
+],
+"218502102": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2026,
+"date": "2026-09-02",
+"montant": 67864,
+"verse": 67864,
+"reste": 0,
+"projet": "la restauration de l'église Saint-Etienne"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-03-20",
+"montant": 50000,
+"verse": 50000,
+"reste": 0,
+"projet": "PLIC : Extension de l'école publique 'Les Petits Papiers'"
+}
+],
+"215301953": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de La Loire Relance Investissement Communal",
+"annee": 2025,
+"date": "2025-09-09",
+"montant": 35000,
+"verse": 35000,
+"reste": 0,
+"projet": "PLRIC : Pays de la Loire Relance Investissement Communal - MAIRIE DE SACE"
+}
+],
+"218501385": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de La Loire Relance Investissement Communal",
+"annee": 2025,
+"date": "2025-11-03",
+"montant": 37500,
+"verse": 37500,
+"reste": 0,
+"projet": "PLRIC : Travaux de rénovation et d'extension de la salle polyvalente"
+}
+],
+"218502045": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds Régional Jeunesse et Territoires",
+"annee": 2025,
+"date": "2025-05-20",
+"montant": 25000,
+"verse": 25000,
+"reste": 0,
+"projet": "Fonds Régional Jeunesse et Territoires - COMMUNE DE ST CHRISTOPHE DU LIGNERON"
+}
+],
+"218500163": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds régional de développement des communes",
+"annee": 2026,
+"date": "2026-05-28",
+"montant": 50000,
+"verse": 48325,
+"reste": 1675,
+"projet": "FRDC : Renouvellement urbain d'îlot de centre bourg (commerce + logements)"
+}
+],
+"218500262": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-12-08",
+"montant": 40000,
+"verse": 40000,
+"reste": 0,
+"projet": "PLIC : RENOVATION ET EXTENSION DE LA BIBLIOTHEQUE ET AGENCE POSTALE"
+}
+],
+"218502771": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-03-20",
+"montant": 46440,
+"verse": 46440,
+"reste": 0,
+"projet": "PLIC :"
+}
+],
+"218502029": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-07-23",
+"montant": 50000,
+"verse": 50000,
+"reste": 0,
+"projet": "PLIC : Rénovation énergétique, mise en accessibilité PMR, restructuration et extension de la salle polyvalente FAMISOL"
+}
+],
+"217201227": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-09-18",
+"montant": 34890,
+"verse": 34890,
+"reste": 0,
+"projet": "PLIC : Cheminement piétonnier/Liaison douce"
+}
+],
+"217200674": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-05-20",
+"montant": 52757,
+"verse": 52757,
+"reste": 0,
+"projet": "l'aménagement d'un accueil périscolaire"
+}
+],
+"214400905": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds d'urgence santé aux communes et intercommunalités",
+"annee": 2025,
+"date": "2025-12-12",
+"montant": 35000,
+"verse": 35000,
+"reste": 0,
+"projet": "Construction d'un pôle santé, au titre du dispositif régional Fonds d'urgence pour le maintien des professionnels de santé"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-11-06",
+"montant": 32732,
+"verse": 32732,
+"reste": 0,
+"projet": "l'aménagement d'un espace jeunes à La Marne"
+}
+],
+"214401556": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-11-03",
+"montant": 65776,
+"verse": 65776,
+"reste": 0,
+"projet": "la construction d'un pump track à Saint-Colomban"
+}
+],
+"217201342": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2026,
+"date": "2026-06-17",
+"montant": 44699,
+"verse": 44699,
+"reste": 0,
+"projet": "Diagnostic et restauration des décors peints de la chapelle Sainte-Cécile"
+}
+],
+"200064566": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Amélioration de l'accès au réseau et réhabilitation de Bâtiment Fermé",
+"annee": 2026,
+"date": "2026-05-11",
+"montant": 187852,
+"verse": 187852,
+"reste": 0,
+"projet": "Financement pour la desserte en mode actif de la gare de Morannes"
+}
+],
+"214901126": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2026,
+"date": "2026-02-05",
+"montant": 51433,
+"verse": 51433,
+"reste": 0,
+"projet": "Travaux de modernisation de la mairie et de son bâtiment annexe"
+}
+],
+"217203173": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2026,
+"date": "2026-04-02",
+"montant": 99301,
+"verse": 99301,
+"reste": 0,
+"projet": "travaux de restauration de la Chapelle Notre Dame de Toutes Aides"
+}
+],
+"218500254": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2026,
+"date": "2026-09-18",
+"montant": 68417,
+"verse": 47892,
+"reste": 20525,
+"projet": "travaux de restauration de l'église Notre Dame de l'Assomption (réfection des enduits extérieurs)"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2026,
+"date": "2026-09-18",
+"montant": 58920,
+"verse": 41244,
+"reste": 17676,
+"projet": "restauration de la toiture de l'église Notre Dame de l'Assomption"
+}
+],
+"248500415": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-10-13",
+"montant": 271950,
+"verse": 271950,
+"reste": 0,
+"projet": "acquisitions foncières pour l'extension de ZAE communautaires"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds d'urgence santé aux communes et intercommunalités",
+"annee": 2026,
+"date": "2026-04-15",
+"montant": 50000,
+"verse": 35000,
+"reste": 15000,
+"projet": "Extension du pôle santé de Bazoges-en-Pareds, au titre du fond d'urgence pour le maintien des professionnels de santé"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Soutien à linvestissement de maisons de santé pluriprofessionnelles",
+"annee": 2026,
+"date": "2026-10-16",
+"montant": 50000,
+"verse": 35000,
+"reste": 15000,
+"projet": "Extension du pôle santé de la Chataigneraie, au titre du dispositif régional aide régionale en faveur des maisons de santé pluriprofessionnelles"
 }
 ],
 "200054229": [
@@ -18125,6 +18193,28 @@
 "projet": "Fonds école : Extension et rénovation de l'école Robert Tatin"
 }
 ],
+"214402216": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds Régional Jeunesse et Territoires",
+"annee": 2026,
+"date": "2026-03-16",
+"montant": 50000,
+"verse": 50000,
+"reste": 0,
+"projet": "Fonds régional Jeunesse et Territoire - Construction d'un restaurant scolaire"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
+"annee": 2025,
+"date": "2025-06-24",
+"montant": 43781,
+"verse": 43781,
+"reste": 0,
+"projet": "La réfection de la toiture de l'église"
+}
+],
 "214401457": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -18135,6 +18225,18 @@
 "verse": 28000,
 "reste": 0,
 "projet": "La construction d'une salle de raquettes"
+}
+],
+"217202316": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds de revitalisation des centres villes en Pays de la Loire",
+"annee": 2025,
+"date": "2025-12-03",
+"montant": 150000,
+"verse": 150000,
+"reste": 0,
+"projet": "FRCV : Rénovation énergétique, restructuration et extension d'un équipement sportif"
 }
 ],
 "214903387": [
@@ -18161,6 +18263,18 @@
 "projet": "PLIC : CONSTRUCTION D'UNE SALLE POLYVALENTE ANNEXE INTERGENERATIONNELLE"
 }
 ],
+"215301961": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-12-08",
+"montant": 23273,
+"verse": 23273,
+"reste": 0,
+"projet": "PLIC : Création d'une voie piétonne liant le bourg aux deux lotissements"
+}
+],
 "218500155": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -18181,6 +18295,18 @@
 "date": "2025-08-06",
 "montant": 41685,
 "verse": 41685,
+"reste": 0,
+"projet": "PLIC :"
+}
+],
+"217203363": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-11-03",
+"montant": 28093,
+"verse": 28093,
 "reste": 0,
 "projet": "PLIC :"
 }
@@ -18221,76 +18347,6 @@
 "projet": "la mise en place d'un éclairage LED pour le terrain de football à Saint-Mars-de-Coutais"
 }
 ],
-"214402216": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds Régional Jeunesse et Territoires",
-"annee": 2026,
-"date": "2026-03-16",
-"montant": 50000,
-"verse": 50000,
-"reste": 0,
-"projet": "Fonds régional Jeunesse et Territoire - Construction d'un restaurant scolaire"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
-"annee": 2025,
-"date": "2025-06-24",
-"montant": 43781,
-"verse": 43781,
-"reste": 0,
-"projet": "La réfection de la toiture de l'église"
-}
-],
-"217202316": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds de revitalisation des centres villes en Pays de la Loire",
-"annee": 2025,
-"date": "2025-12-03",
-"montant": 150000,
-"verse": 150000,
-"reste": 0,
-"projet": "FRCV : Rénovation énergétique, restructuration et extension d'un équipement sportif"
-}
-],
-"215301961": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-12-08",
-"montant": 23273,
-"verse": 23273,
-"reste": 0,
-"projet": "PLIC : Création d'une voie piétonne liant le bourg aux deux lotissements"
-}
-],
-"217203363": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-11-03",
-"montant": 28093,
-"verse": 28093,
-"reste": 0,
-"projet": "PLIC :"
-}
-],
-"200057677": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Amélioration de l'accès au réseau et réhabilitation de Bâtiment Fermé",
-"annee": 2025,
-"date": "2025-09-23",
-"montant": 90000,
-"verse": 90000,
-"reste": 0,
-"projet": "Aménagements cyclables pour améliorer l'accès au point d'arrêt routier structurant PEMU de Fontenay-le-Comte depuis Doix-lès-Fontaines"
-}
-],
 "218502979": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -18323,6 +18379,52 @@
 "verse": 35701,
 "reste": 0,
 "projet": "Rénovation d'un logement communal 9 bis place de la Mairie à Juvardeil"
+}
+],
+"218501351": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2025,
+"date": "2025-05-22",
+"montant": 80000,
+"verse": 80000,
+"reste": 0,
+"projet": "la restauration de l'Eglise Saint-Sauveur de Mareuil-sur-Lay-Dissais (phase 3 - tranche optionnelle 1"
+}
+],
+"218503050": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2025,
+"date": "2025-03-14",
+"montant": 48261,
+"verse": 48261,
+"reste": 0,
+"projet": "la restauration (tranche 1) du clocher de l'église Notre-Dame-de-l'Assomption à Vouvant"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2025,
+"date": "2025-12-17",
+"montant": 45660,
+"verse": 45660,
+"reste": 0,
+"projet": "Aménagement de la rue de Lusignan et des espaces voisins"
+}
+],
+"200057677": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Amélioration de l'accès au réseau et réhabilitation de Bâtiment Fermé",
+"annee": 2025,
+"date": "2025-09-23",
+"montant": 90000,
+"verse": 90000,
+"reste": 0,
+"projet": "Aménagements cyclables pour améliorer l'accès au point d'arrêt routier structurant PEMU de Fontenay-le-Comte depuis Doix-lès-Fontaines"
 }
 ],
 "215301573": [
@@ -18371,106 +18473,16 @@
 "projet": "Rénovation de la salle polyvalente Jean Cutullic - 33 boulevard Dumesnildot à PAIMBOEUF"
 }
 ],
-"217201342": [
+"215302233": [
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2026,
-"date": "2026-06-17",
-"montant": 44699,
-"verse": 44699,
-"reste": 0,
-"projet": "Diagnostic et restauration des décors peints de la chapelle Sainte-Cécile"
-}
-],
-"200064566": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Amélioration de l'accès au réseau et réhabilitation de Bâtiment Fermé",
-"annee": 2026,
-"date": "2026-05-11",
-"montant": 187852,
-"verse": 187852,
-"reste": 0,
-"projet": "Financement pour la desserte en mode actif de la gare de Morannes"
-}
-],
-"217203173": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2026,
-"date": "2026-04-02",
-"montant": 99301,
-"verse": 99301,
-"reste": 0,
-"projet": "travaux de restauration de la Chapelle Notre Dame de Toutes Aides"
-}
-],
-"248500415": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-10-13",
-"montant": 271950,
-"verse": 271950,
-"reste": 0,
-"projet": "acquisitions foncières pour l'extension de ZAE communautaires"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds d'urgence santé aux communes et intercommunalités",
-"annee": 2026,
-"date": "2026-04-15",
-"montant": 50000,
-"verse": 35000,
-"reste": 15000,
-"projet": "Extension du pôle santé de Bazoges-en-Pareds, au titre du fond d'urgence pour le maintien des professionnels de santé"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Soutien à linvestissement de maisons de santé pluriprofessionnelles",
-"annee": 2026,
-"date": "2026-10-16",
-"montant": 50000,
-"verse": 35000,
-"reste": 15000,
-"projet": "Extension du pôle santé de la Chataigneraie, au titre du dispositif régional aide régionale en faveur des maisons de santé pluriprofessionnelles"
-}
-],
-"214901126": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
+"aide": "Pays de La Loire Relance Investissement Communal",
 "annee": 2026,
 "date": "2026-02-05",
-"montant": 51433,
-"verse": 51433,
+"montant": 24414,
+"verse": 24414,
 "reste": 0,
-"projet": "Travaux de modernisation de la mairie et de son bâtiment annexe"
-}
-],
-"218500254": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2026,
-"date": "2026-09-18",
-"montant": 68417,
-"verse": 47892,
-"reste": 20525,
-"projet": "travaux de restauration de l'église Notre Dame de l'Assomption (réfection des enduits extérieurs)"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2026,
-"date": "2026-09-18",
-"montant": 58920,
-"verse": 41244,
-"reste": 17676,
-"projet": "restauration de la toiture de l'église Notre Dame de l'Assomption"
+"projet": "PLRIC : Travaux de mise en accessibilité et de rénovation énergétique de divers bâtiments communaux"
 }
 ],
 "215301862": [
@@ -18483,6 +18495,18 @@
 "verse": 25000,
 "reste": 25000,
 "projet": "FRDC : Construction d'un bâtiment pour accueillir des logements et services"
+}
+],
+"200054559": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds de revitalisation des centres villes en Pays de la Loire",
+"annee": 2026,
+"date": "2026-10-16",
+"montant": 150000,
+"verse": 136588,
+"reste": 13412,
+"projet": "FRCV : Extension de l'accueil et du Hall d'exposition de l'Abbaye"
 }
 ],
 "214402059": [
@@ -18505,30 +18529,6 @@
 "verse": 81492,
 "reste": 0,
 "projet": "la création d'un espace de coworking"
-}
-],
-"215302233": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de La Loire Relance Investissement Communal",
-"annee": 2026,
-"date": "2026-02-05",
-"montant": 24414,
-"verse": 24414,
-"reste": 0,
-"projet": "PLRIC : Travaux de mise en accessibilité et de rénovation énergétique de divers bâtiments communaux"
-}
-],
-"200054559": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds de revitalisation des centres villes en Pays de la Loire",
-"annee": 2026,
-"date": "2026-10-16",
-"montant": 150000,
-"verse": 136588,
-"reste": 13412,
-"projet": "FRCV : Extension de l'accueil et du Hall d'exposition de l'Abbaye"
 }
 ],
 "217201466": [
@@ -18567,16 +18567,210 @@
 "projet": "PLIC : Réhabilitation d'un bâtiment et création d'une salle multi-usage"
 }
 ],
-"218502961": [
+"217200104": [
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "PEEL  AAP Rénovation exemplaire",
+"aide": "monuments historiques protégés",
+"annee": 2025,
+"date": "2025-12-17",
+"montant": 70582,
+"verse": 70582,
+"reste": 0,
+"projet": "Aide à la restauration des monuments historiques - COMMUNE D'ASNIERES SUR VEGRE - Restauration de l'église Saint-Hilaire ( T03)"
+}
+],
+"217200401": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2025,
+"date": "2025-06-11",
+"montant": 50400,
+"verse": 50400,
+"reste": 0,
+"projet": "la restauration de la toiture et des soubassements extérieurs de l'église de La Bosse"
+}
+],
+"218502904": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2025,
+"date": "2025-11-17",
+"montant": 50000,
+"verse": 50000,
+"reste": 0,
+"projet": "Restauration de l'Eglise Saint-Pierre de Thiré - Phase III"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "monuments historiques protégés",
+"annee": 2025,
+"date": "2025-10-08",
+"montant": 50000,
+"verse": 50000,
+"reste": 0,
+"projet": "restauration des parties basse de l'église Saint-Pierre - Phase 2, de Thiré"
+}
+],
+"218500940": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2025,
+"date": "2025-08-22",
+"montant": 35120,
+"verse": 35120,
+"reste": 0,
+"projet": "Travaux de renforcement de la voie de contournement du centre bourg pour la préservation du cœur de bourg"
+}
+],
+"217203330": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2025,
+"date": "2025-06-18",
+"montant": 94316,
+"verse": 94316,
+"reste": 0,
+"projet": "Restauration des toitures de l'Eglise Saint-Martin de Semur-en-Vallon, au titre des édifices religieux non protégés"
+}
+],
+"214901407": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Equipements patrimoniaux",
+"annee": 2025,
+"date": "2025-08-21",
+"montant": 105000,
+"verse": 105000,
+"reste": 0,
+"projet": "l'aménagement d'aires de stationnement autour de l'Abbaye royale de Fontevraud"
+}
+],
+"215301078": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
 "annee": 2026,
-"date": "2026-08-14",
-"montant": 69900,
-"verse": 38915,
-"reste": 30985,
-"projet": "Appel à projets rénovations exemplaires des bâtiments - COMMUNE DE TREIZE-VENTS"
+"date": "2026-01-30",
+"montant": 217800,
+"verse": 174240,
+"reste": 43560,
+"projet": "Aménagement du camping de Brilhault"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
+"annee": 2025,
+"date": "2025-04-28",
+"montant": 43530,
+"verse": 43530,
+"reste": 0,
+"projet": "La réfection de l'église de Gorron"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "430 - Logements locatifs communaux",
+"annee": 2025,
+"date": "2025-09-24",
+"montant": 38079,
+"verse": 38079,
+"reste": 0,
+"projet": "la réhabilitation d'un immeuble collectif - Rue du Maine à Gorron"
+}
+],
+"218500981": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds régional de développement des communes",
+"annee": 2025,
+"date": "2025-07-18",
+"montant": 25935,
+"verse": 25935,
+"reste": 0,
+"projet": "FRDC : Acquisition de la résidence des Grands chênes et travaux"
+}
+],
+"215300641": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-12-01",
+"montant": 25022,
+"verse": 25022,
+"reste": 0,
+"projet": "PLIC : Rénovation de la supérette"
+}
+],
+"200059475": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds de revitalisation des centres villes en Pays de la Loire",
+"annee": 2025,
+"date": "2025-11-03",
+"montant": 150000,
+"verse": 150000,
+"reste": 0,
+"projet": "FRCV : Rénovation thermique de la salle de Loisirs de Vihiers (commune déléguée de Lys Haut Layon)"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Revital.centres bourgs-Fonds rég.reconquête centre ville, ville moyennes,bourg",
+"annee": 2025,
+"date": "2025-03-21",
+"montant": 58300,
+"verse": 58300,
+"reste": 0,
+"projet": "Fonds reconquête - Lys-Haut-Layon - Ecole et réhabilitation du presbytère en accueil périscolaire"
+}
+],
+"215301813": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-08-28",
+"montant": 110399,
+"verse": 110399,
+"reste": 0,
+"projet": "Rénovation énergétique du bâtiment abritant le centre d'art contemporain de Pontmain"
+}
+],
+"218502326": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-03-20",
+"montant": 30561,
+"verse": 30561,
+"reste": 0,
+"projet": "PLIC : Construction d'un restaurant scolaire"
+}
+],
+"217201805": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-06-24",
+"montant": 45000,
+"verse": 45000,
+"reste": 0,
+"projet": "Renaturation de la cour d'école Paul Fort"
+},
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-09-12",
+"montant": 32119,
+"verse": 32119,
+"reste": 0,
+"projet": "la construction d'un marché aux bestiaux"
 }
 ],
 "218501435": [
@@ -18627,246 +18821,16 @@
 "projet": "réhabilitation du site de l'ancienne école à Ste Anne de Brivet"
 }
 ],
-"218500940": [
+"218502961": [
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2025,
-"date": "2025-08-22",
-"montant": 35120,
-"verse": 35120,
-"reste": 0,
-"projet": "Travaux de renforcement de la voie de contournement du centre bourg pour la préservation du cœur de bourg"
-}
-],
-"217203330": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2025,
-"date": "2025-06-18",
-"montant": 94316,
-"verse": 94316,
-"reste": 0,
-"projet": "Restauration des toitures de l'Eglise Saint-Martin de Semur-en-Vallon, au titre des édifices religieux non protégés"
-}
-],
-"217200401": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2025,
-"date": "2025-06-11",
-"montant": 50400,
-"verse": 50400,
-"reste": 0,
-"projet": "la restauration de la toiture et des soubassements extérieurs de l'église de La Bosse"
-}
-],
-"214901407": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Equipements patrimoniaux",
-"annee": 2025,
-"date": "2025-08-21",
-"montant": 105000,
-"verse": 105000,
-"reste": 0,
-"projet": "l'aménagement d'aires de stationnement autour de l'Abbaye royale de Fontevraud"
-}
-],
-"215301078": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-01-30",
-"montant": 217800,
-"verse": 174240,
-"reste": 43560,
-"projet": "Aménagement du camping de Brilhault"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrats Territoires - Région 2020 (CTR 2020)",
-"annee": 2025,
-"date": "2025-04-28",
-"montant": 43530,
-"verse": 43530,
-"reste": 0,
-"projet": "La réfection de l'église de Gorron"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "430 - Logements locatifs communaux",
-"annee": 2025,
-"date": "2025-09-24",
-"montant": 38079,
-"verse": 38079,
-"reste": 0,
-"projet": "la réhabilitation d'un immeuble collectif - Rue du Maine à Gorron"
-}
-],
-"200059475": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds de revitalisation des centres villes en Pays de la Loire",
-"annee": 2025,
-"date": "2025-11-03",
-"montant": 150000,
-"verse": 150000,
-"reste": 0,
-"projet": "FRCV : Rénovation thermique de la salle de Loisirs de Vihiers (commune déléguée de Lys Haut Layon)"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Revital.centres bourgs-Fonds rég.reconquête centre ville, ville moyennes,bourg",
-"annee": 2025,
-"date": "2025-03-21",
-"montant": 58300,
-"verse": 58300,
-"reste": 0,
-"projet": "Fonds reconquête - Lys-Haut-Layon - Ecole et réhabilitation du presbytère en accueil périscolaire"
-}
-],
-"218500981": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds régional de développement des communes",
-"annee": 2025,
-"date": "2025-07-18",
-"montant": 25935,
-"verse": 25935,
-"reste": 0,
-"projet": "FRDC : Acquisition de la résidence des Grands chênes et travaux"
-}
-],
-"215301813": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-08-28",
-"montant": 110399,
-"verse": 110399,
-"reste": 0,
-"projet": "Rénovation énergétique du bâtiment abritant le centre d'art contemporain de Pontmain"
-}
-],
-"215300641": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-12-01",
-"montant": 25022,
-"verse": 25022,
-"reste": 0,
-"projet": "PLIC : Rénovation de la supérette"
-}
-],
-"218502326": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-03-20",
-"montant": 30561,
-"verse": 30561,
-"reste": 0,
-"projet": "PLIC : Construction d'un restaurant scolaire"
-}
-],
-"217201805": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-06-24",
-"montant": 45000,
-"verse": 45000,
-"reste": 0,
-"projet": "Renaturation de la cour d'école Paul Fort"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-09-12",
-"montant": 32119,
-"verse": 32119,
-"reste": 0,
-"projet": "la construction d'un marché aux bestiaux"
-}
-],
-"217200104": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2025,
-"date": "2025-12-17",
-"montant": 70582,
-"verse": 70582,
-"reste": 0,
-"projet": "Aide à la restauration des monuments historiques - COMMUNE D'ASNIERES SUR VEGRE - Restauration de l'église Saint-Hilaire ( T03)"
-}
-],
-"218502904": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2025,
-"date": "2025-11-17",
-"montant": 50000,
-"verse": 50000,
-"reste": 0,
-"projet": "Restauration de l'Eglise Saint-Pierre de Thiré - Phase III"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "monuments historiques protégés",
-"annee": 2025,
-"date": "2025-10-08",
-"montant": 50000,
-"verse": 50000,
-"reste": 0,
-"projet": "restauration des parties basse de l'église Saint-Pierre - Phase 2, de Thiré"
-}
-],
-"215301888": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "PIE - Projets EnR",
+"aide": "PEEL  AAP Rénovation exemplaire",
 "annee": 2026,
 "date": "2026-08-14",
-"montant": 133250,
-"verse": 66625,
-"reste": 66625,
-"projet": "Appel à projets 2022 Energies Renouvelables et Réseaux - COMMUNE DE RENAZE"
-}
-],
-"218502466": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2026,
-"date": "2026-09-25",
-"montant": 50000,
-"verse": 40000,
-"reste": 10000,
-"projet": "PLIC : REHABILITATION DES SALLES DE SPORTS ET CONSTUCTION DE VESTIAIRES"
-}
-],
-"218500387": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2026,
-"date": "2026-02-20",
-"montant": 45216,
-"verse": 45155,
-"reste": 61,
-"projet": "PLIC :"
+"montant": 69900,
+"verse": 38915,
+"reste": 30985,
+"projet": "Appel à projets rénovations exemplaires des bâtiments - COMMUNE DE TREIZE-VENTS"
 }
 ],
 "214401879": [
@@ -18879,30 +18843,6 @@
 "verse": 89240,
 "reste": 0,
 "projet": "FRCV :"
-}
-],
-"215302001": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-12-01",
-"montant": 33500,
-"verse": 33500,
-"reste": 0,
-"projet": "PLIC : Rénovation et extension du restaurant le Saint Mathurin"
-}
-],
-"215300781": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2025,
-"date": "2025-03-28",
-"montant": 26707,
-"verse": 26707,
-"reste": 0,
-"projet": "PLIC : Soutien d'un commerce alimentaire spécialisé  boulangerie pâtisserie"
 }
 ],
 "214400160": [
@@ -18939,6 +18879,30 @@
 "verse": 28234,
 "reste": 0,
 "projet": "PLIC : Réhabilitation d'un bâtiment communal à usage de bar/restaurant"
+}
+],
+"215302001": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-12-01",
+"montant": 33500,
+"verse": 33500,
+"reste": 0,
+"projet": "PLIC : Rénovation et extension du restaurant le Saint Mathurin"
+}
+],
+"215300781": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2025,
+"date": "2025-03-28",
+"montant": 26707,
+"verse": 26707,
+"reste": 0,
+"projet": "PLIC : Soutien d'un commerce alimentaire spécialisé  boulangerie pâtisserie"
 }
 ],
 "217201458": [
@@ -18999,6 +18963,18 @@
 "projet": "Rénovation de 8 logements locatifs communaux - Impasse Bellevue à BOURGON"
 }
 ],
+"200056034": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "430 - Bätiments publics",
+"annee": 2025,
+"date": "2025-09-11",
+"montant": 38045,
+"verse": 38045,
+"reste": 0,
+"projet": "la rénovation de la maison de retraite en Pôle Enfance - 5 rue du Bon Repos à VAL DU LAYON"
+}
+],
 "215300740": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -19055,30 +19031,6 @@
 "projet": "Rénovation extérieure de la MAM, Aménagement parkings Génovette et Place de la Teinturerie, Création garde-corps Petite Venelle"
 }
 ],
-"200056034": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "430 - Bätiments publics",
-"annee": 2025,
-"date": "2025-09-11",
-"montant": 38045,
-"verse": 38045,
-"reste": 0,
-"projet": "la rénovation de la maison de retraite en Pôle Enfance - 5 rue du Bon Repos à VAL DU LAYON"
-}
-],
-"214401648": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Edifices religieux non protégés",
-"annee": 2025,
-"date": "2025-08-21",
-"montant": 78461,
-"verse": 78461,
-"reste": 0,
-"projet": "travaux de réfection de l'église tranche n°1 : réfection de la structure (choeur et sacristies)"
-}
-],
 "200099489": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -19103,6 +19055,54 @@
 "projet": "Restauration de la flèche du clocher de l'église Saint-Médard"
 }
 ],
+"214401648": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Edifices religieux non protégés",
+"annee": 2025,
+"date": "2025-08-21",
+"montant": 78461,
+"verse": 78461,
+"reste": 0,
+"projet": "travaux de réfection de l'église tranche n°1 : réfection de la structure (choeur et sacristies)"
+}
+],
+"215301888": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "PIE - Projets EnR",
+"annee": 2026,
+"date": "2026-08-14",
+"montant": 133250,
+"verse": 66625,
+"reste": 66625,
+"projet": "Appel à projets 2022 Energies Renouvelables et Réseaux - COMMUNE DE RENAZE"
+}
+],
+"218502466": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2026,
+"date": "2026-09-25",
+"montant": 50000,
+"verse": 40000,
+"reste": 10000,
+"projet": "PLIC : REHABILITATION DES SALLES DE SPORTS ET CONSTUCTION DE VESTIAIRES"
+}
+],
+"218500387": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2026,
+"date": "2026-02-20",
+"montant": 45216,
+"verse": 45155,
+"reste": 61,
+"projet": "PLIC :"
+}
+],
 "200072692": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -19125,76 +19125,6 @@
 "verse": 25586,
 "reste": 0,
 "projet": "PLIC : Création d'un parking végétalisé"
-}
-],
-"215300088": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "430 - Bätiments publics",
-"annee": 2026,
-"date": "2026-08-24",
-"montant": 100000,
-"verse": 30000,
-"reste": 70000,
-"projet": "Rénovation de la salle polyvalente - rue des Loisirs à ARON"
-}
-],
-"214903296": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2026,
-"date": "2026-10-15",
-"montant": 34341,
-"verse": 26368,
-"reste": 7973,
-"projet": "Réhabilitation de deux logements et d'un commerce"
-}
-],
-"214902538": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2026,
-"date": "2026-02-05",
-"montant": 73320,
-"verse": 66650,
-"reste": 6670,
-"projet": "Travaux de réhabilitation de la rue Notre-Dame (phase 1)"
-},
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2025,
-"date": "2025-03-06",
-"montant": 35471,
-"verse": 35471,
-"reste": 0,
-"projet": "Enfouissement des réseaux aériens de la rue Notre Dame et remplacement des menuiseries de la partie basse de la Mairie"
-}
-],
-"214401259": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "petites cités de caractères",
-"annee": 2026,
-"date": "2026-03-30",
-"montant": 90000,
-"verse": 45000,
-"reste": 45000,
-"projet": "Aménagement paysager du parking de la Conserverie"
-}
-],
-"245300223": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-10-13",
-"montant": 106600,
-"verse": 59344,
-"reste": 47256,
-"projet": "extension du Pôle santé de Grez-en-Bouère"
 }
 ],
 "217203769": [
@@ -19257,40 +19187,74 @@
 "projet": "création d'une Maison d'assistantes maternelles"
 }
 ],
-"214901274": [
+"245300223": [
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "Amélioration de l'accès au réseau et réhabilitation de Bâtiment Fermé",
-"annee": 2025,
-"date": "2025-10-31",
-"montant": 45000,
-"verse": 45000,
-"reste": 0,
-"projet": "première phase de travaux de mise aux normes au droit des arrêts du réseau régional de transport"
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-10-13",
+"montant": 106600,
+"verse": 59344,
+"reste": 47256,
+"projet": "extension du Pôle santé de Grez-en-Bouère"
 }
 ],
-"214902199": [
+"215300088": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "430 - Bätiments publics",
+"annee": 2026,
+"date": "2026-08-24",
+"montant": 100000,
+"verse": 30000,
+"reste": 70000,
+"projet": "Rénovation de la salle polyvalente - rue des Loisirs à ARON"
+}
+],
+"214903296": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2026,
+"date": "2026-10-15",
+"montant": 34341,
+"verse": 26368,
+"reste": 7973,
+"projet": "Réhabilitation de deux logements et d'un commerce"
+}
+],
+"214902538": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2026,
+"date": "2026-02-05",
+"montant": 73320,
+"verse": 66650,
+"reste": 6670,
+"projet": "Travaux de réhabilitation de la rue Notre-Dame (phase 1)"
+},
 {
 "dispositif": "Région Pays de la Loire",
 "aide": "petites cités de caractères",
 "annee": 2025,
-"date": "2025-02-19",
-"montant": 72567,
-"verse": 72567,
+"date": "2025-03-06",
+"montant": 35471,
+"verse": 35471,
 "reste": 0,
-"projet": "Aménagement de la place des diligences et de ses principaux accès (tranche 5)"
+"projet": "Enfouissement des réseaux aériens de la rue Notre Dame et remplacement des menuiseries de la partie basse de la Mairie"
 }
 ],
-"218501260": [
+"214401259": [
 {
 "dispositif": "Région Pays de la Loire",
-"aide": "Amélioration de l'accès au réseau et réhabilitation de Bâtiment Fermé",
-"annee": 2025,
-"date": "2025-04-28",
-"montant": 81960,
-"verse": 81960,
-"reste": 0,
-"projet": "Aménagements cyclables pour améliorer l'accès au point d'arrêt routier structurant PEMU de Fontenay-le-Comte depuis longèves."
+"aide": "petites cités de caractères",
+"annee": 2026,
+"date": "2026-03-30",
+"montant": 90000,
+"verse": 45000,
+"reste": 45000,
+"projet": "Aménagement paysager du parking de la Conserverie"
 }
 ],
 "214401101": [
@@ -19327,6 +19291,90 @@
 "projet": "la restauration intérieure de l'église Notre-Dame de l'Assomption de Brécé"
 }
 ],
+"218501260": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Amélioration de l'accès au réseau et réhabilitation de Bâtiment Fermé",
+"annee": 2025,
+"date": "2025-04-28",
+"montant": 81960,
+"verse": 81960,
+"reste": 0,
+"projet": "Aménagements cyclables pour améliorer l'accès au point d'arrêt routier structurant PEMU de Fontenay-le-Comte depuis longèves."
+}
+],
+"214901274": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Amélioration de l'accès au réseau et réhabilitation de Bâtiment Fermé",
+"annee": 2025,
+"date": "2025-10-31",
+"montant": 45000,
+"verse": 45000,
+"reste": 0,
+"projet": "première phase de travaux de mise aux normes au droit des arrêts du réseau régional de transport"
+}
+],
+"214902199": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "petites cités de caractères",
+"annee": 2025,
+"date": "2025-02-19",
+"montant": 72567,
+"verse": 72567,
+"reste": 0,
+"projet": "Aménagement de la place des diligences et de ses principaux accès (tranche 5)"
+}
+],
+"218502938": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Pays de la Loire Investissement Communal",
+"annee": 2026,
+"date": "2026-01-20",
+"montant": 50000,
+"verse": 39218,
+"reste": 10782,
+"projet": "PLIC : CONSTRUCTION D'UNE SALLE DE SPORT ET DOJO"
+}
+],
+"214400327": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-07-15",
+"montant": 49086,
+"verse": 47560,
+"reste": 1526,
+"projet": "Reconstruction des vestiaires de football"
+}
+],
+"217202753": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-01-30",
+"montant": 41810,
+"verse": 41810,
+"reste": 0,
+"projet": "réhabilitation d'une ancienne salle en deux cellules commerciales"
+}
+],
+"218501724": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2026,
+"date": "2026-10-19",
+"montant": 50000,
+"verse": 27178,
+"reste": 22822,
+"projet": "végétalisation de la cour de l'école et des abords de la Minoterie"
+}
+],
 "218500593": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -19347,54 +19395,6 @@
 "verse": 30000,
 "reste": 0,
 "projet": "travaux de confortement des charpentes (croisés et nef), la réfection couverture du bas côté Nord, la restauration façades et voutes du bas côté Nord de  l'égli"
-}
-],
-"218502938": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Pays de la Loire Investissement Communal",
-"annee": 2026,
-"date": "2026-01-20",
-"montant": 50000,
-"verse": 39218,
-"reste": 10782,
-"projet": "PLIC : CONSTRUCTION D'UNE SALLE DE SPORT ET DOJO"
-}
-],
-"217202753": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-01-30",
-"montant": 41810,
-"verse": 41810,
-"reste": 0,
-"projet": "réhabilitation d'une ancienne salle en deux cellules commerciales"
-}
-],
-"214400327": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-07-15",
-"montant": 49086,
-"verse": 47560,
-"reste": 1526,
-"projet": "Reconstruction des vestiaires de football"
-}
-],
-"218501724": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2026,
-"date": "2026-10-19",
-"montant": 50000,
-"verse": 27178,
-"reste": 22822,
-"projet": "végétalisation de la cour de l'école et des abords de la Minoterie"
 }
 ],
 "200059582": [
@@ -19419,6 +19419,18 @@
 "verse": 35000,
 "reste": 0,
 "projet": "Extension du pôle santé de La Planche, au titre du dispositif régional aide régionale en faveur des maisons de santé pluriprofessionnelles"
+}
+],
+"218501203": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Fonds régional de développement des communes",
+"annee": 2025,
+"date": "2025-11-12",
+"montant": 36638,
+"verse": 36638,
+"reste": 0,
+"projet": "Pacte pour la ruralité - COMMUNE DE LANDEVIEILLE"
 }
 ],
 "218500122": [
@@ -19469,30 +19481,6 @@
 "projet": "Rénovation et modernisation de la cuisine centrale de Montaudin"
 }
 ],
-"214400442": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Contrat Pays de la Loire 2026",
-"annee": 2025,
-"date": "2025-11-03",
-"montant": 52513,
-"verse": 52513,
-"reste": 0,
-"projet": "Création d'une maison des assistantes maternelles"
-}
-],
-"218501203": [
-{
-"dispositif": "Région Pays de la Loire",
-"aide": "Fonds régional de développement des communes",
-"annee": 2025,
-"date": "2025-11-12",
-"montant": 36638,
-"verse": 36638,
-"reste": 0,
-"projet": "Pacte pour la ruralité - COMMUNE DE LANDEVIEILLE"
-}
-],
 "215301102": [
 {
 "dispositif": "Région Pays de la Loire",
@@ -19503,6 +19491,18 @@
 "verse": 40000,
 "reste": 0,
 "projet": "PLIC : Construction d'un restaurant"
+}
+],
+"214400442": [
+{
+"dispositif": "Région Pays de la Loire",
+"aide": "Contrat Pays de la Loire 2026",
+"annee": 2025,
+"date": "2025-11-03",
+"montant": 52513,
+"verse": 52513,
+"reste": 0,
+"projet": "Création d'une maison des assistantes maternelles"
 }
 ],
 "217201110": [
