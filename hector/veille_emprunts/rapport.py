@@ -759,7 +759,7 @@ ENTETES = {"Liste calculée": ["Date", "Rang", "SIREN", "Collectivité", "Type",
 def main():
     qf, cfs, opts = args()
     q = json.load(open(qf))
-    appeles, c_recents = set(), []
+    appeles, c_recents, deja_surs = set(), [], set()
     if "--webhook" in opts:
         # ce qui est déjà dans le Google Sheets n'est pas reproposé comme nouveau ; une collectivité déjà
         # appelée (« Résultat de l'appel » rempli ou « Appelé » à Oui) n'est plus jamais proposée
@@ -772,6 +772,8 @@ def main():
             vus = {x.get("lien"): x.get("date") for x in rep.get("deja_signales", [])
                    if str(x.get("date") or "").strip() != aujourdhui}
             appeles = set(rep.get("deja_appeles", []))
+            # déjà signalée comme sûre (A ou B) un autre jour : elle n'a rien à faire dans les probables
+            deja_surs = {x["siren"] for x in rep.get("deja_signales", []) if x.get("niveau") in ("A", "B")}
             c_recents = rep.get("c_recents", [])
             for o in q.get("opportunites", []):
                 if o.get("lien") in vus and o.get("niveau") in ("A", "B"):
@@ -803,7 +805,7 @@ def main():
                 decp = json.load(open(opts["--decp"]))
             except Exception as e:
                 print("signaux DECP illisibles :", str(e)[:120])
-        exclus = {o["siren"] for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")} | appeles
+        exclus = {o["siren"] for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")} | appeles | deja_surs
         # un C « banque déjà retenue, contrat signé » n'annonce pas un nouvel emprunt : il ne compte pas
         deja_signe = re.compile(r"souscri|signe|retenu|accept|contracte|reconduit|renouvele|"
                                 r"banque des territoires|credit agricole|caisse d.epargne|credit mutuel|arkea|"
