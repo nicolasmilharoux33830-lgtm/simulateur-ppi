@@ -86,6 +86,9 @@ def ocr_page(page, moteur, echelle=1.0):
     """Texte d'une page scannée, reconstitué ligne par ligne (les cellules d'un tableau restent sur leur ligne).
     À l'échelle 1, l'OCR sépare bien les mots ; au-delà il les colle (« souscrireunemprunt »)."""
     im = page.render(scale=echelle).to_pil().convert("RGB")
+    # rapidocr n'accepte plus les images PIL : tableau numpy en BGR (ordre d'OpenCV)
+    import numpy as np
+    im = np.asarray(im)[:, :, ::-1]
     with _verrou_ocr:
         res, _ = moteur(im)
     boites = []
