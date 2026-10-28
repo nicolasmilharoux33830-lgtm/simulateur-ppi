@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Regard financier des communes</title>
+<meta name="description" content="Analyse financière automatique d'une commune à partir de son SIREN, sur données publiques OFGL (comptes de gestion DGFiP).">
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --ink:#15233b; --muted:#5b6b82; --line:#e4e9f1;
+    --navy:#17315c; --navy2:#22406f; --accent:#1d6fb8; --good:#117a52; --goodbg:#e7f4ee;
+    --warn:#9a3324; --warnbg:#fcebe8; --neutralbg:#eef2f8; --chip:#eaf1f9;
+    --shadow:0 1px 2px rgba(16,32,64,.06),0 6px 24px rgba(16,32,64,.06);
+    --radius:16px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1522; --card:#15203380; --ink:#e9eef6; --muted:#9fb0c7; --line:#25334a;
+      --navy:#9cc3ef; --navy2:#bcd6f5; --accent:#6fb2ea; --good:#5fd2a0; --goodbg:#10342740;
+      --warn:#f3a89b; --warnbg:#3a1c1740; --neutralbg:#1a2740; --chip:#1a2740;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%;padding-bottom:64px}
+  .wrap{max-width:860px;margin:0 auto;padding:0 16px}
+  header.top{background:linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;padding:22px 0 18px;position:sticky;top:0;z-index:30;box-shadow:0 2px 14px rgba(10,22,44,.18)}
+  @media (prefers-color-scheme:dark){header.top{background:linear-gradient(160deg,#0f1d35,#13233f)}}
+  header.top h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px;font-weight:700}
+  header.top p{margin:0;font-size:12.5px;opacity:.82}
+  .searchbar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .searchbar input{flex:1 1 180px;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.14);color:#fff;font-size:16px;outline:none}
+  .searchbar input::placeholder{color:rgba(255,255,255,.7)}
+  .searchbar button{padding:12px 18px;border-radius:12px;border:0;background:#fff;color:var(--navy);font-weight:700;font-size:15px;cursor:pointer}
+  .searchbar button:active{transform:translateY(1px)}
+  .hint{font-size:12px;opacity:.78;margin-top:8px}
+  .hint a{color:#fff;text-decoration:underline;cursor:pointer}
+  main{padding-top:18px}
+  .status{text-align:center;color:var(--muted);padding:40px 10px;font-size:15px}
+  .spinner{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto 14px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .suggest{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:8px;overflow:hidden;box-shadow:var(--shadow)}
+  .suggest button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:11px 14px;color:var(--ink);font-size:15px;cursor:pointer}
+  .suggest button:last-child{border-bottom:0}
+  .suggest button:hover{background:var(--chip)}
+  .suggest small{color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 18px;margin:0 0 16px}
+  .idbar{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .idbar h2{margin:0;font-size:22px;font-weight:800;letter-spacing:.2px}
+  .idbar .sub{color:var(--muted);font-size:13px}
+  .verdict{display:inline-block;margin-top:10px;padding:7px 13px;border-radius:999px;font-weight:700;font-size:14px}
+  .v-good{background:var(--goodbg);color:var(--good)} .v-warn{background:var(--warnbg);color:var(--warn)} .v-neutral{background:var(--neutralbg);color:var(--navy)}
+  .sect-title{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:2px 0 10px}
+  .pts{display:grid;gap:7px}
+  .pt{display:flex;gap:9px;align-items:flex-start;font-size:14.5px}
+  .pt .ic{flex:0 0 auto;font-weight:800}
+  .pt.good .ic{color:var(--good)} .pt.warn .ic{color:var(--warn)}
+  .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(min-width:620px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  .kpi{background:var(--neutralbg);border-radius:12px;padding:11px 12px}
+  .kpi .l{font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+  .kpi .v{font-size:19px;font-weight:800;margin-top:2px}
+  .kpi .x{font-size:12px;color:var(--muted);margin-top:1px}
+  .prose p{margin:0 0 12px;font-size:15.5px}
+  .prose p:last-child{margin-bottom:0}
+  .prose .lead{font-weight:600}
+  .ba{border-left:3px solid var(--line);padding:2px 0 2px 13px;margin:0 0 11px}
+  .ba.def{border-left-color:var(--warn)}
+  .ba b{font-weight:700}
+  /* simulateur */
+  .sim label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  .sim .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .sim input[type=number]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px}
+  .sim .out{margin-top:16px}
+  .simline{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:15px}
+  .simline:last-child{border-bottom:0}
+  .simline .lab{color:var(--muted)}
+  .simline .val{font-weight:700;text-align:right}
+  .simline .val small{display:block;font-weight:600;font-size:12px}
+  .twocol{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;align-items:baseline;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14.5px}
+  .twocol:last-child{border-bottom:0}
+  .twocol .h{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em}
+  .twocol b{font-weight:700}
+  .tag{font-size:11.5px;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .tag.ok{background:var(--goodbg);color:var(--good)} .tag.ko{background:var(--warnbg);color:var(--warn)}
+  .foot{color:var(--muted);font-size:12px;line-height:1.55;margin:4px 2px 0}
+  .err{background:var(--warnbg);color:var(--warn);border-radius:12px;padding:14px 16px;font-size:14.5px}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .actions button{background:var(--chip);border:1px solid var(--line);color:var(--navy);font-weight:700;font-size:13.5px;padding:9px 14px;border-radius:10px;cursor:pointer}
+  @media print{header.top{position:static}.searchbar,.hint,.actions,.sim input{display:none}.card{box-shadow:none;break-inside:avoid}body{background:#fff}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>Regard financier des communes</h1>
+    <p>Analyse automatique sur données publiques OFGL (comptes de gestion DGFiP)</p>
+    <div class="searchbar">
+      <input id="q" type="text" inputmode="text" placeholder="SIREN (9 chiffres) ou nom de commune" autocomplete="off">
+      <button id="go">Analyser</button>
+    </div>
+    <div class="hint" id="hint">Astuce : le SIREN évite les homonymes. Exemples :
+      <a data-s="213701832">Perrusson</a>, <a data-s="214000655">Capbreton</a>, <a data-s="213304983">Salles (33)</a>.</div>
+  </div>
+</header>
+<main class="wrap" id="main">
+  <div class="status" id="welcome">
+    <p>Saisissez un SIREN de commune, ou tapez un nom pour le rechercher.<br>L'analyse se construit en quelques secondes.</p>
+  </div>
+</main>
+
+<script>
+// ===== Moteur (inliné) =====
+const AG={rf:"Recettes de fonctionnement",df:"Dépenses de fonctionnement",eg:"Epargne de gestion",eb:"Epargne brute",en:"Epargne nette",implo:"Impôts locaux",imptax:"Impôts et taxes",dgf:"Dotation globale de fonctionnement",concours:"Concours de l'Etat",perso:"Frais de personnel",achats:"Achats et charges externes",interv:"Dépenses d'intervention",chfin:"Charges financières",ed:"Encours de dette",annuite:"Annuité de la dette",remb:"Remboursements d'emprunts hors GAD",emp:"Emprunts hors GAD",fluxd:"Flux net de dette",equip:"Dépenses d'équipement",depinv:"Dépenses d'investissement",fctva:"FCTVA",subv:"Subventions reçues et participations",cessions:"Produit des cessions d'immobilisations",fdr:"Fonds de roulement",tresor:"Dépôts au Trésor",capfin:"Capacité ou besoin de financement",fiscrev:"Fiscalité reversée"};
+function indexRows(rows){const byB={},meta={years:new Set(),ptot:null,com:null,dep:null,depcode:null,epci:null};
+ for(const r of rows){const y=String(r.exer),b=r.type_de_budget||"Budget principal",label=r.lbudg||b;meta.years.add(y);
+  if(r.ptot!=null&&r.ptot!=="")meta.ptot=+r.ptot; if(r.com_name)meta.com=r.com_name; if(r.dep_name)meta.dep=r.dep_name; if(r.dep_code)meta.depcode=r.dep_code; if(r.epci_name)meta.epci=r.epci_name;
+  const key=b==="Budget principal"?"__P__":"BA::"+label; if(!byB[key])byB[key]={type:b,label,years:{}}; if(b!=="Budget principal")byB[key].label=label;
+  const yy=byB[key].years; if(!yy[y])yy[y]={}; yy[y][r.agregat]=+r.montant;}
+ return {byB,meta};}
+function pick(o,y){return (o&&o[y])?o[y]:{};}
+function gg(bk,k){const v=bk[AG[k]];return (v===undefined||v===null||isNaN(v))?null:v;}
+function buildModel(rows){const {byB,meta}=indexRows(rows);const P=byB["__P__"];if(!P)return null;
+ const ys=Object.keys(P.years).sort();const year=ys[ys.length-1];const prevYear=ys.length>1?ys[ys.length-2]:null;
+ const cur=pick(P.years,year),pr=prevYear?pick(P.years,prevYear):null;
+ const bas=Object.values(byB).filter(x=>x.type!=="Budget principal").map(x=>({label:x.label,cur:pick(x.years,year),prev:prevYear?pick(x.years,prevYear):null})).filter(x=>Object.keys(x.cur).length>0);
+ const conso={};for(const x of Object.values(byB)){const c=pick(x.years,year);for(const k in c)conso[k]=(conso[k]||0)+c[k];}
+ const rf=gg(cur,"rf"),eg=gg(cur,"eg"),eb=gg(cur,"eb"),en=gg(cur,"en"),ed=gg(cur,"ed");
+ const dg=(rf!=null&&eg!=null)?rf-eg:null;
+ const m={year,prevYear,meta,bas,rf,dg,eg,eb,en,ed,df:gg(cur,"df"),implo:gg(cur,"implo"),dgf:gg(cur,"dgf"),concours:gg(cur,"concours"),perso:gg(cur,"perso"),achats:gg(cur,"achats"),interv:gg(cur,"interv"),chfin:gg(cur,"chfin"),annuite:gg(cur,"annuite"),remb:gg(cur,"remb"),emp:gg(cur,"emp"),equip:gg(cur,"equip"),depinv:gg(cur,"depinv"),fctva:gg(cur,"fctva"),subv:gg(cur,"subv"),cessions:gg(cur,"cessions"),capfin:gg(cur,"capfin"),fdr:gg(cur,"fdr"),tresor:gg(cur,"tresor"),
+  rfPrev:pr?gg(pr,"rf"):null,egPrev:pr?gg(pr,"eg"):null,ebPrev:pr?gg(pr,"eb"):null,edPrev:pr?gg(pr,"ed"):null,
+  dgPrev:(pr&&gg(pr,"rf")!=null&&gg(pr,"eg")!=null)?gg(pr,"rf")-gg(pr,"eg"):null,
+  ebConso:conso[AG.eb]!=null?conso[AG.eb]:null,edConso:conso[AG.ed]!=null?conso[AG.ed]:null,rfConso:conso[AG.rf]!=null?conso[AG.rf]:null};
+ m.capdes=(m.eb&&m.eb>0&&m.ed!=null)?m.ed/m.eb:null;
+ m.taux=(m.rf&&m.ed!=null)?m.ed/m.rf:null;
+ m.capdesConso=(m.ebConso&&m.ebConso>0&&m.edConso!=null)?m.edConso/m.ebConso:null;
+ m.tauxConso=(m.rfConso&&m.edConso!=null)?m.edConso/m.rfConso:null;
+ m.egcj=(m.tresor!=null&&m.dg&&m.dg>0)?m.tresor/m.dg*365:null;
+ m.capResiduelle=(m.eb!=null&&m.ed!=null)?Math.max(0,m.eb*11-m.ed):null;
+ return m;}
+
+// ===== Formatage =====
+const nf=new Intl.NumberFormat("fr-FR");
+const ef=new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+function eur(x){return x==null||isNaN(x)?"n.d.":ef.format(Math.round(x));}
+function num(x){return x==null?"n.d.":nf.format(Math.round(x));}
+function pct(x,d){if(x==null||isNaN(x))return "n.d.";return (x*100).toFixed(d==null?1:d).replace(".",",")+" %";}
+function signed(x){if(x==null||isNaN(x))return "n.d.";const v=(x*100).toFixed(1).replace(".",",");return (x>=0?"+":"")+v+" %";}
+function ans(x){if(x==null||isNaN(x))return "n.d.";return x.toFixed(1).replace(".",",")+" ans";}
+function esc(s){return (""+s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function frListe(a){if(!a.length)return "";if(a.length===1)return a[0];return a.slice(0,-1).join(", ")+" et "+a[a.length-1];}
+
+// ===== Analyse rédigée (raisonnée) =====
+function analyse(m){
+  const S=[]; const P=[];
+  const rfRatio=(v)=> (m.rf? v/m.rf : null);
+  // --- 1. Exploitation ---
+  let a=[];
+  a.push(`En ${m.year}, ${esc(m.meta.com)} a mobilisé <b>${eur(m.rf)}</b> de recettes de gestion pour <b>${eur(m.dg)}</b> de dépenses de gestion, et dégage ainsi une épargne de gestion de <b>${eur(m.eg)}</b>.`);
+  if(m.rfPrev&&m.dgPrev){
+    const gRF=(m.rf-m.rfPrev)/m.rfPrev, gDG=(m.dg-m.dgPrev)/m.dgPrev, pts=Math.abs(gRF-gDG)*100;
+    if(gRF>=gDG){
+      a.push(`Sur un an, les recettes de gestion progressent plus vite que les dépenses (${signed(gRF)} contre ${signed(gDG)}), soit un effet de ciseau favorable de ${pts.toFixed(1).replace(".",",")} points : la commune reconstitue de la marge et son épargne se renforce mécaniquement.`);
+    } else {
+      let ph=`Sur un an, les dépenses de gestion progressent plus vite que les recettes (${signed(gDG)} contre ${signed(gRF)}), soit un effet de ciseau défavorable de ${pts.toFixed(1).replace(".",",")} points.`;
+      if(m.ebPrev!=null&&m.eb<m.ebPrev){
+        const recul=m.ebPrev-m.eb, yrs=recul>0?m.eb/recul:null;
+        if(yrs!=null&&yrs<20) ph+=` Concrètement, l'épargne brute a reculé de ${eur(recul)} en un an ; si cette tendance se prolongeait au même rythme, elle serait entièrement absorbée en environ ${yrs.toFixed(1).replace(".",",")} ans. C'est le point de trajectoire à surveiller en priorité.`;
+        else ph+=` L'épargne brute a reculé de ${eur(recul)} en un an : une érosion encore limitée, mais à surveiller si elle devait se confirmer.`;
+      } else {
+        ph+=` L'épargne tient encore, mais la dynamique des charges mérite attention si elle devait se répéter.`;
+      }
+      a.push(ph);
+    }
+  }
+  let ebTxt;
+  const r=rfRatio(m.eb);
+  if(r==null) ebTxt="";
+  else if(r<0) ebTxt=`Après charges financières, l'épargne brute est négative (${eur(m.eb)}) : la commune ne couvre plus ses dépenses courantes par ses recettes courantes, situation qui impose un redressement avant tout projet.`;
+  else if(r<0.08) ebTxt=`Après charges financières, l'épargne brute s'établit à <b>${eur(m.eb)}</b>, soit ${pct(r)} des recettes : un niveau faible, qui ne laisse qu'une capacité d'autofinancement limitée.`;
+  else if(r<0.15) ebTxt=`Après charges financières, l'épargne brute s'établit à <b>${eur(m.eb)}</b>, soit ${pct(r)} des recettes : un niveau correct, dans la moyenne des communes, sans être confortable.`;
+  else ebTxt=`Après charges financières, l'épargne brute ressort à <b>${eur(m.eb)}</b>, soit ${pct(r)} des recettes : un niveau solide, signe d'une gestion qui dégage une vraie capacité d'autofinancement.`;
+  let enTxt="";
+  if(m.en!=null){
+    if(m.en>=0) enTxt=` Une fois le remboursement en capital de la dette honoré, il reste une épargne nette de <b>${eur(m.en)}</b> (${pct(rfRatio(m.en))} des recettes) : c'est la marge réellement disponible pour investir sans emprunter.`;
+    else enTxt=` Une fois le remboursement en capital honoré, l'épargne nette devient négative (${eur(m.en)}) : l'autofinancement ne suffit plus à rembourser la dette existante, ce qui est préoccupant.`;
+  }
+  a.push(ebTxt+enTxt);
+  // ressources
+  if(m.implo!=null){
+    const au=rfRatio(m.implo), dg=m.dgf!=null?rfRatio(m.dgf):null;
+    let ph=`Ses ressources reposent `;
+    if(au>=0.5) ph+=`très largement sur la fiscalité locale (${pct(au)} des recettes)`;
+    else if(au>=0.35) ph+=`pour une part notable sur la fiscalité locale (${pct(au)} des recettes)`;
+    else ph+=`davantage sur les dotations que sur la fiscalité locale, qui ne pèse que ${pct(au)} des recettes`;
+    if(dg!=null) ph+=`, la dotation globale de fonctionnement en représentant ${pct(dg)}`;
+    ph+=`. `;
+    if(au>=0.5) ph+=`Cette autonomie fiscale est un atout de solvabilité : la commune garde la main sur ses ressources et dépend peu des arbitrages de l'État.`;
+    else if(au>=0.35) ph+=`La commune conserve un levier fiscal réel tout en restant partiellement exposée aux évolutions des concours de l'État.`;
+    else ph+=`Cette dépendance aux dotations fragilise la prévisibilité de ses recettes et constitue un facteur de vigilance.`;
+    a.push(ph);
+  }
+  // charges / rigidité
+  if(m.perso!=null&&m.df){
+    const persoR=m.perso/m.df, rig=(m.chfin!=null)?(m.perso+m.chfin)/m.rf:null;
+    let ph=`Du côté des charges, les frais de personnel mobilisent ${pct(persoR)} des dépenses de fonctionnement`;
+    if(rig!=null){
+      ph+=` et la rigidité des charges (personnel et intérêts) atteint ${pct(rig)} des recettes de gestion. `;
+      if(rig>=0.6) ph+=`Ce niveau élevé laisse peu de flexibilité : en cas de choc sur les recettes, les marges d'ajustement rapides sont minces.`;
+      else if(rig>=0.45) ph+=`Ce niveau intermédiaire préserve une flexibilité raisonnable.`;
+      else ph+=`Ce niveau modéré préserve de réelles marges de manoeuvre pour absorber un aléa ou financer un projet.`;
+    } else ph+=`.`;
+    a.push(ph);
+  }
+  // par habitant
+  if(m.meta.ptot){
+    a.push(`Rapportés à ses ${num(m.meta.ptot)} habitants, ces montants représentent ${eur(m.rf/m.meta.ptot)} de recettes, ${eur(m.eb/m.meta.ptot)} d'épargne brute et ${eur(m.ed/m.meta.ptot)} de dette par habitant, des ratios qui situent d'emblée la commune dans sa strate.`);
+  }
+  S.push({h:"Budget principal : exploitation",html:a});
+
+  // --- 2. Investissement & dette ---
+  a=[];
+  if(m.equip!=null){
+    let ph=`La commune a engagé <b>${eur(m.equip)}</b> de dépenses d'équipement`;
+    if(m.rf) ph+=`, soit un effort d'équipement de ${pct(m.equip/m.rf)} de ses recettes de fonctionnement`;
+    ph+=`. `;
+    // mix de financement
+    const bits=[];
+    if(m.fctva) bits.push(`${eur(m.fctva)} de FCTVA`);
+    if(m.subv) bits.push(`${eur(m.subv)} de subventions`);
+    if(m.emp) bits.push(`${eur(m.emp)} d'emprunts nouveaux`);
+    if(m.capfin!=null){
+      if(m.capfin>=0) ph+=`Sur l'exercice, elle dégage une capacité de financement positive de ${eur(m.capfin)} : ses ressources propres couvrent l'intégralité de ses investissements`;
+      else ph+=`Sur l'exercice, elle présente un besoin de financement de ${eur(-m.capfin)} : l'investissement a été financé en partie par ponction sur les réserves ou par l'emprunt`;
+      if(bits.length) ph+=`, avec l'appui de `+frListe(bits);
+      ph+=`.`;
+    } else if(bits.length){ ph+=`Elle a mobilisé `+frListe(bits)+`.`; }
+    a.push(ph);
+  }
+  if(m.ed!=null){
+    let ph=`L'encours de dette s'établit à <b>${eur(m.ed)}</b>`;
+    if(m.edPrev){ const gd=(m.ed-m.edPrev)/m.edPrev; ph+=` (en ${m.ed>=m.edPrev?"hausse":"baisse"} de ${pct(Math.abs(gd))} sur un an)`; }
+    if(m.rf) ph+=`, soit ${pct(m.taux)} des recettes de gestion`;
+    if(m.capdes!=null) ph+=`, et se rembourserait en ${ans(m.capdes)} d'épargne brute`;
+    ph+=`. `;
+    if(m.eb==null||m.eb<=0) ph+=`La dette n'est pas soutenable en l'état faute d'épargne suffisante. `;
+    else if(m.taux<1&&m.capdes<11) ph+=`Au regard des seuils d'alerte habituels (taux inférieur à 100 %, capacité de désendettement inférieure à 11 ans), elle est pleinement soutenable. `;
+    else if(m.capdes>=11) ph+=`La capacité de désendettement dépasse le seuil d'alerte de 11 ans, ce qui appelle la vigilance. `;
+    else ph+=`Le taux dépasse 100 % des recettes, ce qui appelle la vigilance. `;
+    if(m.annuite!=null&&m.rf) ph+=`Le service annuel de la dette (annuité) mobilise ${eur(m.annuite)}, soit ${pct(m.annuite/m.rf)} des recettes de gestion.`;
+    a.push(ph);
+  }
+  if(m.capResiduelle!=null&&m.eb>0){
+    let ph=`En visant une capacité de désendettement cible de 11 ans, la commune conserverait une capacité d'emprunt résiduelle d'environ <b>${eur(m.capResiduelle)}</b>`;
+    if(m.rf){ ph+= m.capResiduelle>m.rf?`, soit plus d'une année de recettes : une marge d'endettement importante.`:`, soit ${pct(m.capResiduelle/m.rf)} de ses recettes : une marge réelle mais à doser.`; }
+    else ph+=`.`;
+    a.push(ph);
+  }
+  if(m.egcj!=null){
+    let ph=`La trésorerie (${eur(m.tresor)}) représente ${Math.round(m.egcj)} jours de dépenses de gestion : `;
+    if(m.egcj<60) ph+=`sous le seuil de sécurité de 60 jours, elle est tendue et pourrait justifier une ligne de trésorerie.`;
+    else if(m.egcj>240) ph+=`un matelas très confortable, qui ouvre même une marge de placement.`;
+    else ph+=`confortablement au-dessus du seuil de sécurité de 60 jours.`;
+    a.push(ph);
+  }
+  S.push({h:"Budget principal : investissement et dette",html:a});
+
+  // --- 3. Annexes & consolidé ---
+  a=[];
+  if(!m.bas.length){
+    a.push(`La commune ne gère aucun budget annexe actif : son budget principal reflète l'intégralité de sa situation financière, et la vue consolidée se confond avec lui.`);
+  } else {
+    const defs=m.bas.filter(b=>{const e=b.cur[AG.eb];return e!=null&&e<0;});
+    a.push(`Le budget principal est complété par ${m.bas.length} budget${m.bas.length>1?"s":""} annexe${m.bas.length>1?"s":""}. ${defs.length?"L'un d'eux au moins est déficitaire et pèse sur le budget principal, ce qui doit être intégré à l'analyse du risque :":"Ils couvrent globalement leurs charges par leurs propres recettes :"}`);
+    const baHtml=m.bas.map(b=>{
+      const rf=b.cur[AG.rf], eb=b.cur[AG.eb], ed=b.cur[AG.ed];
+      let t=`<b>${esc(b.label)}</b> : ${eur(rf||0)} de recettes, ${eur(eb||0)} d'épargne brute`;
+      if(ed&&ed>0){ t+=`, ${eur(ed)} de dette`; if(eb&&eb>0) t+=` (soit ${ans(ed/eb)} d'épargne)`; }
+      else t+=`, sans dette`;
+      t+=`. `+((eb!=null&&eb<0)?`Déficitaire, il doit être soutenu par le budget principal.`:`Autonome, il couvre ses charges.`);
+      return `<div class="ba${(eb!=null&&eb<0)?" def":""}">${t}</div>`;
+    }).join("");
+    a.push({raw:baHtml});
+    // consolidé raisonné
+    if(m.capdesConso!=null&&m.capdes!=null){
+      let ph=`En consolidant le budget principal et ses annexes, l'encours réellement porté atteint <b>${eur(m.edConso)}</b> (contre ${eur(m.ed)} pour le seul principal) et la capacité de désendettement consolidée ressort à <b>${ans(m.capdesConso)}</b>, contre ${ans(m.capdes)} sur le seul budget principal. `;
+      if(m.ebConso<=0) ph+=`Une fois les annexes intégrées, l'épargne consolidée devient insuffisante : c'est le véritable point d'attention, bien au-delà du seul budget principal.`;
+      else if(m.capdesConso>11) ph+=`Ce niveau consolidé franchit le seuil d'alerte de 11 ans : c'est lui, et non le budget principal pris isolément, qui mesure le risque réel pour un prêteur.`;
+      else if(m.capdesConso>=m.capdes*1.5&&(m.capdesConso-m.capdes)>=1) ph+=`Cette dégradation s'explique par un budget annexe déficitaire dont les charges pèsent sur l'épargne consolidée : c'est ce niveau consolidé qu'il faut retenir pour apprécier le risque.`;
+      else ph+=`L'écart avec le budget principal reste contenu : la consolidation ne change pas le diagnostic.`;
+      a.push(ph);
+    }
+  }
+  S.push({h:"Budgets annexes et vue consolidée",html:a});
+
+  // --- 4. Conclusion / regard du chargé d'affaires ---
+  a=[];
+  let posture;
+  const r2=rfRatio(m.eb);
+  if(r2==null) posture="difficile à établir faute de données d'épargne";
+  else if(r2<0) posture="critique : l'épargne négative impose un redressement prioritaire avant tout nouveau financement";
+  else if(r2>=0.15&&m.capdes!=null&&m.capdes<8) posture="solide et pleinement solvable";
+  else if(r2>=0.08) posture="correcte, mais à consolider";
+  else posture="fragile et sous tension";
+  let ph=`Au total, ${esc(m.meta.com)} apparaît dans une situation <b>${posture}</b>. `;
+  // reco de crédit calibrée sur le consolidé
+  const cc=m.capdesConso!=null?m.capdesConso:m.capdes;
+  if(m.ebConso!=null&&m.ebConso<=0){
+    ph+=`La consolidation faisant apparaître une épargne insuffisante, un nouveau financement n'est pas envisageable sans redressement préalable des budgets annexes. `;
+  } else if(m.taux!=null&&m.taux<0.8&&cc!=null&&cc<7&&r2>=0.12){
+    ph+=`Sa dette modérée et une épargne confortable, y compris après consolidation, lui laissent une réelle capacité d'emprunt : c'est une cible pertinente pour un financement d'investissement. `;
+  } else if(m.taux!=null&&m.taux<1&&cc!=null&&cc<11){
+    ph+=`Elle conserve une capacité d'emprunt, mais la vue consolidée (capacité de désendettement de ${ans(cc)}) invite à calibrer précisément le montant d'un nouveau concours. `;
+  } else {
+    ph+=`Au regard de la situation consolidée, tout nouveau financement devra rester mesuré et s'accompagner d'une trajectoire de redressement. `;
+  }
+  a.push(ph);
+  // points à surveiller / motifs de contact
+  const watch=[];
+  if(m.rfPrev&&m.dgPrev&&((m.dg-m.dgPrev)/m.dgPrev)>((m.rf-m.rfPrev)/m.rfPrev)) watch.push("la trajectoire des charges (effet de ciseau) sur les prochains exercices");
+  if(m.egcj!=null&&m.egcj<60) watch.push("une trésorerie tendue, qui plaide pour une ligne de trésorerie ou un prêt relais court terme");
+  if(m.en!=null&&m.rf&&m.en/m.rf<0.03) watch.push("une épargne nette mince, qui impose de calibrer finement le saut de charge de tout emprunt");
+  if(m.capdesConso!=null&&m.capdesConso>8) watch.push("la dette consolidée, portée par les budgets annexes");
+  if(watch.length){ a.push(`Points à surveiller et angles de dialogue : ${watch.join(" ; ")}.`); }
+  a.push(`Le simulateur ci-dessous permet de chiffrer, à partir d'un montant, d'un taux et d'une durée, le saut de charge d'un nouveau prêt et son effet sur l'épargne nette et les ratios d'endettement, en budget principal comme en consolidé.`);
+  S.push({h:"Conclusion : le regard du chargé d'affaires",html:a});
+  return S;
+}
+
+// ===== Points forts / vigilance =====
+function strengths(m){
+  const f=[],v=[]; const rfR=(x)=>m.rf?x/m.rf:null;
+  if(m.eb!=null&&m.rf){const r=m.eb/m.rf;
+    if(r>=0.15)f.push(`Épargne brute élevée (${pct(r)}), forte capacité d'autofinancement`);
+    else if(r<0)v.push("Épargne brute négative : situation critique");
+    else if(r<0.08)v.push(`Épargne brute faible (${pct(r)}), autofinancement limité`);}
+  if(m.capdes!=null){ if(m.capdes<6)f.push(`Endettement très soutenable (capacité de désendettement ${ans(m.capdes)})`); else if(m.capdes>11)v.push(`Capacité de désendettement élevée (${ans(m.capdes)})`);}
+  if(m.taux!=null){ if(m.taux<0.5)f.push(`Dette légère (${pct(m.taux)} des recettes)`); else if(m.taux>1)v.push(`Taux d'endettement élevé (${pct(m.taux)})`);}
+  if(m.egcj!=null){ if(m.egcj>90)f.push(`Trésorerie confortable (${Math.round(m.egcj)} jours)`); else if(m.egcj<60)v.push(`Trésorerie sous le seuil bancaire (${Math.round(m.egcj)} j < 60 j)`);}
+  if(m.implo!=null&&m.rf){const au=m.implo/m.rf; if(au>=0.5)f.push(`Forte autonomie fiscale (${pct(au)})`); else if(au<0.35)v.push("Dépendance marquée aux dotations de l'État");}
+  if(m.rfPrev&&m.dgPrev){const c=((m.dg-m.dgPrev)/m.dgPrev)-((m.rf-m.rfPrev)/m.rfPrev); if(c>0.01)v.push("Effet de ciseau : les dépenses progressent plus vite que les recettes"); else if(c<-0.01)f.push("Charges maîtrisées, pas d'effet de ciseau");}
+  if(m.capfin!=null){ if(m.capfin>=0)f.push("Investissement autofinancé (capacité de financement positive)"); else v.push("Besoin de financement : recours aux réserves ou à l'emprunt pour investir");}
+  if(m.bas.some(b=>b.cur[AG.eb]!=null&&b.cur[AG.eb]<0))v.push("Un budget annexe est déficitaire et dépend du budget principal");
+  if(m.capdesConso!=null&&m.capdes!=null&&m.capdesConso>m.capdes*1.5&&m.capdesConso-m.capdes>=1)v.push(`Dette consolidée nettement plus lourde (${ans(m.capdesConso)}) que le seul principal (${ans(m.capdes)})`);
+  if(!f.length)f.push("Aucun point fort marquant pour l'instant.");
+  if(!v.length)v.push("Aucun point de vigilance majeur : situation saine.");
+  return {f,v};
+}
+
+// ===== Simulateur =====
+function renderSim(m){
+  return `<div class="card sim">
+    <div class="sect-title">Simulateur de crédit</div>
+    <div class="row">
+      <div><label>Montant (€)</label><input type="number" id="sM" value="500000" step="10000" min="0"></div>
+      <div><label>Taux annuel (%)</label><input type="text" id="sT" value="4,5" inputmode="decimal"></div>
+      <div><label>Durée (ans)</label><input type="number" id="sN" value="20" step="1" min="1"></div>
+    </div>
+    <div class="out" id="simOut"></div>
+    <p class="foot">Annuité constante. Le saut de charge de la première année est imputé en totalité sur l'épargne nette (hypothèse prudente). L'intérêt « fictif » est l'intérêt de la première année (montant x taux).</p>
+  </div>`;
+}
+function computeSim(m){
+  const Mi=document.getElementById("sM"), Ti=document.getElementById("sT"), Ni=document.getElementById("sN");
+  const M=parseFloat((Mi.value||"").replace(",","."))||0;
+  const t=(parseFloat((Ti.value||"").replace(",","."))||0)/100;
+  const n=parseInt(Ni.value||"0",10)||0;
+  const out=document.getElementById("simOut"); if(!out)return;
+  if(M<=0||t<=0||n<=0){out.innerHTML=`<p class="foot">Renseignez un montant, un taux et une durée.</p>`;return;}
+  const pmt=M*t/(1-Math.pow(1+t,-n)); const inte=M*t; const cap=pmt-inte;
+  const enAfter=m.en!=null?m.en-pmt:null;
+  const tient=enAfter!=null&&enAfter>=0;
+  // principal
+  const ebA=m.eb!=null?m.eb-inte:null;
+  const capdesP=(ebA&&ebA>0&&m.ed!=null)?(m.ed+M)/ebA:null;
+  const tauxP=(m.rf)?(m.ed+M)/m.rf:null;
+  // consolidé
+  const ebcA=m.ebConso!=null?m.ebConso-inte:null;
+  const capdesC=(ebcA&&ebcA>0&&m.edConso!=null)?(m.edConso+M)/ebcA:null;
+  const tauxC=(m.rfConso)?(m.edConso+M)/m.rfConso:null;
+  const tagCapdes=(x)=> x==null?"":(x>11?`<span class="tag ko">&gt; 11 ans</span>`:`<span class="tag ok">&lt; 11 ans</span>`);
+  const tagTaux=(x)=> x==null?"":(x>1?`<span class="tag ko">&gt; 100 %</span>`:`<span class="tag ok">&lt; 100 %</span>`);
+  out.innerHTML=`
+    <div class="simline"><span class="lab">Saut de charge (annuité année 1)</span><span class="val">${eur(pmt)}</span></div>
+    <div class="simline"><span class="lab">dont intérêt « I fictif » (année 1)</span><span class="val">${eur(inte)}</span></div>
+    <div class="simline"><span class="lab">dont capital (année 1)</span><span class="val">${eur(cap)}</span></div>
+    <div class="simline"><span class="lab">Épargne nette après saut de charge</span><span class="val">${eur(enAfter)}<small>${tient?'<span style="color:var(--good)">✓ tient, reste positive</span>':'<span style="color:var(--warn)">⚠ ne tient pas, devient négative</span>'}</small></span></div>
+    <div class="twocol"><span class="h">Après emprunt</span><span class="h">Principal</span><span class="h">Consolidé</span></div>
+    <div class="twocol"><span>Capacité de désendettement</span><b>${capdesP!=null?ans(capdesP):"n.s."} ${tagCapdes(capdesP)}</b><b>${capdesC!=null?ans(capdesC):"n.s."} ${tagCapdes(capdesC)}</b></div>
+    <div class="twocol"><span>Taux d'endettement</span><b>${tauxP!=null?pct(tauxP):"n.d."} ${tagTaux(tauxP)}</b><b>${tauxC!=null?pct(tauxC):"n.d."} ${tagTaux(tauxC)}</b></div>`;
+}
+
+// ===== Rendu global =====
+function render(m){
+  const {f,v}=strengths(m);
+  const secs=analyse(m);
+  const idSub=[m.meta.dep?m.meta.dep+(m.meta.depcode?` (${m.meta.depcode})`:""):"",m.meta.ptot?num(m.meta.ptot)+" hab.":"",m.meta.epci||""].filter(Boolean).join(" · ");
+  let html="";
+  html+=`<div class="card">
+    <div class="idbar"><h2>${esc(m.meta.com||"Commune")}</h2><span class="sub">SIREN ${esc(curSiren)} · exercice ${m.year}</span></div>
+    <div class="sub" style="color:var(--muted);font-size:13px;margin-top:2px">${esc(idSub)}</div>
+    <div class="verdict ${verdictClass(m)}">${verdictText(m)}</div>
+    <div class="actions"><button onclick="window.print()">Exporter en PDF</button></div>
+  </div>`;
+  html+=`<div class="card"><div class="sect-title">Points forts</div><div class="pts">${f.map(x=>`<div class="pt good"><span class="ic">✓</span><span>${x}</span></div>`).join("")}</div></div>`;
+  html+=`<div class="card"><div class="sect-title">Points de vigilance</div><div class="pts">${v.map(x=>`<div class="pt warn"><span class="ic">⚠</span><span>${x}</span></div>`).join("")}</div></div>`;
+  html+=`<div class="card"><div class="sect-title">Chiffres clés</div><div class="kpis">
+    ${kpi("Recettes de fonctionnement",eur(m.rf))}
+    ${kpi("Épargne brute",eur(m.eb),m.rf?pct(m.eb/m.rf):"")}
+    ${kpi("Épargne nette",eur(m.en))}
+    ${kpi("Capacité de désendettement",m.capdes!=null?ans(m.capdes):"n.s.",m.capdesConso!=null?("consolidé "+ans(m.capdesConso)):"")}
+    ${kpi("Taux d'endettement",m.taux!=null?pct(m.taux):"n.d.")}
+    ${kpi("Encours de dette",eur(m.ed),m.edConso!=null&&m.edConso!==m.ed?("consolidé "+eur(m.edConso)):"")}
+    ${kpi("Trésorerie",eur(m.tresor),m.egcj!=null?(Math.round(m.egcj)+" j"):"")}
+    ${kpi("Annuité de la dette",eur(m.annuite),m.rf&&m.annuite!=null?pct(m.annuite/m.rf):"")}
+    ${kpi("Capacité d'emprunt résiduelle",m.capResiduelle!=null?("≈ "+eur(m.capResiduelle)):"n.d.")}
+  </div></div>`;
+  for(const s of secs){
+    html+=`<div class="card"><div class="sect-title">${esc(s.h)}</div><div class="prose">`+
+      s.html.map(p=> typeof p==="object"&&p.raw? p.raw : `<p>${p}</p>`).join("")+`</div></div>`;
+  }
+  html+=renderSim(m);
+  html+=`<div class="card"><p class="foot"><b>Fiabilité.</b> Données OFGL (Observatoire des finances et de la gestion publique locales), comptes de gestion DGFiP, exercice ${m.year}. Diagnostic fiable sur l'épargne, la dette et la trésorerie. Un écart avec une fiche DGFiP sur les recettes peut provenir des écritures d'ordre (produits comptables contre recettes réelles) et n'affecte pas les ratios de solvabilité. Analyse indicative, à confirmer par les documents budgétaires de la collectivité.</p></div>`;
+  document.getElementById("main").innerHTML=html;
+  computeSim(m);
+  ["sM","sT","sN"].forEach(id=>document.getElementById(id).addEventListener("input",()=>computeSim(m)));
+}
+function kpi(l,v,x){return `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div>${x?`<div class="x">${x}</div>`:""}</div>`;}
+function verdictClass(m){const r=m.rf?m.eb/m.rf:null;if(r==null)return "v-neutral";if(r<0)return "v-warn";if(r>=0.15&&m.capdes!=null&&m.capdes<8)return "v-good";if(r>=0.08)return "v-neutral";return "v-warn";}
+function verdictText(m){const r=m.rf?m.eb/m.rf:null;if(r==null)return "Situation à qualifier";if(r<0)return "Situation critique";if(r>=0.15&&m.capdes!=null&&m.capdes<8)return "Situation solide";if(r>=0.08)return "Situation correcte, à consolider";return "Situation fragile";}
+
+// ===== Données / réseau =====
+const API="https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-communes";
+let curSiren="";
+function setStatus(html){document.getElementById("main").innerHTML=`<div class="status">${html}</div>`;}
+async function loadSiren(siren){
+  siren=(""+siren).replace(/\D/g,"");
+  if(siren.length!==9){setStatus(`<div class="err">Un SIREN comporte 9 chiffres. Vérifiez la saisie, ou recherchez la commune par son nom.</div>`);return;}
+  curSiren=siren;
+  setStatus(`<div class="spinner"></div>Chargement des comptes de la commune...`);
+  try{
+    const sel=encodeURIComponent("exer,agregat,montant,type_de_budget,lbudg,ptot,com_name,dep_name,dep_code,epci_name");
+    const url=`${API}/exports/json?where=siren%3D%22${siren}%22&select=${sel}`;
+    const res=await fetch(url);
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const rows=await res.json();
+    if(!rows||!rows.length){setStatus(`<div class="err">Aucune donnée trouvée pour le SIREN ${siren}. Il peut s'agir d'un EPCI, d'un département ou d'une région (non couverts ici), ou d'un SIREN inexistant.</div>`);return;}
+    const m=buildModel(rows);
+    if(!m){setStatus(`<div class="err">Données incomplètes pour ce SIREN (pas de budget principal).</div>`);return;}
+    try{history.replaceState(null,"","?siren="+siren);}catch(e){}
+    document.getElementById("q").value=siren;
+    render(m);
+    window.scrollTo(0,0);
+  }catch(e){
+    setStatus(`<div class="err">Impossible de récupérer les données (${esc(e.message)}). Réessayez dans un instant.</div>`);
+  }
+}
+async function searchName(name){
+  setStatus(`<div class="spinner"></div>Recherche de « ${esc(name)} »...`);
+  try{
+    const where=encodeURIComponent(`search(com_name,"${name.replace(/"/g,'')}")`);
+    const url=`${API}/records?where=${where}&select=siren,com_name,dep_name,ptot&limit=100`;
+    const res=await fetch(url); if(!res.ok)throw new Error("HTTP "+res.status);
+    const j=await res.json(); const seen={},list=[];
+    for(const r of (j.results||[])){ if(!seen[r.siren]){seen[r.siren]=1;list.push(r);} }
+    list.sort((a,b)=>(b.ptot||0)-(a.ptot||0));
+    if(!list.length){setStatus(`<div class="err">Aucune commune trouvée pour « ${esc(name)} ». Essayez une autre orthographe ou saisissez le SIREN.</div>`);return;}
+    let h=`<p style="color:var(--muted);font-size:14px">${list.length} commune(s) trouvée(s) pour « ${esc(name)} ». Sélectionnez :</p><div class="suggest">`;
+    for(const r of list.slice(0,40)){ h+=`<button data-s="${r.siren}">${esc(r.com_name)} <small>${esc(r.dep_name||"")}${r.ptot?" · "+num(r.ptot)+" hab.":""} · SIREN ${r.siren}</small></button>`; }
+    h+=`</div>`;
+    document.getElementById("main").innerHTML=`<div class="card">${h}</div>`;
+    document.querySelectorAll(".suggest button").forEach(b=>b.addEventListener("click",()=>loadSiren(b.dataset.s)));
+  }catch(e){ setStatus(`<div class="err">Recherche impossible (${esc(e.message)}).</div>`); }
+}
+function submit(){
+  const q=document.getElementById("q").value.trim();
+  if(!q){return;}
+  const digits=q.replace(/\D/g,"");
+  if(digits.length===9 && /^\d+$/.test(q.replace(/\s/g,""))) loadSiren(digits);
+  else searchName(q);
+}
+document.getElementById("go").addEventListener("click",submit);
+document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")submit();});
+document.getElementById("hint").addEventListener("click",e=>{if(e.target.dataset&&e.target.dataset.s){loadSiren(e.target.dataset.s);}});
+// deep link ?siren=
+(function(){const p=new URLSearchParams(location.search);const s=p.get("siren");if(s)loadSiren(s);})();
+</script>
+</body>
+</html>
