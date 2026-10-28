@@ -64,6 +64,10 @@ EMPRUNT = re.compile(r"(recours a l.emprunt|contracter un (?:emprunt|pret)|sousc
                      r"organismes? (?:bancaires?|preteurs?)|ligne de tresorerie|pret[- ]relais|preteur|"
                      r"financement bancaire|contrat de pret(?! a usage)(?! de \d+ (?:oeuvre|objet|tableau))|refinancement|"
                      r"renegociation d|reamenagement de (?:la )?dette)")
+# Dans une convocation ou un ordre du jour, le mot « emprunt » seul suffit : la liste est courte, tout point
+# qui parle d'emprunt, de prêt bancaire ou de banque annonce une décision à venir (Hector relit l'extrait)
+EMPRUNT_CONVOC = re.compile("(" + EMPRUNT.pattern[1:-1] + r"|\bemprunts?\b|\bprets? (?:bancaires?|relais)|"
+                            r"choix (?:de la |de l.|d.)?(?:banque|etablissement|organisme)|\bbanques?\b(?! alimentaire))")
 CONTEXTE = 260
 DOC_EXCLU = re.compile(r"\bcfu|compte financier|compte administratif|budget primitif|\bbp ?\d|"
                        r"presentation (?:sommaire|breve)|rapport financier|rpqs|rapport annuel|\barrete|\bmenu|"
@@ -392,12 +396,13 @@ def extraits_colles(texte):
     return out, sorted(mots)
 
 
-def extraits(texte, jour=None, fenetre=45):
+def extraits(texte, jour=None, fenetre=45, large=False):
     """Passages sur un emprunt ; avec jour, seulement ceux qui ont une date récente à proximité
-    (une page liste souvent des délibérations de plusieurs années)."""
+    (une page liste souvent des délibérations de plusieurs années). large : convocation ou ordre du jour,
+    où le mot « emprunt » ou « banque » seul suffit."""
     n = plat(texte)
     out, mots, fin, recentes = [], set(), -1, []
-    for m in EMPRUNT.finditer(n):
+    for m in (EMPRUNT_CONVOC if large else EMPRUNT).finditer(n):
         if jour is not None:
             proches = [d for d in dates(texte[max(0, m.start() - 700):m.end() + 300])
                        if jour - timedelta(days=fenetre) <= d <= jour + timedelta(days=30)]
@@ -515,7 +520,7 @@ def _scan_site(p, jour, recent_jours, fenetre_seance):
                         pass
                 res["pistes"].append(piste)
             continue
-        ex, mots = extraits(tx)
+        ex, mots = extraits(tx, large=rang == 0)
         if rang == 1 or "1641" in tx:
             ex += lignes_budget(bd)
             if ex and not mots:
@@ -575,7 +580,7 @@ def ocr_pistes(pistes, duree_max=480, stats=None):
                 continue
             lus += 1
             brut = re.sub(r"\s+", " ", " ".join(textes))
-            exs, mots = extraits(brut)
+            exs, mots = extraits(brut, large=bool(x.get("convocation")))
             if not exs:
                 exs, mots = extraits_colles(brut)
             for h in budgets_pdf.lignes_emprunt(textes):

@@ -67,6 +67,20 @@ def montants(s):
 _ocr, _verrou_init, _verrou_ocr = None, threading.Lock(), threading.Lock()
 
 
+class _Moteur:
+    """rapidocr n'accepte plus les images PIL (chemin, octets ou tableau numpy seulement) : on convertit
+    en tableau BGR, l'ordre d'OpenCV, pour tous les appelants (pages PDF, affiches PanneauPocket, Facebook)."""
+
+    def __init__(self, moteur):
+        self.moteur = moteur
+
+    def __call__(self, im):
+        if hasattr(im, "convert"):
+            import numpy as np
+            im = np.asarray(im.convert("RGB"))[:, :, ::-1]
+        return self.moteur(im)
+
+
 def moteur_ocr():
     global _ocr
     with _verrou_init:
@@ -76,7 +90,7 @@ def moteur_ocr():
                 logging.disable(logging.WARNING)
                 __import__("pypdfium2")
                 from rapidocr_onnxruntime import RapidOCR
-                _ocr = RapidOCR()
+                _ocr = _Moteur(RapidOCR())
             except Exception:
                 _ocr = False
     return _ocr
@@ -86,9 +100,6 @@ def ocr_page(page, moteur, echelle=1.0):
     """Texte d'une page scannée, reconstitué ligne par ligne (les cellules d'un tableau restent sur leur ligne).
     À l'échelle 1, l'OCR sépare bien les mots ; au-delà il les colle (« souscrireunemprunt »)."""
     im = page.render(scale=echelle).to_pil().convert("RGB")
-    # rapidocr n'accepte plus les images PIL : tableau numpy en BGR (ordre d'OpenCV)
-    import numpy as np
-    im = np.asarray(im)[:, :, ::-1]
     with _verrou_ocr:
         res, _ = moteur(im)
     boites = []

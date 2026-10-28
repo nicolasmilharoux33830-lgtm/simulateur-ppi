@@ -95,7 +95,7 @@ def piste(siren, e, url, titre, quand, corps, entite, communes, epcis, image=Non
             tx = None
         if tx:
             lu_ocr = True
-            ex, mots = mairies.extraits(re.sub(r"\s+", " ", tx))
+            ex, mots = mairies.extraits(re.sub(r"\s+", " ", tx), large=True)
             if not ex:
                 ex, mots = mairies.extraits_colles(tx)
     if not ex:

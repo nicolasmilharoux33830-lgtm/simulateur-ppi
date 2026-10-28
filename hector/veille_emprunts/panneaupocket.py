@@ -155,7 +155,7 @@ def scan(chemin, jour, communes, epcis, entite, stats, jours=3, fils=4, duree_ma
                     if tx:
                         n_ocr += 1
                         tx = re.sub(r"\s+", " ", tx)
-                        ex, mots = mairies.extraits(tx)
+                        ex, mots = mairies.extraits(tx, large=True)
                         if not ex:
                             ex, mots = mairies.extraits_colles(tx)
                         if ex:
