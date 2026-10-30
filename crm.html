@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CRM Collectivités</title>
+<meta name="description" content="CRM du chargé d'affaires : analyse financière des communes, prospection et carte des collectivités du Grand Ouest.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+  :root{
+    --bg:#f5f7fb; --panel:#ffffff; --ink:#111b2e; --muted:#5e6b84; --faint:#8a97ad;
+    --line:#e6ebf3; --line2:#eef2f8;
+    --navy:#0f2447; --navy-2:#17315c; --accent:#2f6df0; --accent-soft:#eaf1ff;
+    --gold:#c99a2e; --good:#0f8a5f; --good-bg:#e6f6ee; --warn:#c0392b; --warn-bg:#fdecea;
+    --amber:#b9791c; --amber-bg:#fdf3e2;
+    --sidebar:#0e1f3d; --sidebar-ink:#c7d4ea;
+    --radius:18px; --radius-s:12px;
+    --shadow-s:0 1px 2px rgba(16,32,64,.05),0 2px 8px rgba(16,32,64,.05);
+    --shadow:0 2px 8px rgba(16,32,64,.06),0 18px 40px rgba(16,32,64,.08);
+    --sidebar-w:240px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0a1120; --panel:#111c31; --ink:#eaf0fb; --muted:#9fb0c9; --faint:#73839e;
+      --line:#1f2c45; --line2:#192338;
+      --navy:#cfe0ff; --navy-2:#b9d0f5; --accent:#5b8cf5; --accent-soft:#14233f;
+      --good:#49c88b; --good-bg:#10311f; --warn:#f0776a; --warn-bg:#3a1a16;
+      --amber:#e0a94b; --amber-bg:#352717;
+      --sidebar:#070e1c; --sidebar-ink:#9fb2d2;
+      --shadow:0 2px 8px rgba(0,0,0,.4),0 18px 44px rgba(0,0,0,.5);
+      --shadow-s:0 1px 2px rgba(0,0,0,.3);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{margin:0}
+  a{color:inherit}
+  .app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh}
+  /* ===== Sidebar ===== */
+  .side{background:linear-gradient(185deg,var(--sidebar),#0a1830);color:var(--sidebar-ink);padding:20px 14px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:11px;padding:6px 10px 18px}
+  .brand .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#7aa6ff);display:grid;place-items:center;color:#fff;font-weight:800;font-size:17px;box-shadow:0 6px 16px rgba(47,109,240,.4);font-family:Fraunces,serif}
+  .brand .t{line-height:1.15}
+  .brand .t b{color:#fff;font-weight:700;font-size:15.5px;letter-spacing:.2px;display:block}
+  .brand .t span{font-size:11.5px;color:#7e92b6}
+  .nav{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+  .nav button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;color:var(--sidebar-ink);padding:11px 12px;border-radius:11px;font-size:14.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+  .nav button .ic{width:20px;height:20px;flex:0 0 auto;opacity:.85}
+  .nav button:hover{background:rgba(255,255,255,.06);color:#fff}
+  .nav button.active{background:linear-gradient(100deg,var(--accent),#3f78f2);color:#fff;box-shadow:0 8px 20px rgba(47,109,240,.35)}
+  .nav button.active .ic{opacity:1}
+  .nav .sep{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#60739a;padding:16px 12px 6px;font-weight:700}
+  .side .foot{margin-top:auto;padding:12px 10px 2px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#6d80a6}
+  .side .foot .who{display:flex;align-items:center;gap:9px;color:#aebfdd}
+  .side .foot .who .av{width:28px;height:28px;border-radius:50%;background:#20355f;display:grid;place-items:center;font-weight:700;color:#cfe0ff;font-size:12px}
+  /* ===== Main ===== */
+  .main{min-width:0;display:flex;flex-direction:column}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 28px 14px}
+  .topbar .h{min-width:0}
+  .topbar h1{font-family:Fraunces,serif;font-weight:600;font-size:25px;letter-spacing:.2px}
+  .topbar .sub{color:var(--muted);font-size:13.5px;margin-top:2px}
+  .topbar .pill{flex:0 0 auto;font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 13px;box-shadow:var(--shadow-s)}
+  .content{padding:6px 28px 60px;max-width:1080px;width:100%}
+  .view{display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* ===== Generic UI ===== */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;margin:0 0 18px}
+  .sect-title{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .searchbar{display:flex;gap:10px;flex-wrap:wrap}
+  .searchbar input{flex:1 1 240px;min-width:0;padding:13px 16px;border-radius:13px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px;outline:none;transition:border .15s,box-shadow .15s}
+  .searchbar input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .btn{padding:13px 22px;border-radius:13px;border:0;background:linear-gradient(100deg,var(--accent),#3f78f2);color:#fff;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit;box-shadow:0 8px 20px rgba(47,109,240,.3);transition:transform .1s,filter .15s}
+  .btn:hover{filter:brightness(1.05)} .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:var(--panel);color:var(--accent);border:1px solid var(--line);box-shadow:var(--shadow-s)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .chips button{background:var(--accent-soft);color:var(--accent);border:0;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+  .hint{font-size:12.5px;color:var(--faint);margin-top:12px}
+  .status{text-align:center;color:var(--muted);padding:40px 10px}
+  .spinner{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto 14px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .suggest{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-top:10px;overflow:hidden;box-shadow:var(--shadow)}
+  .suggest button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line2);padding:12px 16px;color:var(--ink);font-size:15px;cursor:pointer;font-family:inherit}
+  .suggest button:last-child{border-bottom:0} .suggest button:hover{background:var(--accent-soft)}
+  .suggest small{color:var(--muted)}
+  .err{background:var(--warn-bg);color:var(--warn);border-radius:13px;padding:14px 16px;font-size:14.5px}
+  /* ===== Dossier (analyse) ===== */
+  .idhead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .idhead h2{font-family:Fraunces,serif;font-weight:600;font-size:26px}
+  .idhead .meta{color:var(--muted);font-size:13px;margin-top:3px}
+  .verdict{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:8px 15px;border-radius:999px;font-weight:700;font-size:14px}
+  .v-good{background:var(--good-bg);color:var(--good)} .v-warn{background:var(--warn-bg);color:var(--warn)} .v-neutral{background:var(--amber-bg);color:var(--amber)}
+  .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(min-width:640px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  .kpi{background:var(--bg);border:1px solid var(--line2);border-radius:14px;padding:13px 15px}
+  .kpi .l{font-size:11.5px;color:var(--muted)} .kpi .v{font-size:20px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums} .kpi .x{font-size:12px;color:var(--faint);margin-top:1px}
+  .pts{display:grid;gap:8px}
+  .pt{display:flex;gap:10px;align-items:flex-start;font-size:14.5px}
+  .pt .ic{flex:0 0 auto;font-weight:800} .pt.good .ic{color:var(--good)} .pt.warn .ic{color:var(--warn)}
+  .cols2{display:grid;gap:18px}
+  @media(min-width:760px){.cols2{grid-template-columns:1fr 1fr}}
+  .prose p{margin:0 0 12px;font-size:15px} .prose p:last-child{margin-bottom:0}
+  .ba{border-left:3px solid var(--line);padding:3px 0 3px 14px;margin:0 0 12px}
+  .ba.def{border-left-color:var(--warn)} .ba b{font-weight:700}
+  .sim .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .sim label{display:block;font-size:12.5px;color:var(--muted);margin:0 0 5px}
+  .sim input{width:100%;padding:11px 13px;border-radius:11px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px}
+  .simline{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:15px}
+  .simline:last-child{border-bottom:0} .simline .lab{color:var(--muted)} .simline .val{font-weight:700;text-align:right;font-variant-numeric:tabular-nums} .simline .val small{display:block;font-weight:600;font-size:12px}
+  .twocol{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px;align-items:baseline;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14.5px}
+  .twocol:last-child{border-bottom:0} .twocol .h{color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  .tag{font-size:11px;padding:2px 8px;border-radius:999px;margin-left:5px} .tag.ok{background:var(--good-bg);color:var(--good)} .tag.ko{background:var(--warn-bg);color:var(--warn)}
+  .foot{color:var(--faint);font-size:12px;line-height:1.55}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  /* ===== Placeholder sections ===== */
+  .hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy),#1d3e78);color:#fff;border-radius:var(--radius);padding:30px 28px;box-shadow:var(--shadow)}
+  .hero h2{font-family:Fraunces,serif;font-weight:600;font-size:24px;margin-bottom:8px}
+  .hero p{color:#c6d6f3;font-size:15px;max-width:60ch}
+  .hero .soon{display:inline-block;margin-bottom:14px;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.14);padding:5px 11px;border-radius:999px;color:#dbe7ff}
+  .hero .glow{position:absolute;right:-60px;top:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(122,166,255,.5),transparent 70%);filter:blur(10px)}
+  .feat{display:grid;gap:14px;margin-top:18px}
+  @media(min-width:680px){.feat{grid-template-columns:1fr 1fr}}
+  .feat .f{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow-s)}
+  .feat .f .fi{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:10px}
+  .feat .f b{font-size:15px;display:block;margin-bottom:3px}
+  .feat .f span{color:var(--muted);font-size:13.5px}
+  #map{height:360px;border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow);margin-top:16px;z-index:0}
+  .mapwrap{position:relative}
+  .maptag{position:absolute;left:16px;bottom:16px;z-index:500;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:12.5px;color:var(--muted);box-shadow:var(--shadow);max-width:260px}
+  .maptag b{color:var(--ink)}
+  .leaflet-container{font-family:inherit}
+  /* ===== Mobile ===== */
+  .mtab{display:none}
+  @media(max-width:860px){
+    .app{grid-template-columns:1fr}
+    .side{display:none}
+    .content{padding:4px 16px 92px} .topbar{padding:16px 16px 10px}
+    .topbar h1{font-size:21px}
+    .mtab{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:var(--panel);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom));justify-content:space-around;box-shadow:0 -4px 20px rgba(16,32,64,.08)}
+    .mtab button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--faint);font-size:10.5px;font-weight:600;font-family:inherit;cursor:pointer;flex:1;padding:4px}
+    .mtab button.active{color:var(--accent)}
+    .mtab button .ic{width:22px;height:22px}
+    .sim .row{grid-template-columns:1fr}
+    .cols2{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">CA</div><div class="t"><b>CRM Collectivités</b><span>Chargé d'affaires · Grand Ouest</span></div></div>
+    <nav class="nav" id="nav">
+      <div class="sep">Pilotage</div>
+      <button data-v="analyse" class="active">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 5-7"/></svg>
+        Analyse financière</button>
+      <button data-v="prospection">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+        Prospection</button>
+      <button data-v="carte">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
+        Carte de l'Ouest</button>
+    </nav>
+    <div class="foot">
+      <div class="who"><span class="av">NM</span><span>Nicolas Milharoux</span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="h">
+        <h1 id="tbTitle">Analyse financière</h1>
+        <div class="sub" id="tbSub">Diagnostic d'une collectivité à partir de son SIREN</div>
+      </div>
+      <div class="pill">Données publiques OFGL · DGFiP</div>
+    </div>
+    <div class="content">
+
+      <!-- ANALYSE -->
+      <section class="view active" id="view-analyse">
+        <div class="card">
+          <div class="sect-title">Rechercher une collectivité</div>
+          <div class="searchbar">
+            <input id="q" type="text" placeholder="SIREN (9 chiffres) ou nom de commune" autocomplete="off">
+            <button class="btn" id="go">Analyser</button>
+          </div>
+          <div class="chips" id="chips">
+            <button data-s="213701832">Perrusson</button>
+            <button data-s="214000655">Capbreton</button>
+            <button data-s="213304983">Salles (33)</button>
+          </div>
+        </div>
+        <div id="result"><div class="status">Saisissez un SIREN ou un nom pour lancer l'analyse.</div></div>
+      </section>
+
+      <!-- PROSPECTION -->
+      <section class="view" id="view-prospection">
+        <div class="hero"><div class="glow"></div>
+          <span class="soon">Phase 2 · bientôt</span>
+          <h2>Prospection pilotée par Hector</h2>
+          <p>Le flux « Qui appeler » d'Hector, aujourd'hui sur Telegram, deviendra une vraie interface de suivi : les collectivités dont un document dit qu'elles vont emprunter, avec le statut de ton appel, la phrase qui prouve l'emprunt, le montant, la date et le lien source.</p>
+        </div>
+        <div class="feat">
+          <div class="f"><div class="fi">📞</div><b>Suivi des appels</b><span>Appelé / à rappeler / sans suite, et le résultat, pour ne jamais repasser deux fois.</span></div>
+          <div class="f"><div class="fi">🎯</div><b>Seulement des pistes sûres</b><span>Reprend la logique d'Hector : rien d'inventé, chaque piste est datée et sourcée.</span></div>
+          <div class="f"><div class="fi">🔔</div><b>Relances</b><span>Pose un rappel daté sur une collectivité, reçu sur ton canal Telegram.</span></div>
+          <div class="f"><div class="fi">🗂️</div><b>Historique</b><span>Tout l'historique de tes échanges par collectivité, au même endroit.</span></div>
+        </div>
+      </section>
+
+      <!-- CARTE -->
+      <section class="view" id="view-carte">
+        <div class="hero"><div class="glow"></div>
+          <span class="soon">Phase 2 · aperçu</span>
+          <h2>Carte des collectivités du Grand Ouest</h2>
+          <p>Communes, intercommunalités, départements et régions de Bretagne, Pays de la Loire, Centre-Val de Loire et Normandie. Clique une collectivité : tu écris tes notes, tu vois son profil financier, et tu poses un rappel daté envoyé sur ton canal.</p>
+        </div>
+        <div class="mapwrap">
+          <div id="map"></div>
+          <div class="maptag"><b>Aperçu.</b> La carte interactive avec fiches, notes et rappels arrive en Phase 2. Fond de carte et périmètre à titre indicatif.</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<nav class="mtab" id="mtab">
+  <button data-v="analyse" class="active"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 5-7"/></svg>Analyse</button>
+  <button data-v="prospection"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>Prospection</button>
+  <button data-v="carte"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>Carte</button>
+</nav>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+/* ===================== CRM Collectivités ===================== */
+
+/* ---------- Navigation ---------- */
+const TITLES = {
+  analyse: ["Analyse financière", "Diagnostic d'une collectivité à partir de son SIREN"],
+  prospection: ["Prospection", "Les collectivités à appeler, pilotées par Hector"],
+  carte: ["Carte de l'Ouest", "Toutes les collectivités, leurs notes et tes rappels"],
+};
+function showView(v) {
+  document.querySelectorAll(".view").forEach(s => s.classList.toggle("active", s.id === "view-" + v));
+  document.querySelectorAll("#nav button, #mtab button").forEach(b => b.classList.toggle("active", b.dataset.v === v));
+  const t = TITLES[v] || TITLES.analyse;
+  document.getElementById("tbTitle").textContent = t[0];
+  document.getElementById("tbSub").textContent = t[1];
+  if (v === "carte") initMap();
+  try { history.replaceState(null, "", "#" + v); } catch (e) {}
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll("#nav button, #mtab button").forEach(b =>
+  b.addEventListener("click", () => showView(b.dataset.v)));
+
+/* ---------- Carte (aperçu Leaflet) ---------- */
+let mapInited = false;
+function initMap() {
+  if (mapInited || typeof L === "undefined") return;
+  mapInited = true;
+  const map = L.map("map", { scrollWheelZoom: false, attributionControl: true }).setView([47.7, -1.2], 6);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    attribution: "Tiles &copy; Esri", maxZoom: 16,
+  }).addTo(map);
+  const regions = [
+    ["Bretagne", 48.15, -2.9], ["Pays de la Loire", 47.5, -0.8],
+    ["Centre-Val de Loire", 47.5, 1.7], ["Normandie", 49.1, 0.1],
+  ];
+  regions.forEach(([n, la, lo]) => {
+    L.circleMarker([la, lo], { radius: 9, color: "#2f6df0", fillColor: "#2f6df0", fillOpacity: .85, weight: 2 })
+      .addTo(map).bindTooltip(n, { permanent: true, direction: "top", offset: [0, -6] });
+  });
+  setTimeout(() => map.invalidateSize(), 250);
+}
+
+/* ===================== Moteur d'analyse (OFGL) ===================== */
+const AG = { rf: "Recettes de fonctionnement", df: "Dépenses de fonctionnement", eg: "Epargne de gestion", eb: "Epargne brute", en: "Epargne nette", implo: "Impôts locaux", dgf: "Dotation globale de fonctionnement", concours: "Concours de l'Etat", perso: "Frais de personnel", achats: "Achats et charges externes", interv: "Dépenses d'intervention", chfin: "Charges financières", ed: "Encours de dette", annuite: "Annuité de la dette", remb: "Remboursements d'emprunts hors GAD", emp: "Emprunts hors GAD", equip: "Dépenses d'équipement", depinv: "Dépenses d'investissement", fctva: "FCTVA", subv: "Subventions reçues et participations", cessions: "Produit des cessions d'immobilisations", capfin: "Capacité ou besoin de financement", tresor: "Dépôts au Trésor" };
+function pick(o, y) { return (o && o[y]) ? o[y] : {}; }
+function gg(bk, k) { const v = bk[AG[k]]; return (v === undefined || v === null || isNaN(v)) ? null : v; }
+function buildModel(rows) {
+  const byB = {}, meta = { ptot: null, com: null, dep: null, depcode: null, epci: null };
+  for (const r of rows) {
+    const y = String(r.exer), b = r.type_de_budget || "Budget principal", label = r.lbudg || b;
+    if (r.ptot != null && r.ptot !== "") meta.ptot = +r.ptot;
+    if (r.com_name) meta.com = r.com_name; if (r.dep_name) meta.dep = r.dep_name;
+    if (r.dep_code) meta.depcode = r.dep_code; if (r.epci_name) meta.epci = r.epci_name;
+    const key = b === "Budget principal" ? "__P__" : "BA::" + label;
+    if (!byB[key]) byB[key] = { type: b, label, years: {} };
+    if (b !== "Budget principal") byB[key].label = label;
+    if (!byB[key].years[y]) byB[key].years[y] = {};
+    byB[key].years[y][r.agregat] = +r.montant;
+  }
+  const P = byB["__P__"]; if (!P) return null;
+  const ys = Object.keys(P.years).sort(); const year = ys[ys.length - 1]; const prevYear = ys.length > 1 ? ys[ys.length - 2] : null;
+  const cur = pick(P.years, year), pr = prevYear ? pick(P.years, prevYear) : null;
+  const bas = Object.values(byB).filter(x => x.type !== "Budget principal").map(x => ({ label: x.label, cur: pick(x.years, year) })).filter(x => Object.keys(x.cur).length > 0);
+  const conso = {}; for (const x of Object.values(byB)) { const c = pick(x.years, year); for (const k in c) conso[k] = (conso[k] || 0) + c[k]; }
+  const rf = gg(cur, "rf"), eg = gg(cur, "eg"), eb = gg(cur, "eb"), en = gg(cur, "en"), ed = gg(cur, "ed");
+  const dg = (rf != null && eg != null) ? rf - eg : null;
+  const m = { year, prevYear, meta, bas, rf, dg, eg, eb, en, ed, df: gg(cur, "df"), implo: gg(cur, "implo"), dgf: gg(cur, "dgf"), perso: gg(cur, "perso"), chfin: gg(cur, "chfin"), annuite: gg(cur, "annuite"), equip: gg(cur, "equip"), fctva: gg(cur, "fctva"), subv: gg(cur, "subv"), capfin: gg(cur, "capfin"), tresor: gg(cur, "tresor"),
+    rfPrev: pr ? gg(pr, "rf") : null, egPrev: pr ? gg(pr, "eg") : null, ebPrev: pr ? gg(pr, "eb") : null, edPrev: pr ? gg(pr, "ed") : null,
+    dgPrev: (pr && gg(pr, "rf") != null && gg(pr, "eg") != null) ? gg(pr, "rf") - gg(pr, "eg") : null,
+    ebConso: conso[AG.eb] != null ? conso[AG.eb] : null, edConso: conso[AG.ed] != null ? conso[AG.ed] : null, rfConso: conso[AG.rf] != null ? conso[AG.rf] : null };
+  m.capdes = (m.eb && m.eb > 0 && m.ed != null) ? m.ed / m.eb : null;
+  m.taux = (m.rf && m.ed != null) ? m.ed / m.rf : null;
+  m.capdesConso = (m.ebConso && m.ebConso > 0 && m.edConso != null) ? m.edConso / m.ebConso : null;
+  m.tauxConso = (m.rfConso && m.edConso != null) ? m.edConso / m.rfConso : null;
+  m.egcj = (m.tresor != null && m.dg && m.dg > 0) ? m.tresor / m.dg * 365 : null;
+  m.capResiduelle = (m.eb != null && m.ed != null) ? Math.max(0, m.eb * 11 - m.ed) : null;
+  return m;
+}
+
+/* ---------- Formatage ---------- */
+const nf = new Intl.NumberFormat("fr-FR");
+const ef = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+function eur(x) { return x == null || isNaN(x) ? "n.d." : ef.format(Math.round(x)); }
+function num(x) { return x == null ? "n.d." : nf.format(Math.round(x)); }
+function pct(x, d) { if (x == null || isNaN(x)) return "n.d."; return (x * 100).toFixed(d == null ? 1 : d).replace(".", ",") + " %"; }
+function signed(x) { if (x == null || isNaN(x)) return "n.d."; return (x >= 0 ? "+" : "") + (x * 100).toFixed(1).replace(".", ",") + " %"; }
+function ans(x) { if (x == null || isNaN(x)) return "n.d."; return x.toFixed(1).replace(".", ",") + " ans"; }
+function esc(s) { return ("" + s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+function frListe(a) { if (!a.length) return ""; if (a.length === 1) return a[0]; return a.slice(0, -1).join(", ") + " et " + a[a.length - 1]; }
+
+/* ---------- Analyse rédigée (raisonnée) ---------- */
+function analyse(m) {
+  const S = []; const rfR = (v) => m.rf ? v / m.rf : null; let a;
+  a = [];
+  a.push(`En ${m.year}, ${esc(m.meta.com)} a mobilisé <b>${eur(m.rf)}</b> de recettes de gestion pour <b>${eur(m.dg)}</b> de dépenses de gestion, et dégage une épargne de gestion de <b>${eur(m.eg)}</b>.`);
+  if (m.rfPrev && m.dgPrev) {
+    const gRF = (m.rf - m.rfPrev) / m.rfPrev, gDG = (m.dg - m.dgPrev) / m.dgPrev, pts = Math.abs(gRF - gDG) * 100;
+    if (gRF >= gDG) a.push(`Sur un an, les recettes progressent plus vite que les dépenses (${signed(gRF)} contre ${signed(gDG)}), soit un effet de ciseau favorable de ${pts.toFixed(1).replace(".", ",")} points : la commune reconstitue de la marge.`);
+    else {
+      let ph = `Sur un an, les dépenses de gestion progressent plus vite que les recettes (${signed(gDG)} contre ${signed(gRF)}), soit un effet de ciseau défavorable de ${pts.toFixed(1).replace(".", ",")} points.`;
+      if (m.ebPrev != null && m.eb < m.ebPrev) { const recul = m.ebPrev - m.eb, yrs = recul > 0 ? m.eb / recul : null;
+        if (yrs != null && yrs < 20) ph += ` Concrètement, l'épargne brute a reculé de ${eur(recul)} en un an ; à ce rythme elle serait absorbée en environ ${yrs.toFixed(1).replace(".", ",")} ans. C'est le point à surveiller en priorité.`;
+        else ph += ` L'épargne brute a reculé de ${eur(recul)} en un an : une érosion encore limitée, mais à surveiller.`;
+      } else ph += ` L'épargne tient encore, mais la dynamique des charges mérite attention.`;
+      a.push(ph);
+    }
+  }
+  const r = rfR(m.eb); let ebTxt;
+  if (r == null) ebTxt = "";
+  else if (r < 0) ebTxt = `Après charges financières, l'épargne brute est négative (${eur(m.eb)}) : la commune ne couvre plus ses dépenses courantes par ses recettes courantes.`;
+  else if (r < 0.08) ebTxt = `Après charges financières, l'épargne brute s'établit à <b>${eur(m.eb)}</b>, soit ${pct(r)} des recettes : un niveau faible, autofinancement limité.`;
+  else if (r < 0.15) ebTxt = `Après charges financières, l'épargne brute s'établit à <b>${eur(m.eb)}</b>, soit ${pct(r)} des recettes : un niveau correct, dans la moyenne.`;
+  else ebTxt = `Après charges financières, l'épargne brute ressort à <b>${eur(m.eb)}</b>, soit ${pct(r)} des recettes : un niveau solide.`;
+  let enTxt = "";
+  if (m.en != null) enTxt = m.en >= 0
+    ? ` Une fois le remboursement en capital honoré, il reste une épargne nette de <b>${eur(m.en)}</b> (${pct(rfR(m.en))}) : la marge réellement disponible pour investir sans emprunter.`
+    : ` Une fois le remboursement en capital honoré, l'épargne nette devient négative (${eur(m.en)}) : l'autofinancement ne suffit plus à rembourser la dette existante.`;
+  a.push(ebTxt + enTxt);
+  if (m.implo != null) { const au = rfR(m.implo), dg = m.dgf != null ? rfR(m.dgf) : null; let ph = `Ses ressources reposent `;
+    if (au >= 0.5) ph += `très largement sur la fiscalité locale (${pct(au)})`; else if (au >= 0.35) ph += `pour une part notable sur la fiscalité locale (${pct(au)})`; else ph += `davantage sur les dotations que sur la fiscalité locale (${pct(au)})`;
+    if (dg != null) ph += `, la DGF en représentant ${pct(dg)}`; ph += `. `;
+    ph += au >= 0.5 ? `Cette autonomie fiscale est un atout de solvabilité.` : au >= 0.35 ? `La commune conserve un levier fiscal réel.` : `Cette dépendance aux dotations est un facteur de vigilance.`;
+    a.push(ph); }
+  if (m.perso != null && m.df) { const persoR = m.perso / m.df, rig = (m.chfin != null) ? (m.perso + m.chfin) / m.rf : null;
+    let ph = `Les frais de personnel mobilisent ${pct(persoR)} des dépenses de fonctionnement`;
+    if (rig != null) { ph += ` et la rigidité des charges atteint ${pct(rig)} des recettes de gestion. `;
+      ph += rig >= 0.6 ? `Ce niveau élevé laisse peu de flexibilité.` : rig >= 0.45 ? `Ce niveau intermédiaire préserve une flexibilité raisonnable.` : `Ce niveau modéré préserve de réelles marges de manoeuvre.`;
+    } else ph += `.`; a.push(ph); }
+  if (m.meta.ptot) a.push(`Rapportés à ses ${num(m.meta.ptot)} habitants : ${eur(m.rf / m.meta.ptot)} de recettes, ${eur(m.eb / m.meta.ptot)} d'épargne brute et ${eur(m.ed / m.meta.ptot)} de dette par habitant.`);
+  S.push({ h: "Exploitation", html: a });
+
+  a = [];
+  if (m.equip != null) { let ph = `La commune a investi <b>${eur(m.equip)}</b> en dépenses d'équipement`;
+    if (m.rf) ph += `, soit un effort d'équipement de ${pct(m.equip / m.rf)} de ses recettes`; ph += `. `;
+    const bits = []; if (m.fctva) bits.push(`${eur(m.fctva)} de FCTVA`); if (m.subv) bits.push(`${eur(m.subv)} de subventions`);
+    if (m.capfin != null) { ph += m.capfin >= 0 ? `Elle dégage une capacité de financement positive de ${eur(m.capfin)}` : `Elle présente un besoin de financement de ${eur(-m.capfin)}`;
+      if (bits.length) ph += `, avec l'appui de ` + frListe(bits); ph += `.`; } else if (bits.length) ph += `Elle a mobilisé ` + frListe(bits) + `.`;
+    a.push(ph); }
+  if (m.ed != null) { let ph = `L'encours de dette s'établit à <b>${eur(m.ed)}</b>`;
+    if (m.edPrev) { const gd = (m.ed - m.edPrev) / m.edPrev; ph += ` (en ${m.ed >= m.edPrev ? "hausse" : "baisse"} de ${pct(Math.abs(gd))} sur un an)`; }
+    if (m.rf) ph += `, soit ${pct(m.taux)} des recettes`; if (m.capdes != null) ph += `, remboursable en ${ans(m.capdes)} d'épargne brute`; ph += `. `;
+    if (m.eb == null || m.eb <= 0) ph += `La dette n'est pas soutenable en l'état. `;
+    else if (m.taux < 1 && m.capdes < 11) ph += `Au regard des seuils (taux < 100 %, capacité de désendettement < 11 ans), elle est pleinement soutenable. `;
+    else if (m.capdes >= 11) ph += `La capacité de désendettement dépasse 11 ans : vigilance. `; else ph += `Le taux dépasse 100 % des recettes : vigilance. `;
+    if (m.annuite != null && m.rf) ph += `L'annuité mobilise ${eur(m.annuite)} (${pct(m.annuite / m.rf)} des recettes).`;
+    a.push(ph); }
+  if (m.capResiduelle != null && m.eb > 0) { let ph = `À capacité de désendettement cible de 11 ans, il resterait environ <b>${eur(m.capResiduelle)}</b> de capacité d'emprunt`;
+    ph += m.rf ? (m.capResiduelle > m.rf ? `, plus d'une année de recettes : une marge importante.` : `, soit ${pct(m.capResiduelle / m.rf)} des recettes : une marge réelle mais à doser.`) : `.`; a.push(ph); }
+  if (m.egcj != null) { let ph = `La trésorerie (${eur(m.tresor)}) couvre ${Math.round(m.egcj)} jours de dépenses de gestion : `;
+    ph += m.egcj < 60 ? `sous le seuil de 60 jours, elle est tendue.` : m.egcj > 240 ? `un matelas très confortable.` : `confortablement au-dessus du seuil de 60 jours.`; a.push(ph); }
+  S.push({ h: "Investissement et dette", html: a });
+
+  a = [];
+  if (!m.bas.length) a.push(`La commune ne gère aucun budget annexe actif : la vue consolidée se confond avec le budget principal.`);
+  else {
+    const defs = m.bas.filter(b => { const e = b.cur[AG.eb]; return e != null && e < 0; });
+    a.push(`Le budget principal est complété par ${m.bas.length} budget${m.bas.length > 1 ? "s" : ""} annexe${m.bas.length > 1 ? "s" : ""}. ${defs.length ? "L'un d'eux au moins est déficitaire et pèse sur le budget principal :" : "Ils couvrent globalement leurs charges :"}`);
+    a.push({ raw: m.bas.map(b => { const rf = b.cur[AG.rf], eb = b.cur[AG.eb], ed = b.cur[AG.ed];
+      let t = `<b>${esc(b.label)}</b> : ${eur(rf || 0)} de recettes, ${eur(eb || 0)} d'épargne brute`;
+      if (ed && ed > 0) { t += `, ${eur(ed)} de dette`; if (eb && eb > 0) t += ` (${ans(ed / eb)})`; } else t += `, sans dette`;
+      t += `. ` + ((eb != null && eb < 0) ? `Déficitaire, soutenu par le budget principal.` : `Autonome.`);
+      return `<div class="ba${(eb != null && eb < 0) ? " def" : ""}">${t}</div>`; }).join("") });
+    if (m.capdesConso != null && m.capdes != null) { let ph = `En consolidé, l'encours atteint <b>${eur(m.edConso)}</b> (contre ${eur(m.ed)} pour le seul principal) et la capacité de désendettement ressort à <b>${ans(m.capdesConso)}</b>, contre ${ans(m.capdes)} sur le principal. `;
+      if (m.ebConso <= 0) ph += `L'épargne consolidée devient insuffisante : c'est le vrai point d'attention.`;
+      else if (m.capdesConso > 11) ph += `Ce niveau consolidé franchit 11 ans : c'est lui qui mesure le risque réel.`;
+      else if (m.capdesConso >= m.capdes * 1.5 && m.capdesConso - m.capdes >= 1) ph += `Cette dégradation vient d'un budget annexe déficitaire : c'est ce niveau consolidé qu'il faut retenir.`;
+      else ph += `L'écart reste contenu.`; a.push(ph); }
+  }
+  S.push({ h: "Budgets annexes et consolidé", html: a });
+
+  a = [];
+  const r2 = rfR(m.eb); let posture;
+  if (r2 == null) posture = "difficile à établir";
+  else if (r2 < 0) posture = "critique : redressement prioritaire avant tout financement";
+  else if (r2 >= 0.15 && m.capdes != null && m.capdes < 8) posture = "solide et pleinement solvable";
+  else if (r2 >= 0.08) posture = "correcte, mais à consolider";
+  else posture = "fragile et sous tension";
+  let ph = `Au total, ${esc(m.meta.com)} apparaît dans une situation <b>${posture}</b>. `;
+  const cc = m.capdesConso != null ? m.capdesConso : m.capdes;
+  if (m.ebConso != null && m.ebConso <= 0) ph += `La consolidation faisant apparaître une épargne insuffisante, un nouveau financement suppose un redressement préalable. `;
+  else if (m.taux != null && m.taux < 0.8 && cc != null && cc < 7 && r2 >= 0.12) ph += `Sa dette modérée et une épargne confortable lui laissent une réelle capacité d'emprunt : cible pertinente pour un financement d'investissement. `;
+  else if (m.taux != null && m.taux < 1 && cc != null && cc < 11) ph += `Elle conserve une capacité d'emprunt, mais la vue consolidée (${ans(cc)}) invite à calibrer le montant. `;
+  else ph += `Tout nouveau financement devra rester mesuré. `;
+  a.push(ph);
+  const watch = [];
+  if (m.rfPrev && m.dgPrev && ((m.dg - m.dgPrev) / m.dgPrev) > ((m.rf - m.rfPrev) / m.rfPrev)) watch.push("la trajectoire des charges (effet de ciseau)");
+  if (m.egcj != null && m.egcj < 60) watch.push("une trésorerie tendue (ligne de trésorerie / prêt relais)");
+  if (m.en != null && m.rf && m.en / m.rf < 0.03) watch.push("une épargne nette mince : calibrer le saut de charge");
+  if (m.capdesConso != null && m.capdesConso > 8) watch.push("la dette consolidée, portée par les budgets annexes");
+  if (watch.length) a.push(`Points à surveiller et angles de dialogue : ${frListe(watch)}.`);
+  S.push({ h: "Le regard du chargé d'affaires", html: a });
+  return S;
+}
+
+function strengths(m) {
+  const f = [], v = [];
+  if (m.eb != null && m.rf) { const r = m.eb / m.rf; if (r >= 0.15) f.push(`Épargne brute élevée (${pct(r)})`); else if (r < 0) v.push("Épargne brute négative : situation critique"); else if (r < 0.08) v.push(`Épargne brute faible (${pct(r)})`); }
+  if (m.capdes != null) { if (m.capdes < 6) f.push(`Endettement très soutenable (${ans(m.capdes)})`); else if (m.capdes > 11) v.push(`Capacité de désendettement élevée (${ans(m.capdes)})`); }
+  if (m.taux != null) { if (m.taux < 0.5) f.push(`Dette légère (${pct(m.taux)} des recettes)`); else if (m.taux > 1) v.push(`Taux d'endettement élevé (${pct(m.taux)})`); }
+  if (m.egcj != null) { if (m.egcj > 90) f.push(`Trésorerie confortable (${Math.round(m.egcj)} j)`); else if (m.egcj < 60) v.push(`Trésorerie sous le seuil (${Math.round(m.egcj)} j < 60)`); }
+  if (m.implo != null && m.rf) { const au = m.implo / m.rf; if (au >= 0.5) f.push(`Forte autonomie fiscale (${pct(au)})`); else if (au < 0.35) v.push("Dépendance aux dotations de l'État"); }
+  if (m.rfPrev && m.dgPrev) { const c = ((m.dg - m.dgPrev) / m.dgPrev) - ((m.rf - m.rfPrev) / m.rfPrev); if (c > 0.01) v.push("Effet de ciseau : dépenses plus rapides que recettes"); else if (c < -0.01) f.push("Charges maîtrisées, pas d'effet de ciseau"); }
+  if (m.capfin != null) { if (m.capfin >= 0) f.push("Investissement autofinancé"); else v.push("Besoin de financement pour investir"); }
+  if (m.bas.some(b => b.cur[AG.eb] != null && b.cur[AG.eb] < 0)) v.push("Un budget annexe déficitaire dépend du principal");
+  if (m.capdesConso != null && m.capdes != null && m.capdesConso > m.capdes * 1.5 && m.capdesConso - m.capdes >= 1) v.push(`Dette consolidée bien plus lourde (${ans(m.capdesConso)}) que le principal (${ans(m.capdes)})`);
+  if (!f.length) f.push("Aucun point fort marquant pour l'instant.");
+  if (!v.length) v.push("Aucun point de vigilance majeur : situation saine.");
+  return { f, v };
+}
+
+/* ---------- Simulateur ---------- */
+function computeSim(m) {
+  const g = (id) => document.getElementById(id);
+  const M = parseFloat((g("sM").value || "").replace(",", ".")) || 0;
+  const t = (parseFloat((g("sT").value || "").replace(",", ".")) || 0) / 100;
+  const n = parseInt(g("sN").value || "0", 10) || 0;
+  const out = g("simOut"); if (!out) return;
+  if (M <= 0 || t <= 0 || n <= 0) { out.innerHTML = `<p class="foot">Renseignez un montant, un taux et une durée.</p>`; return; }
+  const pmt = M * t / (1 - Math.pow(1 + t, -n)), inte = M * t, cap = pmt - inte;
+  const enA = m.en != null ? m.en - pmt : null, tient = enA != null && enA >= 0;
+  const ebA = m.eb != null ? m.eb - inte : null;
+  const capdesP = (ebA && ebA > 0 && m.ed != null) ? (m.ed + M) / ebA : null, tauxP = m.rf ? (m.ed + M) / m.rf : null;
+  const ebcA = m.ebConso != null ? m.ebConso - inte : null;
+  const capdesC = (ebcA && ebcA > 0 && m.edConso != null) ? (m.edConso + M) / ebcA : null, tauxC = m.rfConso ? (m.edConso + M) / m.rfConso : null;
+  const tc = (x) => x == null ? "" : (x > 11 ? `<span class="tag ko">&gt; 11 ans</span>` : `<span class="tag ok">&lt; 11 ans</span>`);
+  const tt = (x) => x == null ? "" : (x > 1 ? `<span class="tag ko">&gt; 100 %</span>` : `<span class="tag ok">&lt; 100 %</span>`);
+  out.innerHTML =
+    `<div class="simline"><span class="lab">Saut de charge (annuité année 1)</span><span class="val">${eur(pmt)}</span></div>` +
+    `<div class="simline"><span class="lab">dont intérêt « I fictif » (année 1)</span><span class="val">${eur(inte)}</span></div>` +
+    `<div class="simline"><span class="lab">dont capital (année 1)</span><span class="val">${eur(cap)}</span></div>` +
+    `<div class="simline"><span class="lab">Épargne nette après saut de charge</span><span class="val">${eur(enA)}<small>${tient ? '<span style="color:var(--good)">✓ tient</span>' : '<span style="color:var(--warn)">⚠ ne tient pas</span>'}</small></span></div>` +
+    `<div class="twocol"><span class="h">Après emprunt</span><span class="h">Principal</span><span class="h">Consolidé</span></div>` +
+    `<div class="twocol"><span>Capacité de désendettement</span><b>${capdesP != null ? ans(capdesP) : "n.s."} ${tc(capdesP)}</b><b>${capdesC != null ? ans(capdesC) : "n.s."} ${tc(capdesC)}</b></div>` +
+    `<div class="twocol"><span>Taux d'endettement</span><b>${tauxP != null ? pct(tauxP) : "n.d."} ${tt(tauxP)}</b><b>${tauxC != null ? pct(tauxC) : "n.d."} ${tt(tauxC)}</b></div>`;
+}
+
+/* ---------- Rendu du dossier ---------- */
+function vClass(m) { const r = m.rf ? m.eb / m.rf : null; if (r == null) return "v-neutral"; if (r < 0) return "v-warn"; if (r >= 0.15 && m.capdes != null && m.capdes < 8) return "v-good"; if (r >= 0.08) return "v-neutral"; return "v-warn"; }
+function vText(m) { const r = m.rf ? m.eb / m.rf : null; if (r == null) return "Situation à qualifier"; if (r < 0) return "Situation critique"; if (r >= 0.15 && m.capdes != null && m.capdes < 8) return "Situation solide"; if (r >= 0.08) return "Situation correcte, à consolider"; return "Situation fragile"; }
+function kpi(l, v, x) { return `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div>${x ? `<div class="x">${x}</div>` : ""}</div>`; }
+
+function renderDossier(m) {
+  const { f, v } = strengths(m), secs = analyse(m);
+  const idSub = [m.meta.dep ? m.meta.dep + (m.meta.depcode ? ` (${m.meta.depcode})` : "") : "", m.meta.ptot ? num(m.meta.ptot) + " hab." : "", m.meta.epci || ""].filter(Boolean).join(" · ");
+  document.getElementById("tbSub").textContent = m.meta.com + " · exercice " + m.year;
+  let h = "";
+  h += `<div class="card"><div class="idhead"><div><h2>${esc(m.meta.com || "Commune")}</h2><div class="meta">SIREN ${esc(curSiren)} · exercice ${m.year}</div><div class="meta">${esc(idSub)}</div></div>
+    <div><div class="verdict ${vClass(m)}">${vText(m)}</div></div></div>
+    <div class="actions"><button class="btn ghost" onclick="window.print()">Exporter en PDF</button></div></div>`;
+  h += `<div class="card"><div class="sect-title">Chiffres clés</div><div class="kpis">
+    ${kpi("Recettes de fonctionnement", eur(m.rf))}
+    ${kpi("Épargne brute", eur(m.eb), m.rf ? pct(m.eb / m.rf) : "")}
+    ${kpi("Épargne nette", eur(m.en))}
+    ${kpi("Capacité de désendettement", m.capdes != null ? ans(m.capdes) : "n.s.", m.capdesConso != null ? "consolidé " + ans(m.capdesConso) : "")}
+    ${kpi("Taux d'endettement", m.taux != null ? pct(m.taux) : "n.d.")}
+    ${kpi("Encours de dette", eur(m.ed), m.edConso != null && m.edConso !== m.ed ? "consolidé " + eur(m.edConso) : "")}
+    ${kpi("Trésorerie", eur(m.tresor), m.egcj != null ? Math.round(m.egcj) + " j" : "")}
+    ${kpi("Annuité de la dette", eur(m.annuite), m.rf && m.annuite != null ? pct(m.annuite / m.rf) : "")}
+    ${kpi("Capacité d'emprunt résiduelle", m.capResiduelle != null ? "≈ " + eur(m.capResiduelle) : "n.d.")}
+  </div></div>`;
+  h += `<div class="cols2">
+    <div class="card"><div class="sect-title">Points forts</div><div class="pts">${f.map(x => `<div class="pt good"><span class="ic">✓</span><span>${x}</span></div>`).join("")}</div></div>
+    <div class="card"><div class="sect-title">Points de vigilance</div><div class="pts">${v.map(x => `<div class="pt warn"><span class="ic">⚠</span><span>${x}</span></div>`).join("")}</div></div>
+  </div>`;
+  for (const s of secs) h += `<div class="card"><div class="sect-title">${esc(s.h)}</div><div class="prose">` + s.html.map(p => (typeof p === "object" && p.raw) ? p.raw : `<p>${p}</p>`).join("") + `</div></div>`;
+  h += `<div class="card sim"><div class="sect-title">Simulateur de crédit</div>
+    <div class="row"><div><label>Montant (€)</label><input type="number" id="sM" value="500000" step="10000" min="0"></div>
+    <div><label>Taux annuel (%)</label><input type="text" id="sT" value="4,5" inputmode="decimal"></div>
+    <div><label>Durée (ans)</label><input type="number" id="sN" value="20" step="1" min="1"></div></div>
+    <div id="simOut" style="margin-top:14px"></div>
+    <p class="foot" style="margin-top:12px">Annuité constante. Le saut de charge de la 1re année est imputé en totalité sur l'épargne nette (hypothèse prudente). « I fictif » = intérêt de la 1re année.</p></div>`;
+  h += `<div class="card"><p class="foot"><b>Fiabilité.</b> Données OFGL (comptes de gestion DGFiP), exercice ${m.year}. Diagnostic fiable sur l'épargne, la dette et la trésorerie ; un écart avec une fiche DGFiP sur les recettes tient aux écritures d'ordre et n'affecte pas les ratios. Analyse indicative, à confirmer par les documents budgétaires.</p></div>`;
+  document.getElementById("result").innerHTML = h;
+  computeSim(m); ["sM", "sT", "sN"].forEach(id => document.getElementById(id).addEventListener("input", () => computeSim(m)));
+}
+
+/* ---------- Données / réseau ---------- */
+let curSiren = "";
+function setStatus(h) { document.getElementById("result").innerHTML = `<div class="status">${h}</div>`; }
+async function loadSiren(siren) {
+  siren = ("" + siren).replace(/\D/g, "");
+  if (siren.length !== 9) { setStatus(`<div class="err">Un SIREN comporte 9 chiffres. Vérifiez, ou recherchez par nom.</div>`); return; }
+  curSiren = siren; document.getElementById("q").value = siren;
+  setStatus(`<div class="spinner"></div>Chargement des comptes de la collectivité…`);
+  try {
+    const res = await fetch(`/api/communes?siren=${siren}`); if (!res.ok) throw new Error("HTTP " + res.status);
+    const rows = await res.json();
+    if (!rows || !rows.length) { setStatus(`<div class="err">Aucune donnée pour le SIREN ${siren} (EPCI, département, région non couverts ici, ou SIREN inexistant).</div>`); return; }
+    const m = buildModel(rows); if (!m) { setStatus(`<div class="err">Données incomplètes (pas de budget principal).</div>`); return; }
+    renderDossier(m); window.scrollTo(0, 0);
+  } catch (e) { setStatus(`<div class="err">Impossible de récupérer les données (${esc(e.message)}). Réessayez dans un instant.</div>`); }
+}
+async function searchName(name) {
+  setStatus(`<div class="spinner"></div>Recherche de « ${esc(name)} »…`);
+  try {
+    const res = await fetch(`/api/communes?mode=search&q=${encodeURIComponent(name)}`); if (!res.ok) throw new Error("HTTP " + res.status);
+    const j = await res.json(); const seen = {}, list = [];
+    for (const r of (j.results || [])) if (!seen[r.siren]) { seen[r.siren] = 1; list.push(r); }
+    list.sort((a, b) => (b.ptot || 0) - (a.ptot || 0));
+    if (!list.length) { setStatus(`<div class="err">Aucune commune pour « ${esc(name)} ». Autre orthographe, ou saisissez le SIREN.</div>`); return; }
+    let h = `<div class="card"><div class="sect-title">${list.length} résultat(s)</div><div class="suggest">`;
+    for (const r of list.slice(0, 40)) h += `<button data-s="${r.siren}">${esc(r.com_name)} <small>${esc(r.dep_name || "")}${r.ptot ? " · " + num(r.ptot) + " hab." : ""} · SIREN ${r.siren}</small></button>`;
+    h += `</div></div>`;
+    document.getElementById("result").innerHTML = h;
+    document.querySelectorAll("#result .suggest button").forEach(b => b.addEventListener("click", () => loadSiren(b.dataset.s)));
+  } catch (e) { setStatus(`<div class="err">Recherche impossible (${esc(e.message)}).</div>`); }
+}
+function submit() {
+  const q = document.getElementById("q").value.trim(); if (!q) return;
+  const digits = q.replace(/\D/g, "");
+  if (digits.length === 9 && /^[\d\s]+$/.test(q)) loadSiren(digits); else searchName(q);
+}
+document.getElementById("go").addEventListener("click", submit);
+document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+document.getElementById("chips").addEventListener("click", e => { if (e.target.dataset && e.target.dataset.s) loadSiren(e.target.dataset.s); });
+
+/* ---------- Démarrage ---------- */
+(function () {
+  const h = (location.hash || "").replace("#", "");
+  if (["analyse", "prospection", "carte"].includes(h)) showView(h);
+})();
+
+</script>
+</body>
+</html>
