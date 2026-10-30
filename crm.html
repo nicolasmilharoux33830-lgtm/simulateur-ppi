@@ -128,11 +128,28 @@
   .feat .f .fi{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:10px}
   .feat .f b{font-size:15px;display:block;margin-bottom:3px}
   .feat .f span{color:var(--muted);font-size:13.5px}
-  #map{height:360px;border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow);margin-top:16px;z-index:0}
-  .mapwrap{position:relative}
-  .maptag{position:absolute;left:16px;bottom:16px;z-index:500;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:12.5px;color:var(--muted);box-shadow:var(--shadow);max-width:260px}
-  .maptag b{color:var(--ink)}
+  .mapgrid{display:grid;grid-template-columns:1fr 340px;gap:16px}
+  #map{height:560px;border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow);z-index:0}
+  .fiche{align-self:start;position:sticky;top:16px;max-height:560px;overflow:auto;padding:18px 20px}
+  .fiche .empty{color:var(--muted);font-size:14px;text-align:center;padding:36px 8px}
+  .fiche .fhead h3{font-family:Fraunces,serif;font-size:21px}
+  .fiche .fhead .meta{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .fsnap{margin-top:14px}
+  .fsnap-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .fsnap-row:last-child{border-bottom:0} .fsnap-row .lab{color:var(--muted)} .fsnap-row b{font-variant-numeric:tabular-nums}
+  .fiche label{display:block;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:18px 0 7px}
+  .fiche textarea{width:100%;min-height:82px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;font-size:14px;background:var(--bg);color:var(--ink);resize:vertical;outline:none}
+  .fiche textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .fiche .rr{display:flex;gap:8px;flex-wrap:wrap}
+  .fiche .rr input{flex:1 1 120px;min-width:0;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;background:var(--bg);color:var(--ink);outline:none}
+  .fiche .rr button{flex:0 0 auto}
+  .rlist{margin-top:10px;display:grid;gap:6px}
+  .rlist .r{background:var(--amber-bg);color:var(--amber);border-radius:10px;padding:8px 11px;font-size:13px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .rlist .r button{background:none;border:0;color:var(--amber);cursor:pointer;font-size:16px;line-height:1;opacity:.7}
   .leaflet-container{font-family:inherit}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;box-shadow:var(--shadow);z-index:2000;font-size:14px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:90vw}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .toast{background:#20386a}}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   /* ===== Mobile ===== */
   .mtab{display:none}
   @media(max-width:860px){
@@ -146,6 +163,9 @@
     .mtab button .ic{width:22px;height:22px}
     .sim .row{grid-template-columns:1fr}
     .cols2{grid-template-columns:1fr}
+    .mapgrid{grid-template-columns:1fr}
+    .fiche{position:static;max-height:none;order:-1}
+    #map{height:380px}
   }
 </style>
 </head>
@@ -214,14 +234,18 @@
 
       <!-- CARTE -->
       <section class="view" id="view-carte">
-        <div class="hero"><div class="glow"></div>
-          <span class="soon">Phase 2 · aperçu</span>
-          <h2>Carte des collectivités du Grand Ouest</h2>
-          <p>Communes, intercommunalités, départements et régions de Bretagne, Pays de la Loire, Centre-Val de Loire et Normandie. Clique une collectivité : tu écris tes notes, tu vois son profil financier, et tu poses un rappel daté envoyé sur ton canal.</p>
+        <div class="card" style="padding:16px 18px;margin-bottom:14px">
+          <div class="sect-title">Carte des collectivités du Grand Ouest</div>
+          <div class="searchbar">
+            <input id="mq" type="text" placeholder="Rechercher une commune à épingler…" autocomplete="off">
+            <button class="btn" id="mgo">Rechercher</button>
+          </div>
+          <div id="msug"></div>
+          <div class="hint">Trouve une commune : elle s'épingle sur la carte, tu vois son profil financier, tu écris tes notes et tu poses un rappel. Tes épingles sont mémorisées sur cet appareil ; la synchro multi-appareils et l'envoi des rappels sur Telegram s'activeront dès la base connectée.</div>
         </div>
-        <div class="mapwrap">
-          <div id="map"></div>
-          <div class="maptag"><b>Aperçu.</b> La carte interactive avec fiches, notes et rappels arrive en Phase 2. Fond de carte et périmètre à titre indicatif.</div>
+        <div class="mapgrid">
+          <div><div id="map"></div></div>
+          <aside class="card fiche" id="fiche"><div class="empty">Recherche une commune pour afficher sa fiche, ou clique une épingle déjà posée.</div></aside>
         </div>
       </section>
 
@@ -235,6 +259,7 @@
   <button data-v="carte"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>Carte</button>
 </nav>
 
+<div class="toast" id="toast"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 /* ===================== CRM Collectivités ===================== */
@@ -258,25 +283,116 @@ function showView(v) {
 document.querySelectorAll("#nav button, #mtab button").forEach(b =>
   b.addEventListener("click", () => showView(b.dataset.v)));
 
-/* ---------- Carte (aperçu Leaflet) ---------- */
-let mapInited = false;
+/* ---------- Carte interactive ---------- */
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+};
+function toast(msg) {
+  const t = document.getElementById("toast"); if (!t) return;
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 3600);
+}
+let mapInited = false, CMAP = null, CMARKERS = {}, curFiche = null;
 function initMap() {
   if (mapInited || typeof L === "undefined") return;
   mapInited = true;
-  const map = L.map("map", { scrollWheelZoom: false, attributionControl: true }).setView([47.7, -1.2], 6);
-  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
-    attribution: "Tiles &copy; Esri", maxZoom: 16,
-  }).addTo(map);
-  const regions = [
-    ["Bretagne", 48.15, -2.9], ["Pays de la Loire", 47.5, -0.8],
-    ["Centre-Val de Loire", 47.5, 1.7], ["Normandie", 49.1, 0.1],
-  ];
-  regions.forEach(([n, la, lo]) => {
-    L.circleMarker([la, lo], { radius: 9, color: "#2f6df0", fillColor: "#2f6df0", fillOpacity: .85, weight: 2 })
-      .addTo(map).bindTooltip(n, { permanent: true, direction: "top", offset: [0, -6] });
-  });
-  setTimeout(() => map.invalidateSize(), 250);
+  CMAP = L.map("map", { scrollWheelZoom: true, attributionControl: true }).setView([47.7, -1.2], 6.4);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { attribution: "Tiles &copy; Esri", maxZoom: 16 }).addTo(CMAP);
+  loadDeptContours();
+  const saved = LS.get("crm_collectivites", {});
+  Object.values(saved).forEach(c => addMarker(c, false));
+  setTimeout(() => CMAP.invalidateSize(), 250);
 }
+function loadDeptContours() {
+  const codes = new Set(["22", "29", "35", "56", "44", "49", "53", "72", "85", "18", "28", "36", "37", "41", "45", "14", "27", "50", "61", "76"]);
+  fetch("https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson")
+    .then(r => r.json()).then(gj => {
+      const feats = (gj.features || []).filter(f => codes.has(f.properties.code));
+      L.geoJSON({ type: "FeatureCollection", features: feats }, { style: { color: "#2f6df0", weight: 1, opacity: .35, fillColor: "#2f6df0", fillOpacity: .03 }, interactive: false }).addTo(CMAP);
+    }).catch(() => {});
+}
+function addMarker(c, open) {
+  if (!CMARKERS[c.siren]) {
+    const mk = L.circleMarker([c.lat, c.lng], { radius: 8, color: "#17315c", fillColor: "#2f6df0", fillOpacity: .9, weight: 2 }).addTo(CMAP);
+    mk.bindTooltip(c.nom, { direction: "top", offset: [0, -4] });
+    mk.on("click", () => openFiche(c));
+    CMARKERS[c.siren] = mk;
+  }
+  if (open && CMAP) { CMAP.flyTo([c.lat, c.lng], 11, { duration: .8 }); openFiche(c); }
+}
+function saveCollectivite(c) { const m = LS.get("crm_collectivites", {}); m[c.siren] = c; LS.set("crm_collectivites", m); }
+async function openFiche(c) {
+  curFiche = c;
+  const el = document.getElementById("fiche");
+  const note = LS.get("crm_note_" + c.siren, "");
+  el.innerHTML =
+    `<div class="fhead"><h3>${esc(c.nom)}</h3><div class="meta">${esc(c.dept || "")}${c.pop ? " · " + num(c.pop) + " hab." : ""} · SIREN ${c.siren}</div></div>` +
+    `<div class="fsnap" id="fsnap"><div class="status" style="padding:18px"><div class="spinner"></div></div></div>` +
+    `<label>Mes notes</label><textarea id="fnote" placeholder="Contexte, interlocuteur, projet, point d'étape…">${esc(note)}</textarea>` +
+    `<label>Poser un rappel</label><div class="rr"><input type="date" id="frdate"><input type="text" id="frtext" placeholder="Objet du rappel"><button class="btn" id="frbtn">Programmer</button></div>` +
+    `<div class="rlist" id="frlist"></div>`;
+  document.getElementById("fnote").addEventListener("input", e => LS.set("crm_note_" + c.siren, e.target.value));
+  document.getElementById("frbtn").addEventListener("click", () => addRappel(c));
+  renderRappels(c.siren);
+  try {
+    const res = await fetch("/api/communes?siren=" + c.siren);
+    const rows = await res.json();
+    const m = (res.ok && Array.isArray(rows)) ? buildModel(rows) : null;
+    const f = document.getElementById("fsnap");
+    if (f) f.innerHTML = m ? snapshotHtml(m, c.siren) : `<div class="foot">Profil financier indisponible (budget non publié par l'OFGL pour cette collectivité).</div>`;
+  } catch (e) { const f = document.getElementById("fsnap"); if (f) f.innerHTML = `<div class="foot">Profil financier momentanément indisponible.</div>`; }
+}
+function snapshotHtml(m, siren) {
+  const row = (l, v) => `<div class="fsnap-row"><span class="lab">${l}</span><b>${v}</b></div>`;
+  return `<div class="verdict ${vClass(m)}" style="margin:0 0 12px">${vText(m)}</div>` +
+    row("Recettes de fonct.", eur(m.rf)) +
+    row("Épargne brute", eur(m.eb) + (m.rf ? " · " + pct(m.eb / m.rf) : "")) +
+    row("Capacité de désendett.", m.capdes != null ? ans(m.capdes) : "n.s.") +
+    row("Taux d'endettement", m.taux != null ? pct(m.taux) : "n.d.") +
+    row("Capacité d'emprunt rés.", m.capResiduelle != null ? "≈ " + eur(m.capResiduelle) : "n.d.") +
+    `<button class="btn ghost" style="margin-top:14px;width:100%" onclick="gotoAnalyse('${siren}')">Analyse financière complète</button>`;
+}
+function gotoAnalyse(siren) { showView("analyse"); loadSiren(siren); }
+function addRappel(c) {
+  const d = document.getElementById("frdate").value, t = (document.getElementById("frtext").value || "").trim();
+  if (!d) { toast("Choisis une date de rappel."); return; }
+  const list = LS.get("crm_rappels", []);
+  list.push({ siren: c.siren, nom: c.nom, date: d, text: t, created: Date.now() });
+  LS.set("crm_rappels", list);
+  document.getElementById("frtext").value = "";
+  renderRappels(c.siren);
+  toast("Rappel noté pour le " + d.split("-").reverse().join("/") + ". L'envoi Telegram s'activera avec la base connectée.");
+}
+function renderRappels(siren) {
+  const el = document.getElementById("frlist"); if (!el) return;
+  const mine = LS.get("crm_rappels", []).map((r, i) => ({ r, i })).filter(x => x.r.siren === siren).sort((a, b) => a.r.date.localeCompare(b.r.date));
+  el.innerHTML = mine.map(x => `<div class="r"><span>📅 ${x.r.date.split("-").reverse().join("/")}${x.r.text ? " · " + esc(x.r.text) : ""}</span><button onclick="delRappel(${x.i})" title="Supprimer">×</button></div>`).join("");
+}
+function delRappel(i) { const list = LS.get("crm_rappels", []); list.splice(i, 1); LS.set("crm_rappels", list); if (curFiche) renderRappels(curFiche.siren); }
+async function mapSearch() {
+  const q = (document.getElementById("mq").value || "").trim(); if (!q) return;
+  const sug = document.getElementById("msug");
+  sug.innerHTML = `<div class="status" style="padding:14px"><div class="spinner"></div></div>`;
+  try {
+    const res = await fetch("/api/communes?mode=geo&q=" + encodeURIComponent(q));
+    const arr = await res.json();
+    const ok = Array.isArray(arr) ? arr.filter(it => it && it.centre && it.siren) : [];
+    if (!ok.length) { sug.innerHTML = `<div class="err" style="margin-top:10px">Aucune commune trouvée pour « ${esc(q)} ».</div>`; return; }
+    let h = `<div class="suggest">`;
+    ok.slice(0, 12).forEach((it, i) => { h += `<button data-i="${i}">${esc(it.nom)} <small>Dép. ${esc(it.codeDepartement || "")}${it.population ? " · " + num(it.population) + " hab." : ""}</small></button>`; });
+    h += `</div>`; sug.innerHTML = h;
+    const top = ok.slice(0, 12);
+    sug.querySelectorAll(".suggest button").forEach(b => b.addEventListener("click", () => {
+      const it = top[+b.dataset.i];
+      const c = { siren: it.siren, nom: it.nom, dept: "Dép. " + (it.codeDepartement || ""), pop: it.population, lat: it.centre.coordinates[1], lng: it.centre.coordinates[0] };
+      sug.innerHTML = ""; document.getElementById("mq").value = "";
+      saveCollectivite(c); addMarker(c, true);
+    }));
+  } catch (e) { sug.innerHTML = `<div class="err" style="margin-top:10px">Recherche impossible pour l'instant.</div>`; }
+}
+document.getElementById("mgo").addEventListener("click", mapSearch);
+document.getElementById("mq").addEventListener("keydown", e => { if (e.key === "Enter") mapSearch(); });
 
 /* ===================== Moteur d'analyse (OFGL) ===================== */
 const AG = { rf: "Recettes de fonctionnement", df: "Dépenses de fonctionnement", eg: "Epargne de gestion", eb: "Epargne brute", en: "Epargne nette", implo: "Impôts locaux", dgf: "Dotation globale de fonctionnement", concours: "Concours de l'Etat", perso: "Frais de personnel", achats: "Achats et charges externes", interv: "Dépenses d'intervention", chfin: "Charges financières", ed: "Encours de dette", annuite: "Annuité de la dette", remb: "Remboursements d'emprunts hors GAD", emp: "Emprunts hors GAD", equip: "Dépenses d'équipement", depinv: "Dépenses d'investissement", fctva: "FCTVA", subv: "Subventions reçues et participations", cessions: "Produit des cessions d'immobilisations", capfin: "Capacité ou besoin de financement", tresor: "Dépôts au Trésor" };
