@@ -1,4 +1,10 @@
 {
- "jour": "2026-10-31",
- "decp": true
+ "jour": "2026-11-01",
+ "decp": true,
+ "subventions": true,
+ "registre": true,
+ "panneaupocket": true,
+ "sites": true,
+ "reseaux": true,
+ "plan": true
 }
