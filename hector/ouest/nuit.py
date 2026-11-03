@@ -84,7 +84,10 @@ def decouverte():
 def main():
     tout = "--tout" in sys.argv
     jour = date.today()
-    dimanche = jour.weekday() == 6
+    # le bloc hebdomadaire tourne aussi s'il manque un fichier de base (région nouvelle ou fichier perdu)
+    manque = any(not os.path.exists(os.path.join(ICI, f)) for f in
+                 ("plan_sites.json", "panneaupocket.json", "reseaux.json", "subventions.json", "registre.json"))
+    dimanche = jour.weekday() == 6 or manque
     bilan = {"jour": jour.isoformat()}
     bilan["decp"] = lance(lambda f: ["decp.py", f, "365"], "signaux_decp.json", 50_000, 1800)
     if dimanche or tout:

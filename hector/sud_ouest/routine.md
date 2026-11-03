@@ -98,6 +98,8 @@ Une collectivité = une seule fiche, au niveau le plus fort, toutes ses sources 
 - « fiche » : null si la collectivité est dans candidats.json « fiches » ; sinon, la sortie JSON de python3 veille.py --fiche SIREN.
 
 3. RAPPORT ET ENVOI
+Si /tmp/hv/sheet_url est vide, le Google Sheets n'est pas encore branché : n'ajoute ni --webhook ni --secret ni --lecture-seule aux commandes rapport.py, saute l'étape d'écriture dans le Google Sheets et ne le mentionne pas dans le message.
+
 Les identifiants (Telegram et Google Sheets) sont dans les fichiers /tmp/hv/telegram_token, /tmp/hv/telegram_chat, /tmp/hv/sheet_url et /tmp/hv/sheet_secret, écrits au début de la consigne.
 
 Du mardi au vendredi, relecture (le Google Sheets est lu, rien n'y est écrit) :
