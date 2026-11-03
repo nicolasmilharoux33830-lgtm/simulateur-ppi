@@ -121,3 +121,8 @@ curl -s -X POST "https://api.telegram.org/bot$(cat /tmp/hv/telegram_token)/sendM
 Le lundi, envoie ensuite /tmp/hv/probables.txt de la même façon, dans un second message, après le premier.
 
 Vérifie que chaque réponse contient "ok":true. Au-delà de 4 000 caractères, coupe entre deux collectivités (jamais au milieu) et envoie plusieurs messages dans l'ordre. Envoie toujours le rapport.
+
+4. CHASSEUR (après l'envoi du rapport)
+Quand le rapport « sûrs » (et, le lundi, le message « PROBABLES ») est envoyé, lance le module Chasseur, qui creuse chaque signal jusqu'à prouver le besoin d'emprunt ou l'écarter :
+curl -sS -f -o /tmp/hv/chasseur.md "https://raw.githubusercontent.com/nicolasmilharoux33830-lgtm/simulateur-ppi/claude/telegram-bot-hector-1q4wby/hector/sud_ouest/chasseur.md"
+Lis /tmp/hv/chasseur.md en entier avec l'outil Read et exécute-le : 35 minutes au plus, 70 requêtes au plus. Ses règles d'honnêteté priment (rien d'inventé, aucun grade gonflé). Il envoie son propre message « 🎯 Chasseur » ; le rapport habituel ne l'attend jamais.
