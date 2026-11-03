@@ -23,7 +23,7 @@ from datetime import date
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from net import get, jget  # noqa: E402
-from perimetre import DEPT2REG, norm  # noqa: E402
+from perimetre import DEPT2REG, DEPTS, norm  # noqa: E402
 
 FONDS_VERT = "66a215a463a9da4fb801b8cf"
 
@@ -108,13 +108,16 @@ def main():
                                               "projet": (x.get("nom_du_projet") or "")[:160],
                                               "demarche": x.get("demarche")})
     try:
+        if "Pays de la Loire" not in DEPTS:
+            raise LookupError("hors périmètre")
         n, pdl = region_pdl(eligibles, f"{an - 1}-01-01")
         lus += n
         for s, v in pdl.items():
             out.setdefault(s, []).extend(v)
         print(n, "versements de la Région des Pays de la Loire lus ;", len(pdl), "collectivités éligibles aidées")
     except Exception as e:
-        print("Région des Pays de la Loire : ERREUR", str(e)[:120])
+        if not isinstance(e, LookupError):
+            print("Région des Pays de la Loire : ERREUR", str(e)[:120])
     for v in out.values():
         v.sort(key=lambda x: (-x["annee"], -x["montant"]))
     json.dump({"genere": date.today().isoformat(), "lignes_lues": lus, "collectivites": out},

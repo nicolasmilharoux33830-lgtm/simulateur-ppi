@@ -1,0 +1,6 @@
+*.part
+*.decouverte
+*.nouveau
+sites.travail.json
+scans/
+contacts_cache.json
