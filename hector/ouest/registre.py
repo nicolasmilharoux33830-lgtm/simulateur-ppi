@@ -19,12 +19,8 @@ from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from net import get, jget  # noqa: E402
-from perimetre import norm  # noqa: E402
+from perimetre import PLATEFORMES, norm  # noqa: E402
 
-PLATEFORMES = {
-    "Mégalis Bretagne": "https://data-publication.megalis.bretagne.bzh/mq_apis/actes/v1/search",
-    "GIP RECIA (Centre-Val de Loire)": "https://data-api.publication-actes.fr/mq_apis/actes/v1/search",
-}
 BANQUES = [("Crédit Agricole", r"credit agricole|\bca\b (?:atlantique|anjou|finistere|morbihan|cotes|ille|centre|normandie|"
             r"touraine|loire|val de france|brie)|caisse regionale"),
            ("Banque des Territoires", r"banque des territoires|caisse des depots|\bcdc\b"),

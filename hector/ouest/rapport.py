@@ -42,10 +42,7 @@ def norm(s):
 
 NIVEAUX = [("A", "🔴", "Consultation bancaire en cours"), ("B", "🟠", "Emprunt prévu, banque à trouver"),
            ("C", "⚪", "Signaux à suivre")]
-CODES = {"Loire-Atlantique": "44", "Maine-et-Loire": "49", "Mayenne": "53", "Sarthe": "72", "Vendée": "85",
-         "Côtes-d'Armor": "22", "Finistère": "29", "Ille-et-Vilaine": "35", "Morbihan": "56", "Cher": "18",
-         "Eure-et-Loir": "28", "Indre": "36", "Indre-et-Loire": "37", "Loir-et-Cher": "41", "Loiret": "45",
-         "Calvados": "14", "Eure": "27", "Manche": "50", "Orne": "61", "Seine-Maritime": "76"}
+from perimetre import BOT, CODES, SANS_REGISTRE  # noqa: E402
 
 
 def args():
@@ -278,13 +275,13 @@ def message(q, idx, jours, calc, surs=False):
     suivis = [] if surs else [o for o in q.get("opportunites", []) if o.get("niveau") == "C"]
     n = len(ops) + len(calc)
     if surs:
-        L = [f"📞 Hector · {today:%d/%m} · {n} collectivité{'s' if n > 1 else ''} qui {'vont' if n > 1 else 'va'} emprunter", ""]
+        L = [f"📞 {BOT} · {today:%d/%m} · {n} collectivité{'s' if n > 1 else ''} qui {'vont' if n > 1 else 'va'} emprunter", ""]
         if not ops:
             a, b = date.fromisoformat(jours[0]), date.fromisoformat(jours[-1])
             quand = f"le {a:%d/%m}" if a == b else f"entre le {a:%d/%m} et le {b:%d/%m}"
             L += [f"Aucune collectivité n'a écrit {quand} qu'elle va emprunter sans avoir déjà choisi sa banque.", ""]
     else:
-        L = [f"📞 Hector · {today:%d/%m} · {n} collectivité{'s' if n > 1 else ''} à appeler", ""]
+        L = [f"📞 {BOT} · {today:%d/%m} · {n} collectivité{'s' if n > 1 else ''} à appeler", ""]
     i = 0
     if ops:
         L.append(f"✅ C'EST ÉCRIT : ILS VONT EMPRUNTER ({len(ops)})" if surs else f"✅ ONT DÉCIDÉ D'EMPRUNTER ({len(ops)})")
@@ -580,7 +577,7 @@ def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3, su
 
 
 def message_probables(probs, jour_ref, exclus_appeles=0):
-    L = [f"📈 Hector · PROBABLES · semaine du {jour_ref:%d/%m}", "",
+    L = [f"📈 {BOT} · PROBABLES · semaine du {jour_ref:%d/%m}", "",
          "Pas encore écrit : à appeler dans la semaine, avant qu'ils consultent les banques.", ""]
     for i, c in enumerate(probs, 1):
         p = c["prediction"]
@@ -714,7 +711,7 @@ def lignes_sheet(q, idx, jours, couv, calc=(), probs=()):
     niv = [o.get("niveau") for o in q.get("opportunites", [])]
     journal = [[detect, f"Publications {periode(jours)}", len(niv), niv.count("A"), niv.count("B"), niv.count("C"),
                 ouvertes, rep, sources,
-                "Pays de la Loire et Normandie : pas de plateforme publique des actes ; couverture par les sites "
+                f"{SANS_REGISTRE} : pas de plateforme publique des actes ; couverture par les sites "
                 "des mairies, les appels d'offres, la presse locale et le modèle prédictif. Presse lue sur les "
                 "titres et chapeaux (Google News, Bing News).",
                 q.get("suivi", "")]]

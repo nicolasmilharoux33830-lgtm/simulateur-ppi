@@ -14,14 +14,10 @@ import urllib.request
 from datetime import timedelta
 
 from net import get
-from perimetre import DEPT2REG, norm
+from perimetre import ATEXO, DEPT2REG, norm
 
 USER_AGENT = "Mozilla/5.0 (compatible; HectorVeille/1.0; veille des actes publics des collectivites)"
 
-ATEXO = {
-    "Mégalis Bretagne (marchés)": "https://marches.megalis.bretagne.bzh",
-    "Marchés publics Pays de la Loire": "https://marchespublics.paysdelaloire.fr",
-}
 MOTS = ["emprunt", "prêt", "financement", "trésorerie", "bancaire", "banque", "crédit", "dette", "assurance emprunteur"]
 # Objet qui parle vraiment d'un financement bancaire (et pas de « prêt de matériel » ou de « prétraitement »)
 STRICT = re.compile(r"\b(emprunts?|prets? (bancaires?|a long terme|a moyen terme|relais|a taux)|financement bancaire|"

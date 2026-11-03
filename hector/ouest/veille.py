@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from net import get, jget, jpost  # noqa: E402
-from perimetre import DEPT2REG, DEPT_NAME, norm  # noqa: E402
+from perimetre import DEPT2REG, DEPT_NAME, PLATEFORMES, SANS_REGISTRE, norm  # noqa: E402
 from totem import emprunts  # noqa: E402
 try:
     import imminence  # noqa: E402
@@ -28,10 +28,6 @@ import panneaupocket  # noqa: E402
 import presse  # noqa: E402
 
 PARIS = ZoneInfo("Europe/Paris")
-PLATEFORMES = {
-    "Mégalis Bretagne": "https://data-publication.megalis.bretagne.bzh/mq_apis/actes/v1/search",
-    "GIP RECIA (Centre-Val de Loire)": "https://data-api.publication-actes.fr/mq_apis/actes/v1/search",
-}
 BOAMP = "https://boamp-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/boamp/exports/json"
 ANNUAIRE = "https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records"
 TED_NUTS = ("FRG", "FRH", "FRB", "FRD")
@@ -621,7 +617,7 @@ def main():
            "couverture": stats, "actes": actes, "consultations": consultations, "boamp": boamp, "ted": ted,
            "presse": articles, "presse_sans_collectivite": orphelins, "sites": sites, "travaux": travaux,
            "echeances": echeances, "emprunts_recents": recents,
-           "non_couvert": "Pays de la Loire et Normandie : pas de plateforme publique des actes connue ; "
+           "non_couvert": f"{SANS_REGISTRE} : pas de plateforme publique des actes connue ; "
                           "couverts par les sites des mairies, les appels d'offres, la presse locale et le modèle.",
            "note": "Fiches (contacts, comptes, probabilité) dans 'fiches' ; pour une autre collectivité : "
                    "python3 veille.py --fiche SIREN"}

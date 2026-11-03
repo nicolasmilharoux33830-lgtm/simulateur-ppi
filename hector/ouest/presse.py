@@ -15,25 +15,8 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 
 from net import jget, get
-from perimetre import DEPT_NAME, norm
+from perimetre import DEPT_NAME, MEDIAS, MEDIAS_PAR_DEPT, norm
 
-# Journal -> départements du périmètre qu'il couvre (None : national ou multirégional)
-MEDIAS = {
-    "ouest-france.fr": ["14", "22", "29", "35", "44", "49", "50", "53", "56", "61", "72", "85"],
-    "letelegramme.fr": ["22", "29", "35", "56"],
-    "actu.fr": None,
-    "lanouvellerepublique.fr": ["36", "37", "41"],
-    "courrier-ouest.com": ["49"],
-    "maine-libre.fr": ["72"],
-    "presseocean.fr": ["44"],
-    "paris-normandie.fr": ["76", "27"],
-    "larep.fr": ["45"],
-    "lechorepublicain.fr": ["28"],
-    "leberry.fr": ["18"],
-    "tendanceouest.com": ["14", "50", "61", "76", "27"],
-    "actu44.fr": ["44"],
-    "lepetitcourrier.fr": ["14"],
-}
 SUJETS = ["emprunt", "emprunts OR prêts", "dette OR endettement", '"conseil municipal" budget',
           '"conseil municipal" travaux', '"conseil communautaire"', "investissement commune", "finances commune",
           '"décision modificative" OR "budget supplémentaire"', '"plan de financement"', "millions d'euros travaux"]
@@ -151,8 +134,9 @@ def requetes(debut=None, fin=None):
     rq = []
     for dom in MEDIAS:
         rq += [("google", f"site:{dom} {s} when:2d", None) for s in SUJETS]
-    for d in MEDIAS["ouest-france.fr"]:
-        rq += [("google", f"site:ouest-france.fr {s} {DEPT_NAME[d]} when:2d", d) for s in OF_DEP]
+    for dom in MEDIAS_PAR_DEPT:
+        for d in MEDIAS[dom]:
+            rq += [("google", f"site:{dom} {s} {DEPT_NAME[d]} when:2d", d) for s in OF_DEP]
     rq += [("google", f"emprunt {DEPT_NAME[d]} when:3d", d) for d in DEPT_NAME]
     # comptes rendus de conseils, tous journaux confondus, département par département
     rq += [("google", f'"conseil municipal" {DEPT_NAME[d]} when:1d', d) for d in DEPT_NAME]
