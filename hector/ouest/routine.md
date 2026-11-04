@@ -114,11 +114,11 @@ Relis /tmp/hv/message.txt : chaque collectivité doit avoir la phrase recopiée 
 Quand le message est bon, relance UNE fois la même commande sans --lecture-seule : elle écrit dans le Google Sheets les opportunités A, B et C, les actes écartés, le journal de veille, la mesure par source (A, B, C et probables trouvés par chaque source) et, le lundi, les probables. Vérifie que la sortie affiche « Google Sheets : {"ok":true ». Si le Google Sheets ne répond pas, envoie quand même le rapport et ajoute à la fin du message : « (Google Sheets injoignable ce matin.) ».
 
 Envoi :
-curl -s -X POST "https://api.telegram.org/bot$(cat /tmp/hv/telegram_token)/sendMessage" --data-urlencode "chat_id=$(cat /tmp/hv/telegram_chat)" --data-urlencode "text@/tmp/hv/message.txt" --data-urlencode "disable_web_page_preview=true"
+for c in $(cat /tmp/hv/telegram_chat); do curl -s -X POST "https://api.telegram.org/bot$(cat /tmp/hv/telegram_token)/sendMessage" --data-urlencode "chat_id=$c" --data-urlencode "text@/tmp/hv/message.txt" --data-urlencode "disable_web_page_preview=true"; done
 
 Le lundi, envoie ensuite /tmp/hv/probables.txt de la même façon, dans un second message, après le premier.
 
-Vérifie que chaque réponse contient "ok":true. Au-delà de 4 000 caractères, coupe entre deux collectivités (jamais au milieu) et envoie plusieurs messages dans l'ordre. Envoie toujours le rapport.
+/tmp/hv/telegram_chat peut contenir plusieurs identifiants de conversation (un par destinataire) : la boucle envoie chaque message à tous. Vérifie que chaque réponse contient "ok":true. Au-delà de 4 000 caractères, coupe entre deux collectivités (jamais au milieu) et envoie plusieurs messages dans l'ordre. Envoie toujours le rapport.
 
 4. CHASSEUR (après l'envoi du rapport)
 Quand le rapport « sûrs » (et, le lundi, le message « PROBABLES ») est envoyé, lance le module Chasseur, qui creuse chaque signal jusqu'à prouver le besoin d'emprunt ou l'écarter :
