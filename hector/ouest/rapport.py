@@ -5,6 +5,11 @@ Usage : python3 rapport.py qualifies.json candidats1.json [candidats2.json ...]
         [--probables 10 --sortie-probables probables.txt --decp signaux_decp.json]
 
 --surs : seulement les collectivités dont un document dit qu'elles vont emprunter (A et B), sans liste calculée.
+--predictifs N : chaque jour, après les A et B écrits, une section « A prédictifs » : collectivités qui n'ont
+  encore rien écrit mais dont un déclencheur daté (ligne de trésorerie à échéance, marchés de travaux attribués,
+  subvention à préfinancer) ET les comptes 2025 prouvent le besoin (predictifs.py). N est le minimum d'A du jour :
+  A écrits + A prédictifs >= N, et au moins 5 collectivités à appeler en tout quand le calcul en trouve.
+  --exclus-predictifs FICHIER : SIREN (un par ligne) écartés à la relecture.
 --probables N : second message, séparé et étiqueté « probable » (le lundi) : les N collectivités à appeler
   dans la semaine (modèle 2027, chantiers attribués DECP, échéances, signaux C de la semaine).
 Avec --webhook, les collectivités déjà appelées (colonne « Résultat de l'appel » du Google Sheets) ne sont
@@ -50,7 +55,7 @@ def args():
     opts = {k: k in a for k in ("--surs", "--lecture-seule")}
     a = [x for x in a if x not in opts]
     for k in ("--sortie", "--webhook", "--secret", "--top", "--objectif", "--calcules", "--probables",
-              "--sortie-probables", "--decp", "--subventions", "--registre"):
+              "--sortie-probables", "--decp", "--subventions", "--registre", "--predictifs", "--exclus-predictifs"):
         if k in a:
             i = a.index(k)
             opts[k] = a[i + 1]
@@ -268,13 +273,22 @@ def proba(p):
     return t
 
 
-def message(q, idx, jours, calc, surs=False):
+def message(q, idx, jours, calc, surs=False, ap=()):
     today = datetime.now(PARIS).date()
     ops = [o for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")]
     ops.sort(key=lambda o: (o["niveau"], -float(((fiche_de(o, idx).get("prediction") or {}).get("proba")) or 0)))
     suivis = [] if surs else [o for o in q.get("opportunites", []) if o.get("niveau") == "C"]
     n = len(ops) + len(calc)
-    if surs:
+    if surs and ap:
+        na = sum(1 for o in ops if o["niveau"] == "A")
+        nb = len(ops) - na
+        L = [f"📞 {BOT} · {today:%d/%m} · {len(ops) + len(ap)} à appeler : 🔴 {na} A écrit{'s' if na > 1 else ''}"
+             f" · 🟠 {nb} B · 🟣 {len(ap)} A prédictif{'s' if len(ap) > 1 else ''}", ""]
+        if not ops:
+            a, b = date.fromisoformat(jours[0]), date.fromisoformat(jours[-1])
+            quand = f"le {a:%d/%m}" if a == b else f"entre le {a:%d/%m} et le {b:%d/%m}"
+            L += [f"Aucune collectivité n'a écrit {quand} qu'elle va emprunter sans avoir déjà choisi sa banque.", ""]
+    elif surs:
         L = [f"📞 {BOT} · {today:%d/%m} · {n} collectivité{'s' if n > 1 else ''} qui {'vont' if n > 1 else 'va'} emprunter", ""]
         if not ops:
             a, b = date.fromisoformat(jours[0]), date.fromisoformat(jours[-1])
@@ -305,6 +319,9 @@ def message(q, idx, jours, calc, surs=False):
             if fb:
                 L.append(f"   📘 {fb}")
         L.append("")
+    if ap:
+        L += bloc_predictifs(ap, i + 1)
+        i += len(ap)
     if calc:
         L.append(f"📈 VONT EMPRUNTER · calcul économétrique ({len(calc)})")
         for c in calc:
@@ -553,27 +570,83 @@ def liste_probables(n, exclus, jour_ref, decp=None, c_semaine=(), par_dept=3, su
                     "raisons": raisons, "travaux": (d or {}).get("travaux", [])[:3]})
         if len(out) >= n:
             break
-    # coordonnées : l'annuaire coupe souvent les connexions, d'où les appels en parallèle et le cache (la
-    # routine lance le rapport deux fois : relecture puis écriture)
+    ajoute_contacts([c["entite"] for c in out])
+    return out
+
+
+def ajoute_contacts(entites):
+    """Coordonnées (Annuaire de l'administration) en parallèle, avec cache : l'annuaire coupe souvent les
+    connexions et la routine lance le rapport deux fois (relecture puis écriture)."""
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import veille
     from concurrent.futures import ThreadPoolExecutor
     cache_f = os.path.join(os.path.dirname(os.path.abspath(__file__)), "contacts_cache.json")
     try:
         cache = json.load(open(cache_f))
     except (OSError, ValueError):
         cache = {}
-    manquants = [c["entite"] for c in out if c["siren"] not in cache]
+    manquants = [e for e in entites if e["siren"] not in cache]
     with ThreadPoolExecutor(8) as ex:
         for ent, ct in zip(manquants, ex.map(veille.contacts, manquants)):
             if not ct.get("annuaire_erreur"):
                 cache[ent["siren"]] = ct
             ent["contacts"] = ct
-    for c in out:
-        c["entite"].setdefault("contacts", cache.get(c["siren"], {}))
+    for e in entites:
+        e.setdefault("contacts", cache.get(e["siren"], {}))
     try:
         json.dump(cache, open(cache_f, "w"), ensure_ascii=False)
     except OSError:
         pass
+
+
+def liste_predictifs(n, exclus, jour_ref, decp=None, subv=None, registre=None, c_semaine=()):
+    """A prédictifs du jour (predictifs.py) avec identité, coordonnées et banques en place."""
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import predictifs
+    from perimetre import DEPT2REG
+    if n <= 0:
+        return []
+    ctx = predictifs.contexte(registre, decp, subv, ECHEANCES, RECENTS, c_semaine, jour_ref)
+    out = predictifs.liste(n, exclus, jour_ref, ctx)
+    noms = {v: k for k, v in CODES.items()}
+    reg = (registre or {}).get("collectivites", {})
+    for x in out:
+        r = x["prediction"]
+        x["entite"] = {"type": r["type"], "siren": r["siren"], "code_insee": r.get("code_insee"), "nom": r["nom"],
+                       "population": r["population"], "dept": r["dept"], "departement": noms.get(r["dept"], ""),
+                       "region": DEPT2REG.get(r["dept"], ""), "facebook": page_facebook(r["siren"])}
+        x["banques"] = (reg.get(r["siren"]) or {}).get("banques") or []
+        x["nature"] = predictifs.nature(x)
+    ajoute_contacts([x["entite"] for x in out])
+    LIENS_AP.update({x["lien"]: x["signaux"][0]["cle"] for x in out})
     return out
+
+
+LIENS_AP = {}
+
+
+def bloc_predictifs(ap, debut):
+    L = [f"🟣 A PRÉDICTIFS · pas encore écrit, besoin prouvé par le calcul ({len(ap)})"]
+    for i, x in enumerate(ap, debut):
+        n_sig = len(x["signaux"])
+        L.append(f"{i}. 🟣 {entete(x['entite'], x['siren'])} · {x['produit']} · {n_sig} signaux concordants")
+        L.append(f"   {x['signaux'][0]['texte']}")
+        for b in x["besoins"]:
+            if b[1]:
+                L.append(f"   {b[2]}")
+        import predictifs
+        L.append(f"   {predictifs.ligne_comptes(x['comptes'])}")
+        autres = [s["texte"] for s in x["signaux"][1:]]
+        if autres:
+            L.append(f"   + {autres[0]}")
+        if x.get("banques"):
+            L.append("   🏦 Banques en place : " + ", ".join(x["banques"][:3]))
+        L.append(contact(x["entite"]))
+        L.append(f"   🔗 {x['lien']}")
+    L.append("")
+    return L
 
 
 def message_probables(probs, jour_ref, exclus_appeles=0):
@@ -618,7 +691,37 @@ def bloc_lecture(couv, jours, sheet=False):
     L = [f"🔎 Lu {periode(jours)} : " + " · ".join(morceaux) + (". Détail dans le Google Sheets." if sheet else ".")]
     if erreurs:
         L.append("⚠️ Source en panne : " + ", ".join(erreurs))
+    faibles = alertes(couv, jours)
+    if faibles:
+        L.append("⚠️ Source en baisse : " + " ; ".join(faibles) + ".")
     return "\n".join(L)
+
+
+def alertes(couv, jours):
+    """Sources qui ont lu beaucoup moins que d'habitude le dernier jour ouvré couvert (seuils tirés du journal
+    de veille du 22/10 au 04/11) : une panne silencieuse ne doit pas passer pour une journée sans signal."""
+    if not jours or date.fromisoformat(jours[-1]).weekday() >= 5:
+        return []
+    def dernier(cle):
+        v = couv.get(cle) or []
+        return v[-1] if v else ""
+    out = []
+    m = re.search(r"(\d+) actes publiés lus", dernier("Mégalis Bretagne"))
+    if m and int(m.group(1)) < 100:
+        out.append(f"Mégalis {m.group(1)} actes lus (350 à 750 d'habitude)")
+    m = re.search(r"(\d+) sites lus sur (\d+)", dernier("Sites des mairies et EPCI"))
+    if m and int(m.group(2)) and int(m.group(1)) < 0.8 * int(m.group(2)):
+        out.append(f"sites des mairies {m.group(1)} lus sur {m.group(2)}")
+    m = re.search(r"(\d+) articles distincts", dernier("Presse locale (Google News + Bing News)"))
+    if m and int(m.group(1)) < 300:
+        out.append(f"presse {m.group(1)} articles (800 à 1 100 d'habitude)")
+    m = re.search(r"(\d+) pages de communes et EPCI lues sur (\d+)", dernier("PanneauPocket"))
+    if m and int(m.group(1)) < 300:
+        out.append(f"PanneauPocket {m.group(1)} pages lues sur {m.group(2)}")
+    m = re.search(r"(\d+) sites lus sur (\d+) qui republient", dernier("Facebook (fils repris sur les sites)"))
+    if m and int(m.group(2)) == 0:
+        out.append("Facebook repris sur les sites : liste vide")
+    return out
 
 
 def famille(o):
@@ -655,9 +758,15 @@ def volume(fam, couv):
     return " / ".join(dict.fromkeys(vals))[:300]
 
 
-def mesure(q, probs, detect, couv):
-    """Une ligne par source et par jour : A, B, C et probables trouvés (bilan des sources à 2 semaines)."""
+def mesure(q, probs, detect, couv, ap=()):
+    """Une ligne par source et par jour : A, B, C et probables trouvés (bilan des sources à 2 semaines).
+    Les A prédictifs sont comptés dans la colonne « Probables », par déclencheur."""
     cpt = {}
+    for x in ap:
+        fam = {"ligne": "A prédictif · ligne de trésorerie", "travaux": "A prédictif · travaux (DECP + comptes)",
+               "relais": "A prédictif · subvention à préfinancer",
+               "ecrit": "A prédictif · signal C confirmé par les comptes"}.get(x["signaux"][0]["cle"], "A prédictif")
+        cpt.setdefault(fam, {"A": 0, "B": 0, "C": 0, "P": 0})["P"] += 1
     for o in q.get("opportunites", []):
         f = cpt.setdefault(famille(o), {"A": 0, "B": 0, "C": 0, "P": 0})
         if o.get("niveau") in f:
@@ -679,9 +788,22 @@ def mesure(q, probs, detect, couv):
     return out
 
 
-def lignes_sheet(q, idx, jours, couv, calc=(), probs=()):
+def lignes_sheet(q, idx, jours, couv, calc=(), probs=(), ap=()):
     detect = datetime.now(PARIS).strftime("%d/%m/%Y")
     opp, ec = [], []
+    for x in ap:
+        e = x["entite"]
+        nom, fonction, tel, mail = interlocuteur(e)
+        opp.append([detect, e.get("region", ""), e.get("departement", ""), CODES.get(e.get("departement"), ""),
+                    e.get("type", ""), (e.get("contacts") or {}).get("nom_officiel") or e.get("nom", ""),
+                    e.get("population", ""), "", x["siren"], nom, fonction, tel, mail, x["nature"][:480],
+                    round(x["besoin"]) if x.get("besoin") else "", "A prédictif",
+                    f"Calculé, pas encore écrit ({len(x['signaux'])} signaux)", "", "",
+                    "Calcul Erwan : " + {"ligne": "registre des actes + comptes 2025",
+                                         "travaux": "marchés attribués (DECP) + comptes 2025",
+                                         "relais": "subventions + comptes 2025",
+                                         "ecrit": "signal écrit + comptes 2025"}.get(x["signaux"][0]["cle"], "comptes 2025"),
+                    x["lien"], "Non", "", ""])
     for o in q.get("opportunites", []):
         e = fiche_de(o, idx)
         nom, fonction, tel, mail = interlocuteur(e)
@@ -733,7 +855,7 @@ def lignes_sheet(q, idx, jours, couv, calc=(), probs=()):
                           " | ".join(c["raisons"][1:]), nom, fonction, tel, mail, "Non", "", "",
                           e.get("facebook") or ""])
     out = {"Opportunités": opp, "Actes écartés": ec, "Journal de veille": journal,
-           "Mesure par source": mesure(q, probs, detect, couv)}
+           "Mesure par source": mesure(q, probs, detect, couv, ap)}
     if calcul:
         out["Liste calculée"] = calcul
     if probables:
@@ -756,7 +878,7 @@ ENTETES = {"Liste calculée": ["Date", "Rang", "SIREN", "Collectivité", "Type",
 def main():
     qf, cfs, opts = args()
     q = json.load(open(qf))
-    appeles, c_recents, deja_surs = set(), [], set()
+    appeles, c_recents, deja_surs, deja_ap = set(), [], set(), set()
     if "--webhook" in opts:
         # ce qui est déjà dans le Google Sheets n'est pas reproposé comme nouveau ; une collectivité déjà
         # appelée (« Résultat de l'appel » rempli ou « Appelé » à Oui) n'est plus jamais proposée
@@ -771,6 +893,9 @@ def main():
             appeles = set(rep.get("deja_appeles", []))
             # déjà signalée comme sûre (A ou B) un autre jour : elle n'a rien à faire dans les probables
             deja_surs = {x["siren"] for x in rep.get("deja_signales", []) if x.get("niveau") in ("A", "B")}
+            # un A prédictif n'est proposé qu'une fois (il revient s'il devient un A ou un B écrit)
+            deja_ap = {x["siren"] for x in rep.get("deja_signales", [])
+                       if x.get("niveau") == "A prédictif" and str(x.get("date") or "").strip() != aujourdhui}
             c_recents = rep.get("c_recents", [])
             for o in q.get("opportunites", []):
                 if o.get("lien") in vus and o.get("niveau") in ("A", "B"):
@@ -783,12 +908,42 @@ def main():
     idx, jours, couv = fiches(cfs)
     jour_ref = date.fromisoformat(jours[-1]) if jours else datetime.now(PARIS).date()
     certains = {o["siren"] for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")}
+    extra = {}
+    for k in ("--decp", "--subventions", "--registre"):
+        if opts.get(k):
+            try:
+                extra[k] = json.load(open(opts[k]))
+            except Exception as e:
+                print(k, "illisible :", str(e)[:120])
+    # un C « banque déjà retenue, contrat signé » n'annonce pas un nouvel emprunt : il ne compte pas
+    deja_signe = re.compile(r"souscri|signe|retenu|accept|contracte|reconduit|renouvele|"
+                            r"banque des territoires|credit agricole|caisse d.epargne|credit mutuel|arkea|"
+                            r"banque postale|\bcmb\b|caisse des depots|banque populaire|societe generale")
+    c_semaine = [o for o in q.get("opportunites", []) + c_recents if o.get("niveau") == "C"
+                 and not deja_signe.search(norm(f"{o.get('nature', '')} {o.get('statut', '')}"))]
+    ap = []
+    if opts.get("--predictifs"):
+        minimum = int(opts["--predictifs"])
+        na = sum(1 for o in q.get("opportunites", []) if o.get("niveau") == "A")
+        nb = sum(1 for o in q.get("opportunites", []) if o.get("niveau") == "B")
+        n_ap = min(5, max(minimum - na, 5 - na - nb, 0))
+        exclus_ap = certains | appeles | deja_surs | deja_ap
+        if opts.get("--exclus-predictifs"):
+            try:
+                exclus_ap |= {x.strip() for x in open(opts["--exclus-predictifs"]) if x.strip()}
+            except OSError:
+                pass
+        try:
+            ap = liste_predictifs(n_ap, exclus_ap, jour_ref, extra.get("--decp"), extra.get("--subventions"),
+                                  extra.get("--registre"), c_semaine)
+        except Exception as e:          # le rapport « sûrs » part toujours, même si le calcul échoue
+            print("A prédictifs : calcul impossible :", str(e)[:200])
     lundi = datetime.now(PARIS).weekday() == 0
     objectif = int(opts.get("--objectif", 10 if lundi else 7))
     mini = int(opts.get("--calcules", opts.get("--top", 5)))
     calc = [] if opts["--surs"] else liste_calculee(max(objectif - len(certains), mini),
                                                    {o["siren"] for o in q.get("opportunites", [])}, jour_ref)
-    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + bloc_lecture(couv, jours, "--webhook" in opts)
+    msg = message(q, idx, jours, calc, opts["--surs"], ap) + "\n" + bloc_lecture(couv, jours, "--webhook" in opts)
     if n_appeles:
         msg += f"\n({n_appeles} collectivité{'s' if n_appeles > 1 else ''} déjà appelée{'s' if n_appeles > 1 else ''} non reproposée{'s' if n_appeles > 1 else ''}.)"
     if "--sortie" in opts:
@@ -796,27 +951,9 @@ def main():
     print(msg)
     probs = []
     if "--probables" in opts:
-        decp = None
-        if opts.get("--decp"):
-            try:
-                decp = json.load(open(opts["--decp"]))
-            except Exception as e:
-                print("signaux DECP illisibles :", str(e)[:120])
-        exclus = {o["siren"] for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")} | appeles | deja_surs
-        # un C « banque déjà retenue, contrat signé » n'annonce pas un nouvel emprunt : il ne compte pas
-        deja_signe = re.compile(r"souscri|signe|retenu|accept|contracte|reconduit|renouvele|"
-                                r"banque des territoires|credit agricole|caisse d.epargne|credit mutuel|arkea|"
-                                r"banque postale|\bcmb\b|caisse des depots|banque populaire|societe generale")
-        c_semaine = [o for o in q.get("opportunites", []) + c_recents if o.get("niveau") == "C"
-                     and not deja_signe.search(norm(f"{o.get('nature', '')} {o.get('statut', '')}"))]
-        extra = {}
-        for k in ("--subventions", "--registre"):
-            if opts.get(k):
-                try:
-                    extra[k] = json.load(open(opts[k]))
-                except Exception as e:
-                    print(k, "illisible :", str(e)[:120])
-        probs = liste_probables(int(opts["--probables"]), exclus, jour_ref, decp, c_semaine,
+        exclus = ({o["siren"] for o in q.get("opportunites", []) if o.get("niveau") in ("A", "B")} | appeles | deja_surs
+                  | {x["siren"] for x in ap})
+        probs = liste_probables(int(opts["--probables"]), exclus, jour_ref, extra.get("--decp"), c_semaine,
                                 subv=extra.get("--subventions"), registre=extra.get("--registre"))
         mp = message_probables(probs, datetime.now(PARIS).date(), len(appeles))
         if "--sortie-probables" in opts:
@@ -824,7 +961,7 @@ def main():
         print("\n" + mp)
     if "--webhook" in opts and not opts["--lecture-seule"]:
         body = json.dumps({"secret": opts.get("--secret", ""), "entetes": ENTETES,
-                           "lignes": lignes_sheet(q, idx, jours, couv, calc, probs)}).encode()
+                           "lignes": lignes_sheet(q, idx, jours, couv, calc, probs, ap)}).encode()
         req = urllib.request.Request(opts["--webhook"], data=body, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=90) as r:
             print("\nGoogle Sheets :", r.read().decode()[:500])

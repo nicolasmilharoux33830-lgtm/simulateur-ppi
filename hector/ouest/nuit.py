@@ -106,7 +106,9 @@ def main():
         bilan["plan"] = plan_sites()          # le plus utile d'abord : la session de nuit a un temps limité
         if jour.day <= 7 or tout:
             bilan["sites"] = decouverte()
-            bilan["reseaux"] = lance(lambda f: ["reseaux.py", f], "reseaux.json", 20_000, 3600)
+            # annuaire PUIS sites des mairies : sans la seconde étape, les fils Facebook recopiés sur les sites et
+            # les pages trouvées sur les sites disparaissent (perte constatée le 01/11)
+            bilan["reseaux"] = lance(lambda f: ["reseaux.py", f, "sites.json"], "reseaux.json", 20_000, 5400)
         for f in os.listdir(ICI):
             if f.endswith(".part"):
                 os.remove(os.path.join(ICI, f))
