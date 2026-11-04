@@ -20,6 +20,8 @@ import time
 from datetime import date
 
 ICI = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, ICI)
+from perimetre import PLATEFORMES  # noqa: E402
 PY = sys.executable
 
 
@@ -87,18 +89,24 @@ def main():
     # le bloc hebdomadaire tourne aussi s'il manque un fichier de base (région nouvelle ou fichier perdu)
     manque = any(not os.path.exists(os.path.join(ICI, f)) for f in
                  ("plan_sites.json", "panneaupocket.json", "reseaux.json", "subventions.json", "registre.json"))
+    try:      # un plan qui ne couvre pas 80 % des sites connus est à refaire
+        manque = manque or len(json.load(open(os.path.join(ICI, "plan_sites.json")))) < 0.8 * len(
+            json.load(open(os.path.join(ICI, "sites.json"))))
+    except (OSError, ValueError):
+        manque = True
     dimanche = jour.weekday() == 6 or manque
     bilan = {"jour": jour.isoformat()}
     bilan["decp"] = lance(lambda f: ["decp.py", f, "365"], "signaux_decp.json", 50_000, 1800)
     if dimanche or tout:
         bilan["subventions"] = lance(lambda f: ["subventions.py", f], "subventions.json", 20_000, 1200)
-        bilan["registre"] = lance(lambda f: ["registre.py", f, "14"], "registre.json", 50_000, 7200)
+        if PLATEFORMES:      # pas de registre des actes dans toutes les régions
+            bilan["registre"] = lance(lambda f: ["registre.py", f, "14"], "registre.json", 50_000, 7200)
         bilan["panneaupocket"] = lance(lambda f: ["panneaupocket.py", "--liste", f], "panneaupocket.json",
                                        50_000, 1800)
+        bilan["plan"] = plan_sites()          # le plus utile d'abord : la session de nuit a un temps limité
         if jour.day <= 7 or tout:
             bilan["sites"] = decouverte()
             bilan["reseaux"] = lance(lambda f: ["reseaux.py", f], "reseaux.json", 20_000, 3600)
-        bilan["plan"] = plan_sites()
         for f in os.listdir(ICI):
             if f.endswith(".part"):
                 os.remove(os.path.join(ICI, f))
