@@ -269,6 +269,12 @@
 "url": "https://app.panneaupocket.com/ville/592991235-dun-09600",
 "dept": "09"
 },
+"210901088": {
+"nom": "Durban-Sur-Arize",
+"cp": "09240",
+"url": "https://app.panneaupocket.com/ville/1902556534-durban-sur-arize-09240",
+"dept": "09"
+},
 "210901096": {
 "nom": "Durfort",
 "cp": "09130",
@@ -5063,6 +5069,12 @@
 "url": "https://app.panneaupocket.com/ville/1608990266-mainsat-23700",
 "dept": "23"
 },
+"212311708": {
+"nom": "Maison-Feyne",
+"cp": "23800",
+"url": "https://app.panneaupocket.com/ville/1605798481-maison-feyne-23800",
+"dept": "23"
+},
 "212312706": {
 "nom": "Mautes",
 "cp": "23190",
@@ -5481,6 +5493,12 @@
 "nom": "CC de la Vallée de l'Homme",
 "cp": "24620",
 "url": "https://app.panneaupocket.com/ville/1926390213-cc-de-la-vallee-de-lhomme-24620",
+"dept": "24"
+},
+"200040400": {
+"nom": "CC du Périgord Ribéracois",
+"cp": "24600",
+"url": "https://app.panneaupocket.com/ville/324448363-cc-du-perigord-riberacois-24600",
 "dept": "24"
 },
 "200069094": {
@@ -7845,12 +7863,6 @@
 "nom": "Mane",
 "cp": "31260",
 "url": "https://app.panneaupocket.com/ville/458103683-mane-31260",
-"dept": "31"
-},
-"213103161": {
-"nom": "Marignac",
-"cp": "31440",
-"url": "https://app.panneaupocket.com/ville/1555504504-marignac-31440",
 "dept": "31"
 },
 "213103179": {
@@ -13407,6 +13419,12 @@
 "nom": "Campistrous",
 "cp": "65300",
 "url": "https://app.panneaupocket.com/ville/1707739252-campistrous-65300",
+"dept": "65"
+},
+"216501262": {
+"nom": "Campuzan",
+"cp": "65230",
+"url": "https://app.panneaupocket.com/ville/670473757-campuzan-65230",
 "dept": "65"
 },
 "216504829": {
