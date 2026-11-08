@@ -1085,6 +1085,12 @@
 "url": "https://app.panneaupocket.com/ville/1365631668-camboulazet-12160",
 "dept": "12"
 },
+"211200464": {
+"nom": "Camjac",
+"cp": "12800",
+"url": "https://app.panneaupocket.com/ville/221692697-camjac-12800",
+"dept": "12"
+},
 "211200498": {
 "nom": "Campuac",
 "cp": "12580",
@@ -2349,6 +2355,12 @@
 "nom": "Nonac",
 "cp": "16190",
 "url": "https://app.panneaupocket.com/ville/176147800-nonac-16190",
+"dept": "16"
+},
+"211602495": {
+"nom": "Oradour-Fanais",
+"cp": "16500",
+"url": "https://app.panneaupocket.com/ville/1087818035-oradour-fanais-16500",
 "dept": "16"
 },
 "211602511": {
@@ -4629,6 +4641,12 @@
 "nom": "Bassignac-Le-Bas",
 "cp": "19430",
 "url": "https://app.panneaupocket.com/ville/1672254135-bassignac-le-bas-19430",
+"dept": "19"
+},
+"211901806": {
+"nom": "Bassignac-Le-Haut",
+"cp": "19220",
+"url": "https://app.panneaupocket.com/ville/1884742043-bassignac-le-haut-19220",
 "dept": "19"
 },
 "211902903": {
@@ -14073,6 +14091,12 @@
 "nom": "Pujo",
 "cp": "65500",
 "url": "https://app.panneaupocket.com/ville/642187501-pujo-65500",
+"dept": "65"
+},
+"216503730": {
+"nom": "Puntous",
+"cp": "65230",
+"url": "https://app.panneaupocket.com/ville/2023159143-puntous-65230",
 "dept": "65"
 },
 "216503748": {
