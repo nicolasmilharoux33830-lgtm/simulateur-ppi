@@ -1199,6 +1199,12 @@
 "url": "https://app.panneaupocket.com/ville/397857556-saint-benoit-dhebertot-14130",
 "dept": "14"
 },
+"211405659": {
+"nom": "Saint-Côme-De-Fresné",
+"cp": "14960",
+"url": "https://app.panneaupocket.com/ville/911679483-saint-come-de-fresne-14960",
+"dept": "14"
+},
 "211405717": {
 "nom": "Saint-Denis-de-Mailloc",
 "cp": "14100",
@@ -2685,6 +2691,12 @@
 "nom": "Matignon",
 "cp": "22550",
 "url": "https://app.panneaupocket.com/ville/726432572-matignon-22550",
+"dept": "22"
+},
+"212201453": {
+"nom": "Mégrit",
+"cp": "22270",
+"url": "https://app.panneaupocket.com/ville/114780051-megrit-22270",
 "dept": "22"
 },
 "212201602": {
@@ -9419,6 +9431,12 @@
 "url": "https://app.panneaupocket.com/ville/720165706-panzoult-37220",
 "dept": "37"
 },
+"213701808": {
+"nom": "Parçay-Sur-Vienne",
+"cp": "37220",
+"url": "https://app.panneaupocket.com/ville/1786184725-parcay-sur-vienne-37220",
+"dept": "37"
+},
 "213701816": {
 "nom": "Paulmy",
 "cp": "37350",
@@ -12543,6 +12561,12 @@
 "nom": "Hudimesnil",
 "cp": "50510",
 "url": "https://app.panneaupocket.com/ville/453944034-hudimesnil-50510",
+"dept": "50"
+},
+"215002569": {
+"nom": "Isigny-Le-Buat",
+"cp": "50540",
+"url": "https://app.panneaupocket.com/ville/1485270712-isigny-le-buat-50540",
 "dept": "50"
 },
 "215002585": {
@@ -16791,12 +16815,6 @@
 "nom": "Saint-Vincent-Cramesnil",
 "cp": "76430",
 "url": "https://app.panneaupocket.com/ville/25027863-saint-vincent-cramesnil-76430",
-"dept": "76"
-},
-"217605526": {
-"nom": "Sainte-Adresse",
-"cp": "76310",
-"url": "https://app.panneaupocket.com/ville/1320896545-sainte-adresse-76310",
 "dept": "76"
 },
 "217605666": {
