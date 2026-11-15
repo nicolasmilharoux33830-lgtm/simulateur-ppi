@@ -863,6 +863,12 @@
 "url": "https://app.panneaupocket.com/ville/1119514162-siguer-09220",
 "dept": "09"
 },
+"210902987": {
+"nom": "Sorgeat",
+"cp": "09110",
+"url": "https://app.panneaupocket.com/ville/1364668107-sorgeat-09110",
+"dept": "09"
+},
 "210903019": {
 "nom": "Soulan",
 "cp": "09320",
@@ -2919,6 +2925,12 @@
 "nom": "Bourgneuf",
 "cp": "17220",
 "url": "https://app.panneaupocket.com/ville/734325522-bourgneuf-17220",
+"dept": "17"
+},
+"211700604": {
+"nom": "Boutenac-Touvent",
+"cp": "17120",
+"url": "https://app.panneaupocket.com/ville/498542769-boutenac-touvent-17120",
 "dept": "17"
 },
 "211700612": {
@@ -11513,6 +11525,12 @@
 "url": "https://app.panneaupocket.com/ville/642479507-cuzac-46270",
 "dept": "46"
 },
+"214600876": {
+"nom": "Dégagnac",
+"cp": "46340",
+"url": "https://app.panneaupocket.com/ville/1924602337-degagnac-46340",
+"dept": "46"
+},
 "214601007": {
 "nom": "Faycelles",
 "cp": "46100",
@@ -13197,6 +13215,12 @@
 "nom": "Artiguemy",
 "cp": "65130",
 "url": "https://app.panneaupocket.com/ville/1585375701-artiguemy-65130",
+"dept": "65"
+},
+"216500397": {
+"nom": "Aspin-Aure",
+"cp": "65240",
+"url": "https://app.panneaupocket.com/ville/1127702905-aspin-aure-65240",
 "dept": "65"
 },
 "216500405": {
@@ -16245,6 +16269,12 @@
 "nom": "Dournazac",
 "cp": "87230",
 "url": "https://app.panneaupocket.com/ville/231540117-dournazac-87230",
+"dept": "87"
+},
+"218706109": {
+"nom": "Droux",
+"cp": "87190",
+"url": "https://app.panneaupocket.com/ville/1067919266-droux-87190",
 "dept": "87"
 },
 "218706406": {
