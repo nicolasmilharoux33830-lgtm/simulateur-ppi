@@ -3437,6 +3437,12 @@
 "url": "https://app.panneaupocket.com/ville/169196717-la-jard-17460",
 "dept": "17"
 },
+"211701933": {
+"nom": "La Jarne",
+"cp": "17220",
+"url": "https://app.panneaupocket.com/ville/158831525-la-jarne-17220",
+"dept": "17"
+},
 "211701958": {
 "nom": "La Jarrie-Audouin",
 "cp": "17330",
@@ -12647,6 +12653,12 @@
 "url": "https://app.panneaupocket.com/ville/1058272323-benejacq-64800",
 "dept": "64"
 },
+"216401182": {
+"nom": "Bétracq",
+"cp": "64350",
+"url": "https://app.panneaupocket.com/ville/20422617-betracq-64350",
+"dept": "64"
+},
 "216401240": {
 "nom": "Bidarray",
 "cp": "64780",
@@ -13437,6 +13449,12 @@
 "nom": "Bours",
 "cp": "65460",
 "url": "https://app.panneaupocket.com/ville/1223581591-bours-65460",
+"dept": "65"
+},
+"216501122": {
+"nom": "Bun",
+"cp": "65400",
+"url": "https://app.panneaupocket.com/ville/2090315815-bun-65400",
 "dept": "65"
 },
 "216501148": {
