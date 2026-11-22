@@ -11,6 +11,12 @@
 "url": "https://app.panneaupocket.com/ville/2074278446-amaye-sur-orne-14210",
 "dept": "14"
 },
+"211400098": {
+"nom": "Amfreville",
+"cp": "14860",
+"url": "https://app.panneaupocket.com/ville/1742165187-amfreville-14860",
+"dept": "14"
+},
 "211400122": {
 "nom": "Angerville",
 "cp": "14430",
@@ -1523,6 +1529,12 @@
 "url": "https://app.panneaupocket.com/ville/11939109-trevieres-14710",
 "dept": "14"
 },
+"211407127": {
+"nom": "Troarn",
+"cp": "14670",
+"url": "https://app.panneaupocket.com/ville/1248305510-troarn-14670",
+"dept": "14"
+},
 "211407192": {
 "nom": "Urville",
 "cp": "14190",
@@ -1617,6 +1629,12 @@
 "nom": "Vienne-En-Bessin",
 "cp": "14400",
 "url": "https://app.panneaupocket.com/ville/1312321417-vienne-en-bessin-14400",
+"dept": "14"
+},
+"211407457": {
+"nom": "Vierville-Sur-Mer",
+"cp": "14710",
+"url": "https://app.panneaupocket.com/ville/965173224-vierville-sur-mer-14710",
 "dept": "14"
 },
 "211407473": {
@@ -2913,6 +2931,18 @@
 "nom": "Saint-Maudan",
 "cp": "22600",
 "url": "https://app.panneaupocket.com/ville/550472144-saint-maudan-22600",
+"dept": "22"
+},
+"212203152": {
+"nom": "Saint-Maudez",
+"cp": "22980",
+"url": "https://app.panneaupocket.com/ville/2139618376-saint-maudez-22980",
+"dept": "22"
+},
+"212203186": {
+"nom": "Saint-Michel-de-Plélan",
+"cp": "22980",
+"url": "https://app.panneaupocket.com/ville/1862767792-saint-michel-de-plelan-22980",
 "dept": "22"
 },
 "212203202": {
@@ -12515,6 +12545,12 @@
 "url": "https://app.panneaupocket.com/ville/1745884595-gatteville-le-phare-50760",
 "dept": "50"
 },
+"215002080": {
+"nom": "Gonfreville",
+"cp": "50190",
+"url": "https://app.panneaupocket.com/ville/1813489807-gonfreville-50190",
+"dept": "50"
+},
 "200057198": {
 "nom": "Gonneville-Le Theil",
 "cp": "50330",
@@ -13017,6 +13053,12 @@
 "nom": "Saussemesnil",
 "cp": "50700",
 "url": "https://app.panneaupocket.com/ville/584940395-saussemesnil-50700",
+"dept": "50"
+},
+"215005729": {
+"nom": "Sénoville",
+"cp": "50270",
+"url": "https://app.panneaupocket.com/ville/728231574-senoville-50270",
 "dept": "50"
 },
 "215005752": {
@@ -14241,6 +14283,12 @@
 "nom": "Béthon",
 "cp": "72610",
 "url": "https://app.panneaupocket.com/ville/1826008170-bethon-72610",
+"dept": "72"
+},
+"217200450": {
+"nom": "Brains-Sur-Gée",
+"cp": "72550",
+"url": "https://app.panneaupocket.com/ville/297265009-brains-sur-gee-72550",
 "dept": "72"
 },
 "217200567": {
