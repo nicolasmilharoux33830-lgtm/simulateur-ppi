@@ -26,6 +26,7 @@ import mairies  # noqa: E402
 import marches  # noqa: E402
 import panneaupocket  # noqa: E402
 import intramuros  # noqa: E402
+import applis  # noqa: E402
 import presse  # noqa: E402
 import scdl  # noqa: E402
 import syndicats  # noqa: E402
@@ -650,6 +651,7 @@ def main():
         im = os.path.join(os.path.dirname(os.path.abspath(__file__)), "intramuros.json")
         f_im = (ex.submit(intramuros.scan, im, d, communes, epcis, entite, stats, 3, 4, 900, priorite_sites(epcis))
                 if os.path.exists(im) and not sans_sites else None)
+        f_app = ex.submit(applis.scan, d, communes, epcis, entite, stats) if not sans_sites else None
         # Facebook : fils republiés par les mairies sur leur site, et API officielle de Meta si un jeton existe
         rs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reseaux.json")
         f_fb = ([ex.submit(facebook.flux_sites, rs, d, communes, epcis, entite, stats, 3),
@@ -667,6 +669,7 @@ def main():
         sites = (f_sites.result() if f_sites else []) + (f_pp.result() if f_pp else [])
         try:
             sites += f_im.result() if f_im else []
+            sites += f_app.result() if f_app else []
         except Exception as e:
             stats["IntraMuros"] = f"ERREUR : {str(e)[:120]}"
         for f in f_fb:

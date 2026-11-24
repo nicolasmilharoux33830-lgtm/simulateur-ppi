@@ -122,6 +122,12 @@ def main():
                                                 cwd=ICI, capture_output=True, text=True, timeout=2400).returncode == 0
     except subprocess.TimeoutExpired:
         bilan["plan_nouveaux"] = False
+    # Illiwap (stations repérées sur les sites des mairies) et Annuaire des Collectivités : 1 500 communes par nuit
+    try:
+        bilan["illiwap_annuaire"] = subprocess.run([PY, "applis.py", "--decouvrir", "1500"], cwd=ICI,
+                                                   capture_output=True, text=True, timeout=3600).returncode == 0
+    except subprocess.TimeoutExpired:
+        bilan["illiwap_annuaire"] = False
     # communes présentes sur IntraMuros (actualités et agenda publics)
     im = os.path.join(ICI, "intramuros.json")
     if dimanche or tout or not os.path.exists(im) or os.path.getsize(im) < 50:
