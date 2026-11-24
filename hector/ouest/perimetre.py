@@ -26,6 +26,7 @@ PLATEFORMES = {
 ATEXO = {
     "Mégalis Bretagne (marchés)": "https://marches.megalis.bretagne.bzh",
     "Marchés publics Pays de la Loire": "https://marchespublics.paysdelaloire.fr",
+    "Marchés publics de Loire-Atlantique": "https://marches.loire-atlantique.fr",
 }
 # Presse régionale : journal -> départements qu'il couvre (None : national ou multirégional)
 MEDIAS = {
