@@ -39,8 +39,9 @@ PAGE = re.compile(r"deliber|conseil[- _]?municipal|conseil[- _]?communautaire|co
                   r"\bpv\b|seances?\b|actes?[- _](administratif|reglementaire)|recueil[- _]des[- _]actes|"
                   r"publication[- _]des[- _]actes|registre|marches?[- _]publics?|appels?[- _]d[- _']?offres?|"
                   r"consultations?\b|avis[- _]d[- _']?appel|vie[- _]municipale|vie[- _]communautaire|"
-                  r"budget|finances|conseil\b|mairie")
+                  r"budget|finances|conseil\b|mairie|comite[- _]?syndical|conseil[- _]?syndical|bureau[- _]?syndical")
 FORT_PAGE = re.compile(r"deliber|compte[- _]?rendu|proces[- _]?verba|conseil[- _]?municipal|conseil[- _]?communautaire|"
+                       r"comite[- _]?syndical|conseil[- _]?syndical|"
                        r"\bpv\b|actes|marches?[- _]publics|appels?[- _]d")
 # Ce qui annonce un conseil à venir : là qu'on lit « choix de l'organisme bancaire », « emprunt » avant le vote
 PRIO = re.compile(r"convocation|ordres?[- _]du[- _]jour|\bodj\b|prochain[- _]conseil|prochaine[- _]seance|"
@@ -269,6 +270,21 @@ def score_page(cle):
     if SECOND.search(cle):
         return 3
     return 1
+
+
+def plan_nouveaux(sites_json, chemin, fils=32):
+    """Repère les pages utiles des seuls sites absents du plan (sites trouvés la nuit même) et les ajoute."""
+    sites = json.load(open(sites_json))
+    try:
+        res = json.load(open(chemin))
+    except (OSError, ValueError):
+        res = {}
+    reste = [(k, v) for k, v in sites.items() if k not in res]
+    with ThreadPoolExecutor(fils) as ex:
+        for p in ex.map(lambda kv: plan_site(*kv), reste):
+            res[p["siren"]] = p
+    json.dump(res, open(chemin, "w"), ensure_ascii=False, indent=0)
+    print(len(reste), "nouveaux sites ajoutés au plan,", sum(1 for k, _ in reste if res[k]["pages"]), "avec pages utiles")
 
 
 def plan(sites_json, chemin, fils=64):
@@ -695,7 +711,60 @@ def _existe(hote):
     return True                     # en cas de doute, on essaie la connexion
 
 
-def decouvrir(sites_json, fils=64):
+COEUR_SYND = re.compile(r"^(syndicat|syndic)( (intercommunal|mixte|departemental|d energie|des eaux|de communes))*"
+                        r"( (a vocation (unique|multiple)|ferme|ouvert))?( (d|de|du|des|de la|de l))? ")
+COEUR_EPCI = re.compile(r"^(communaute (de communes|d agglomeration)|cc|cdc|ca)( (d|de|du|des|de la|de l))? ")
+
+
+def _coeur(e):
+    """Nom sans la forme juridique (« SIAEP de la région de Pontivy » -> « region de pontivy »)."""
+    n = re.sub(r"[^a-z0-9 ]", " ", norm(e.get("nom") or "")).strip()
+    n = re.sub(r"\s+", " ", n)
+    n = (COEUR_SYND if e.get("type") == "Syndicat" else COEUR_EPCI).sub("", n + " ").strip()
+    return n
+
+
+def _candidats_groupement(e):
+    dept = e["dept"]
+    out = []
+    sigle = re.sub(r"[^a-z0-9]", "", norm(e.get("sigle") or ""))
+    racines = []
+    if len(sigle) >= 4:
+        racines.append(sigle)
+    racines += _formes(_coeur(e))[:3]
+    siege = _formes(e.get("commune_siege") or "")[:1]
+    tete = re.sub(r"[^a-z0-9]", "", norm((e.get("sigle") or "").split(" ")[0])) if e.get("sigle") else ""
+    if siege and len(tete) >= 3:
+        racines += [f"{tete}-{siege[0]}", f"{tete}{siege[0]}"]
+    for r in racines:
+        if e.get("type") == "Syndicat":
+            out += [f"https://www.{r}.fr/", f"https://{r}.fr/", f"https://www.{r}{dept}.fr/", f"https://www.{r}-{dept}.fr/",
+                    f"https://www.{r}.org/", f"https://www.syndicat-{r}.fr/"]
+        else:
+            out += [f"https://www.cc-{r}.fr/", f"https://www.{r}.fr/", f"https://www.cdc-{r}.fr/",
+                    f"https://www.communaute-communes-{r}.fr/", f"https://www.{r}-communaute.fr/", f"https://www.cc{r}.fr/"]
+    return list(dict.fromkeys(out))
+
+
+def _valide_groupement(b, e, cps):
+    from perimetre import DEPT_NAME
+    t = norm(texte_html(b)[:60000]).replace("-", " ").replace("'", " ")
+    if e.get("type") == "Syndicat":
+        if not re.search(r"\bsyndicat|comite syndical|conseil syndical", t):
+            return False
+    elif not re.search(r"communaute (de communes|d agglomeration)|intercommunalite|conseil communautaire", t):
+        return False
+    sigle = norm(e.get("sigle") or "").replace("-", " ")
+    coeur = _coeur(e)
+    if not ((len(sigle) >= 4 and re.search(r"\b" + re.escape(sigle) + r"\b", t)) or (len(coeur) >= 6 and coeur in t)):
+        return False
+    lieu = [norm(DEPT_NAME.get(e["dept"], "@")).replace("-", " "), f"({e['dept']})"]
+    if e.get("commune_siege"):
+        lieu.append(norm(e["commune_siege"]).replace("-", " "))
+    return any(cp in t for cp in cps) or any(x and x in t for x in lieu)
+
+
+def decouvrir(sites_json, fils=64, max_n=2500, retente_jours=30):
     """Cherche le site des communes éligibles absentes de l'annuaire (adresses usuelles), le valide
     (nom de la commune, « mairie », code postal sur la page) et l'ajoute à sites.json."""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -708,19 +777,54 @@ def decouvrir(sites_json, fils=64):
         for c in jget(f"https://geo.api.gouv.fr/departements/{d}/communes", {"fields": "code,codesPostaux"},
                       tries=10, timeout=60):
             cps[c["code"]] = c.get("codesPostaux") or []
+    _, groupements = veille.referentiel()
     sans = [(s, c) for s, c in communes.items() if (c.get("population") or 0) < 10000 and s not in sites]
-    print(len(sans), "communes éligibles sans site dans l'annuaire", flush=True)
+    sans += [(s, e) for s, e in groupements.items() if s not in sites and
+             (e.get("type") == "Syndicat" or (e.get("population") or 0) < 20000)]
+    print(len(sans), "communes, EPCI et syndicats éligibles sans site connu", flush=True)
 
-    # reprise : les communes déjà examinées (trouvées ou non) ne sont pas refaites
-    suivi = sites_json + ".decouverte"
-    faits = json.load(open(suivi)) if os.path.exists(suivi) else {}
+    # suivi persistant (dans le dépôt) : une collectivité examinée sans succès n'est retentée qu'après
+    # `retente_jours` jours ; chaque nuit traite au plus `max_n` collectivités
+    from datetime import date as _d
+    suivi = os.path.join(os.path.dirname(os.path.abspath(__file__)), "decouverte_suivi.json")
+    try:
+        faits = json.load(open(suivi))
+    except (OSError, ValueError):
+        faits = {}
     for s, info in faits.items():
-        if info:
-            sites[s] = info
-    sans = [(s, c) for s, c in sans if s not in faits]
+        if isinstance(info, dict) and info.get("site"):
+            sites[s] = {k: v for k, v in info.items() if k != "essaye_le"}
+    aujourd = _d.today()
+
+    def a_faire(s):
+        f = faits.get(s)
+        if f is None:
+            return True
+        if isinstance(f, dict) and f.get("site"):
+            return False
+        try:
+            return (aujourd - _d.fromisoformat((f or {}).get("essaye_le", "2000-01-01"))).days >= retente_jours
+        except (TypeError, ValueError, AttributeError):
+            return True
+    sans = [(s, c) for s, c in sans if a_faire(s)][:max_n]
 
     def un(sc):
         s, c = sc
+        if c.get("type") in ("Syndicat", "EPCI"):
+            try:
+                for u in _candidats_groupement(c):
+                    if not _existe(urllib.parse.urlparse(u).netloc):
+                        continue
+                    try:
+                        base, ctype, b, _ = lire(u, max_octets=600_000, timeout=8, essais=1)
+                    except Exception:
+                        continue
+                    if "html" in ctype and _valide_groupement(b, c, []):
+                        return s, {"nom": c["nom"], "type": c["type"], "dept": c["dept"], "site": base,
+                                   "decouvert": True}
+            except Exception:
+                pass
+            return s, None
         try:
             for u in _candidats(c["nom"], c["dept"]):
                 if not _existe(urllib.parse.urlparse(u).netloc):
@@ -738,7 +842,7 @@ def decouvrir(sites_json, fils=64):
     trouves = sum(1 for v in faits.values() if v)
     with ThreadPoolExecutor(fils) as ex:
         for i, (s, info) in enumerate(ex.map(un, sans)):
-            faits[s] = info
+            faits[s] = dict(info, essaye_le=aujourd.isoformat()) if info else {"essaye_le": aujourd.isoformat()}
             if info:
                 sites[s] = info
                 trouves += 1
@@ -758,3 +862,5 @@ if __name__ == "__main__":
         decouvrir(sys.argv[2])
     elif sys.argv[1] == "--plan":
         plan(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "--plan-nouveaux":
+        plan_nouveaux(sys.argv[2], sys.argv[3])

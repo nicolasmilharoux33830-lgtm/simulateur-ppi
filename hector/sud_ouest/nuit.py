@@ -65,12 +65,12 @@ def plan_sites():
     return True
 
 
-def decouverte():
+def decouverte(duree=7200):
     """Sites des communes absentes de l'annuaire : travail sur une copie, gardée si elle n'a rien perdu."""
     src, tmp = os.path.join(ICI, "sites.json"), os.path.join(ICI, "sites.travail.json")
     shutil.copy(src, tmp)
     try:
-        subprocess.run([PY, "mairies.py", "--decouvrir", tmp], cwd=ICI, timeout=7200, capture_output=True)
+        subprocess.run([PY, "mairies.py", "--decouvrir", tmp], cwd=ICI, timeout=duree, capture_output=True)
     except subprocess.TimeoutExpired:
         pass
     avant, apres = len(json.load(open(src))), len(json.load(open(tmp))) if os.path.exists(tmp) else 0
@@ -110,11 +110,18 @@ def main():
                                        50_000, 1800)
         bilan["plan"] = plan_sites()          # le plus utile d'abord : la session de nuit a un temps limité
         if jour.day <= 7 or tout:
-            bilan["sites"] = decouverte()
             bilan["reseaux"] = lance(lambda f: ["reseaux.py", f], "reseaux.json", 20_000, 3600)
         for f in os.listdir(ICI):
             if f.endswith(".part"):
                 os.remove(os.path.join(ICI, f))
+    # chaque nuit : sites des communes, EPCI et syndicats encore inconnus (2 500 au plus, échecs retentés
+    # après 30 jours), puis repérage des pages utiles des nouveaux sites
+    bilan["sites"] = decouverte(3600)
+    try:
+        bilan["plan_nouveaux"] = subprocess.run([PY, "mairies.py", "--plan-nouveaux", "sites.json", "plan_sites.json"],
+                                                cwd=ICI, capture_output=True, text=True, timeout=2400).returncode == 0
+    except subprocess.TimeoutExpired:
+        bilan["plan_nouveaux"] = False
     # communes présentes sur IntraMuros (actualités et agenda publics)
     im = os.path.join(ICI, "intramuros.json")
     if dimanche or tout or not os.path.exists(im) or os.path.getsize(im) < 50:

@@ -512,6 +512,40 @@ def collecte_ted(d, stats):
     return out
 
 
+def rattache_syndicats(sites, communes, epcis):
+    """Délibérations d'un comité syndical publiées sur le site (ou le panneau) d'une commune ou d'un EPCI :
+    un syndicat sans site publie chez sa commune siège. Le signal est dupliqué au nom du syndicat reconnu
+    (sigle ou nom cité, sinon le seul syndicat dont le siège est cette commune)."""
+    synd = {s: e for s, e in epcis.items() if e.get("type") == "Syndicat"}
+    if not synd:
+        return []
+    par_siege = {}
+    for s, e in synd.items():
+        par_siege.setdefault((e["dept"], norm(e.get("commune_siege") or "")), []).append(s)
+    out = []
+    for c in sites:
+        txt = norm(" ".join([c.get("titre") or ""] + list(c.get("extraits") or [])))
+        if not re.search(r"comite syndical|conseil syndical|\bsyndicat|\bsivom|\bsivu|\bsiaep|\bsmictom|\bsivos", txt):
+            continue
+        hote = communes.get(c.get("siren")) or epcis.get(c.get("siren")) or {}
+        trouves = []
+        for s, e in synd.items():
+            if e["dept"] != hote.get("dept"):
+                continue
+            sg = norm(e.get("sigle") or "")
+            nm = norm(e.get("nom") or "")
+            if (len(sg) >= 4 and re.search(r"\b" + re.escape(sg) + r"\b", txt)) or (len(nm) >= 12 and nm in txt):
+                trouves.append(s)
+        if not trouves and re.search(r"comite syndical|conseil syndical", txt):
+            trouves = par_siege.get((hote.get("dept"), norm(hote.get("nom") or "")), [])
+            trouves = trouves if len(trouves) == 1 else []
+        for s in trouves[:1]:
+            x = dict(c, siren=s, entite=entite(s, communes, epcis),
+                     rattachement=f"publié sur le site de {hote.get('nom', c.get('siren'))} (siège ou membre)")
+            out.append(x)
+    return out
+
+
 def fiche(siren):
     """Fiche vérifiée d'une collectivité (pour un acheteur BOAMP/TED ou un article de presse)."""
     communes, epcis = referentiel()
@@ -637,6 +671,12 @@ def main():
             stats["IntraMuros"] = f"ERREUR : {str(e)[:120]}"
         for f in f_fb:
             sites += f.result()
+        try:
+            rs = rattache_syndicats(sites, communes, epcis)
+            sites += rs
+            stats["Syndicats publiés chez leur commune"] = f"{len(rs)} délibérations de comité syndical rattachées"
+        except Exception as e:
+            stats["Syndicats publiés chez leur commune"] = f"ERREUR : {str(e)[:120]}"
     res = {"jour": d.isoformat(), "genere": datetime.now(PARIS).isoformat(timespec="minutes"),
            "fenetre_presse": f"{debut:%Y-%m-%d %H:%M} -> {fin:%Y-%m-%d %H:%M}",
            "couverture": stats, "actes": actes, "consultations": consultations, "boamp": boamp, "ted": ted,
