@@ -4,6 +4,7 @@ fichiers déposés dans le dépôt pour que la routine les télécharge.
   python3 nuit.py [--tout]
 
 Chaque nuit : marchés attribués (DECP) -> signaux_decp.json.
+Le dimanche, ou si le fichier manque : syndicats du périmètre (SIRENE) -> syndicats.json.
 Le dimanche (ou --tout) : subventions (Fonds vert) -> subventions.json ; registre des prêts, lignes de
 trésorerie et adhésions à l'Agence France Locale -> registre.json ; entités PanneauPocket ->
 panneaupocket.json ; plan des sites des mairies -> plan_sites.json.
@@ -96,6 +97,10 @@ def main():
         manque = True
     dimanche = jour.weekday() == 6 or manque
     bilan = {"jour": jour.isoformat()}
+    synd = os.path.join(ICI, "syndicats.json")
+    if dimanche or tout or not os.path.exists(synd) or os.path.getsize(synd) < 1000:
+        # syndicats (SIVU, SIVOM, syndicats mixtes) d'abord : les collectes suivantes les incluent
+        bilan["syndicats"] = lance(lambda f: ["syndicats.py", f], "syndicats.json", 20_000, 1800)
     bilan["decp"] = lance(lambda f: ["decp.py", f, "365"], "signaux_decp.json", 50_000, 1800)
     if dimanche or tout:
         bilan["subventions"] = lance(lambda f: ["subventions.py", f], "subventions.json", 20_000, 1200)

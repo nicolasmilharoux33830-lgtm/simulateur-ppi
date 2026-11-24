@@ -176,7 +176,7 @@ def apprend(dossier):
     insee2siren = {c["code_insee"]: s for s, c in communes.items()}
     w["siren"] = np.where(w["type"] == "Commune", w["code"].map(insee2siren), w["code"])
     # unités : communes et EPCI de Bretagne (Mégalis y couvre 766 communes sur 1 202)
-    unites = {s for s, c in communes.items() if c["dept"] in bretagne} | {s for s, x in epcis.items() if x["dept"] in bretagne}
+    unites = {s for s, c in communes.items() if c["dept"] in bretagne} | {s for s, x in epcis.items() if x["dept"] in bretagne and x.get("type") == "EPCI"}
     # événements : délibérations d'emprunt (hors garanties et lignes de trésorerie)
     actes = json.load(open(os.path.join(dossier, "actes_73.json")))
     ev = set()

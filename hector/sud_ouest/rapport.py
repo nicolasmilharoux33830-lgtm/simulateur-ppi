@@ -30,7 +30,7 @@ import sys
 import unicodedata
 import urllib.parse
 import urllib.request
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 PARIS = ZoneInfo("Europe/Paris")
@@ -232,8 +232,12 @@ def hab(n):
 def entete(e, siren):
     dep = e.get("departement") or ""
     code = CODES.get(dep) or e.get("dept") or ""
+    sir = e.get("siren") or siren
+    sir = f" · SIREN {sir}" if sir else ""
+    if e.get("type") == "Syndicat":
+        return f"{(e.get('nom') or siren).upper()} ({code}) · {(e.get('nature') or 'syndicat').lower()}{sir}"
     typ = "EPCI" if e.get("type") == "EPCI" else "commune"
-    return f"{(e.get('nom') or siren).upper()} ({code}) · {typ} de {hab(e.get('population'))} hab."
+    return f"{(e.get('nom') or siren).upper()} ({code}) · {typ} de {hab(e.get('population'))} hab.{sir}"
 
 
 def contact(e):
@@ -330,6 +334,39 @@ def message(q, idx, jours, calc, surs=False):
     if not n and not surs:
         L += ["Personne à appeler ce matin.", ""]
     return "\n".join(L)
+
+
+def bloc_syndicats(decp, jour_ref, exclus=(), n=6, seuil=300_000, recent=14):
+    """Syndicats aux gros chantiers attribués (DECP) : pas encore d'emprunt écrit, mais un besoin probable.
+    Un syndicat n'apparaît que si un marché lui a été attribué dans les `recent` derniers jours."""
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    try:
+        import decp as mod_decp
+        import syndicats
+        synd = syndicats.charge(construire_si_vide=False)
+    except Exception:
+        return []
+    out = []
+    for siren, e in ((decp or {}).get("collectivites") or {}).items():
+        if siren not in synd or siren in exclus:
+            continue
+        total, phrase = mod_decp.resume(e, jour_ref)
+        tr = [t for t in e.get("travaux") or [] if not t.get("entretien") and t.get("date")]
+        if total < seuil or not tr or max(t["date"] for t in tr) < (jour_ref - timedelta(days=recent)).isoformat():
+            continue
+        out.append((total, siren, synd[siren], phrase))
+    out.sort(key=lambda x: -x[0])
+    if not out:
+        return []
+    noms = {v: k for k, v in CODES.items()}
+    L = [f"🏗️ SYNDICATS · GROS TRAVAUX ATTRIBUÉS, EMPRUNT PROBABLE ({min(n, len(out))}) · rien d'écrit sur l'emprunt"]
+    for i, (total, siren, s, phrase) in enumerate(out[:n], 1):
+        e = dict(s, siren=siren, departement=noms.get(s.get("dept"), ""))
+        L.append(f"{i}. {entete(e, siren)}")
+        L.append(f"   {phrase}")
+    L.append("")
+    return L
 
 
 def une_fois(siren, ecart, debut, duree):
@@ -788,7 +825,13 @@ def main():
     mini = int(opts.get("--calcules", opts.get("--top", 5)))
     calc = [] if opts["--surs"] else liste_calculee(max(objectif - len(certains), mini),
                                                    {o["siren"] for o in q.get("opportunites", [])}, jour_ref)
-    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + bloc_lecture(couv, jours, "--webhook" in opts)
+    decp_du_jour = None
+    if opts.get("--decp"):
+        try:
+            decp_du_jour = json.load(open(opts["--decp"]))
+        except Exception as e:
+            print("signaux DECP illisibles :", str(e)[:120])
+    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + "".join(x + "\n" for x in bloc_syndicats(decp_du_jour, jour_ref, certains | appeles | deja_surs)) + bloc_lecture(couv, jours, "--webhook" in opts)
     if n_appeles:
         msg += f"\n({n_appeles} collectivité{'s' if n_appeles > 1 else ''} déjà appelée{'s' if n_appeles > 1 else ''} non reproposée{'s' if n_appeles > 1 else ''}.)"
     if "--sortie" in opts:

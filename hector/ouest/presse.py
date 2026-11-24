@@ -178,7 +178,7 @@ def rattacher(a, idx, homo, communes, epcis):
                 retenus.append((s, "adresse de l'article (département)"))
             elif c["dept"] in deps:
                 retenus.append((s, "département cité ou recherché"))
-            elif c["type"] == "EPCI" or homo.get(k, 1) <= 1:
+            elif c["type"] in ("EPCI", "Syndicat") or homo.get(k, 1) <= 1:
                 if d_media is None or c["dept"] in d_media:
                     retenus.append((s, "nom unique en France"))
                 else:

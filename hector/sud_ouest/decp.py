@@ -101,6 +101,8 @@ def resume(e, jour, jours=180):
 def eligibles_locaux():
     """Communes < 10 000 hab. et EPCI < 20 000 hab. du référentiel (copie locale, sans appel réseau)."""
     r = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "referentiel.json"), encoding="utf-8"))
+    import syndicats
+    syndicats.ajoute(r["epcis"])   # syndicats : sans population, donc tous retenus
     el = {s: c for s, c in r["communes"].items() if (c.get("population") or 0) < 10000}
     el.update({s: e for s, e in r["epcis"].items() if (e.get("population") or 0) < 20000})
     return el

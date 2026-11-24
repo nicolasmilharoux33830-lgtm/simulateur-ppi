@@ -26,6 +26,8 @@ import mairies  # noqa: E402
 import marches  # noqa: E402
 import panneaupocket  # noqa: E402
 import presse  # noqa: E402
+import scdl  # noqa: E402
+import syndicats  # noqa: E402
 
 PARIS = ZoneInfo("Europe/Paris")
 BOAMP = "https://boamp-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/boamp/exports/json"
@@ -61,7 +63,8 @@ def tokens(s):
 
 # ---------- référentiel communes / EPCI du périmètre ----------
 def referentiel():
-    """Communes et EPCI des 20 départements (geo.api.gouv.fr) ; copie de secours referentiel.json si l'API coupe."""
+    """Communes et EPCI des 20 départements (geo.api.gouv.fr) ; copie de secours referentiel.json si l'API coupe.
+    Les syndicats (SIVU, SIVOM, syndicats mixtes, syndicats.py) rejoignent le dictionnaire des groupements."""
     secours = os.path.join(os.path.dirname(os.path.abspath(__file__)), "referentiel.json")
     try:
         communes, epcis = {}, {}
@@ -79,17 +82,19 @@ def referentiel():
             ds = [x for x in (e.get("codesDepartements") or []) if x in DEPT2REG]
             if ds:
                 epcis[e["code"]] = {"type": "EPCI", "nom": e["nom"], "population": e.get("population"), "dept": ds[0]}
-        return communes, epcis
+        return communes, syndicats.ajoute(epcis)
     except Exception:
         r = json.load(open(secours, encoding="utf-8"))
-        return r["communes"], r["epcis"]
+        return r["communes"], syndicats.ajoute(r["epcis"])
 
 
 def entite(siren, communes, epcis):
     e = communes.get(siren) or epcis.get(siren)
     if not e:
         return {"siren": siren, "eligible": False,
-                "motif": "Hors cible : ni commune ni EPCI à fiscalité propre des 20 départements"}
+                "motif": "Hors cible : ni commune, ni EPCI à fiscalité propre, ni syndicat des 20 départements"}
+    if e["type"] == "Syndicat":      # syndicats : tous éligibles, quelle que soit leur taille
+        return dict(e, siren=siren, region=DEPT2REG[e["dept"]], departement=DEPT_NAME[e["dept"]], eligible=True)
     seuil = 10000 if e["type"] == "Commune" else 20000
     pop = e.get("population") or 0
     out = dict(e, siren=siren, region=DEPT2REG[e["dept"]], departement=DEPT_NAME[e["dept"]],
@@ -553,8 +558,9 @@ def priorite_sites(epcis):
                     out[r["siren"]] = max(float(r.get("proba") or 0), float(r.get("proba_annee_suivante") or 0))
                 except ValueError:
                     pass
-    for s in epcis:
-        out[s] = out.get(s, 0) + 1.0
+    for s, e in epcis.items():
+        if e.get("type") == "EPCI":
+            out[s] = out.get(s, 0) + 1.0
     return out
 
 
@@ -582,7 +588,9 @@ def main():
     os.makedirs(os.path.join(outdir, "pdf"), exist_ok=True)
     stats = {}
     communes, epcis = referentiel()
-    stats["Référentiel"] = f"{len(communes)} communes et {len(epcis)} EPCI dans les 20 départements (INSEE)"
+    n_synd = sum(1 for e in epcis.values() if e.get("type") == "Syndicat")
+    stats["Référentiel"] = (f"{len(communes)} communes, {len(epcis) - n_synd} EPCI et {n_synd} syndicats "
+                            f"dans les 20 départements (INSEE, SIRENE)")
     debut, fin = presse.fenetre(d, PARIS)
     plan = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plan_sites.json")
     with ThreadPoolExecutor(12) as ex:
@@ -593,6 +601,7 @@ def main():
         f_ted = ex.submit(collecte_ted, d, stats)
         f_presse = ex.submit(presse.collecte, debut, fin, communes, epcis, entite, stats)
         f_marches = ex.submit(marches.collecte, d, communes, epcis, entite, stats)
+        f_scdl = ex.submit(scdl.collecte, d, outdir, communes, epcis, entite, stats)
         mairies.DOSSIER_OCR = os.path.join(outdir, "scans")
         os.makedirs(mairies.DOSSIER_OCR, exist_ok=True)
         f_sites = (ex.submit(mairies.scan, plan, d, communes, epcis, entite, stats, priorite=priorite_sites(epcis))
@@ -607,6 +616,10 @@ def main():
                  ex.submit(facebook.api_meta, rs, d, communes, epcis, entite, stats, 3)]
                 if os.path.exists(rs) and not sans_sites else [])
         actes, boamp, ted, travaux = f_actes.result(), f_boamp.result(), f_ted.result(), f_trav.result()
+        try:
+            actes += f_scdl.result()
+        except Exception as e:
+            stats["Open data délibérations (data.gouv.fr)"] = f"ERREUR : {str(e)[:120]}"
         echeances, recents = f_ech.result()
         (articles, orphelins), consultations = f_presse.result(), f_marches.result()
         sites = (f_sites.result() if f_sites else []) + (f_pp.result() if f_pp else [])

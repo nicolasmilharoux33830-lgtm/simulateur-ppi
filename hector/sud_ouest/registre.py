@@ -83,6 +83,8 @@ def emprunts_xml(xml):
 
 def construire(sortie, mois=14):
     r = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "referentiel.json"), encoding="utf-8"))
+    import syndicats
+    syndicats.ajoute(r["epcis"])   # syndicats : sans population, donc tous retenus
     eligibles = {s: c for s, c in r["communes"].items() if (c.get("population") or 0) < 10000}
     eligibles.update({s: e for s, e in r["epcis"].items() if (e.get("population") or 0) < 20000})
     fin = date.today()

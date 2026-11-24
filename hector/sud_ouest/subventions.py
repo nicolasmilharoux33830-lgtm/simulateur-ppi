@@ -88,6 +88,8 @@ def region_pdl(eligibles, depuis):
 def main():
     sortie = sys.argv[1]
     r = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "referentiel.json"), encoding="utf-8"))
+    import syndicats
+    syndicats.ajoute(r["epcis"])   # syndicats : sans population, donc tous retenus
     eligibles = {s for s, c in r["communes"].items() if (c.get("population") or 0) < 10000}
     eligibles |= {s for s, e in r["epcis"].items() if (e.get("population") or 0) < 20000}
     an = date.today().year
