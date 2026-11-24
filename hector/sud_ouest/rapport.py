@@ -895,7 +895,7 @@ def main():
             decp_du_jour = json.load(open(opts["--decp"]))
         except Exception as e:
             print("signaux DECP illisibles :", str(e)[:120])
-    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + "".join(x + "\n" for x in bloc_syndicats(decp_du_jour, jour_ref, certains | appeles | deja_surs)) + "".join(x + "\n" for x in bloc_thematiques(cfs, decp_du_jour, jour_ref, certains | appeles | deja_surs)) + bloc_lecture(couv, jours, "--webhook" in opts)
+    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + "".join(x + "\n" for x in bloc_syndicats(decp_du_jour, jour_ref, certains | appeles | deja_surs)) + bloc_lecture(couv, jours, "--webhook" in opts)
     if n_appeles:
         msg += f"\n({n_appeles} collectivité{'s' if n_appeles > 1 else ''} déjà appelée{'s' if n_appeles > 1 else ''} non reproposée{'s' if n_appeles > 1 else ''}.)"
     if "--sortie" in opts:

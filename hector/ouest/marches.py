@@ -173,6 +173,10 @@ def index_acheteurs(communes, epcis):
     for s, e in epcis.items():
         k = _cle(e["nom"])
         idx.setdefault(k, []).append((s, e["dept"]))
+        if e.get("type") in ("CCAS", "CIAS") and e.get("commune_siege"):
+            v = _cle(e["commune_siege"])
+            for pre in ("ccas ", "ccas de ", "ccas d ", "ccas du ", "cias ", "cias de ", "cias du "):
+                idx.setdefault(pre + v, []).append((s, e["dept"]))
         court = re.sub(r"^(cc|ca|cu|communaute (de communes|d agglomeration|urbaine)) (du |de la |de l |des |de |d )?",
                        "", k)
         idx.setdefault("epci " + court, []).append((s, e["dept"]))
@@ -184,6 +188,7 @@ def rattacher(acheteur, deps, idx):
     a = _cle(re.sub(r"\(.*?\)", " ", acheteur or ""))
     cp = re.search(r"\((\d{2})\d{3}", acheteur or "")
     deps = set(deps or []) | ({cp.group(1)} if cp else set())
+    a = re.sub(r"^centre (inter)?communal d action sociale", lambda m: "cias" if m.group(1) else "ccas", a)
     a = re.sub(r"^(mairie|ville|commune) (de la |de l |des |du |de |d )?", "", a)
     a = re.sub(r"^(la |le |les |l )", "", a)
     if re.search(r"\b(agglo|agglomeration|communaute|metropole|intercom)\b", a) and not a.startswith(("cc ", "ca ", "communaute ")):

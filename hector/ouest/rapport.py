@@ -1044,7 +1044,7 @@ def main():
     mini = int(opts.get("--calcules", opts.get("--top", 5)))
     calc = [] if opts["--surs"] else liste_calculee(max(objectif - len(certains), mini),
                                                    {o["siren"] for o in q.get("opportunites", [])}, jour_ref)
-    msg = message(q, idx, jours, calc, opts["--surs"], ap) + "\n" + "".join(x + "\n" for x in bloc_syndicats(extra.get("--decp"), jour_ref, certains | appeles | deja_surs)) + "".join(x + "\n" for x in bloc_thematiques(cfs, extra.get("--decp"), jour_ref, certains | appeles | deja_surs)) + bloc_lecture(couv, jours, "--webhook" in opts)
+    msg = message(q, idx, jours, calc, opts["--surs"], ap) + "\n" + "".join(x + "\n" for x in bloc_syndicats(extra.get("--decp"), jour_ref, certains | appeles | deja_surs)) + bloc_lecture(couv, jours, "--webhook" in opts)
     if n_appeles:
         msg += f"\n({n_appeles} collectivité{'s' if n_appeles > 1 else ''} déjà appelée{'s' if n_appeles > 1 else ''} non reproposée{'s' if n_appeles > 1 else ''}.)"
     if "--sortie" in opts:

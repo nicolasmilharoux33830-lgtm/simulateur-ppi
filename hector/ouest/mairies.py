@@ -713,6 +713,8 @@ def _existe(hote):
 
 COEUR_SYND = re.compile(r"^(syndicat|syndic)( (intercommunal|mixte|departemental|d energie|des eaux|de communes))*"
                         r"( (a vocation (unique|multiple)|ferme|ouvert))?( (d|de|du|des|de la|de l))? ")
+COEUR_EHPAD = re.compile(r"^(ehpad|e h p a d|maison de retraite|residence|etablissement d hebergement[a-z ]*)"
+                         r"( (publique?|autonome|intercommunale?|departementale?))*( (d|de|du|des|de la|de l))? ")
 COEUR_EPCI = re.compile(r"^(communaute (de communes|d agglomeration)|cc|cdc|ca)( (d|de|du|des|de la|de l))? ")
 
 
@@ -720,7 +722,8 @@ def _coeur(e):
     """Nom sans la forme juridique (« SIAEP de la région de Pontivy » -> « region de pontivy »)."""
     n = re.sub(r"[^a-z0-9 ]", " ", norm(e.get("nom") or "")).strip()
     n = re.sub(r"\s+", " ", n)
-    n = (COEUR_SYND if e.get("type") == "Syndicat" else COEUR_EPCI).sub("", n + " ").strip()
+    motif = {"Syndicat": COEUR_SYND, "EHPAD public": COEUR_EHPAD}.get(e.get("type"), COEUR_EPCI)
+    n = motif.sub("", n + " ").strip()
     return n
 
 
@@ -740,6 +743,9 @@ def _candidats_groupement(e):
         if e.get("type") == "Syndicat":
             out += [f"https://www.{r}.fr/", f"https://{r}.fr/", f"https://www.{r}{dept}.fr/", f"https://www.{r}-{dept}.fr/",
                     f"https://www.{r}.org/", f"https://www.syndicat-{r}.fr/"]
+        elif e.get("type") == "EHPAD public":
+            out += [f"https://www.ehpad-{r}.fr/", f"https://www.{r}.fr/", f"https://www.ehpad{r}.fr/",
+                    f"https://www.ehpad-{r}.com/", f"https://www.residence-{r}.fr/"]
         else:
             out += [f"https://www.cc-{r}.fr/", f"https://www.{r}.fr/", f"https://www.cdc-{r}.fr/",
                     f"https://www.communaute-communes-{r}.fr/", f"https://www.{r}-communaute.fr/", f"https://www.cc{r}.fr/"]
@@ -751,6 +757,9 @@ def _valide_groupement(b, e, cps):
     t = norm(texte_html(b)[:60000]).replace("-", " ").replace("'", " ")
     if e.get("type") == "Syndicat":
         if not re.search(r"\bsyndicat|comite syndical|conseil syndical", t):
+            return False
+    elif e.get("type") == "EHPAD public":
+        if not re.search(r"\behpad\b|maison de retraite|residence|conseil d administration", t):
             return False
     elif not re.search(r"communaute (de communes|d agglomeration)|intercommunalite|conseil communautaire", t):
         return False
@@ -780,7 +789,8 @@ def decouvrir(sites_json, fils=64, max_n=2500, retente_jours=30):
     _, groupements = veille.referentiel()
     sans = [(s, c) for s, c in communes.items() if (c.get("population") or 0) < 10000 and s not in sites]
     sans += [(s, e) for s, e in groupements.items() if s not in sites and
-             (e.get("type") == "Syndicat" or (e.get("population") or 0) < 20000)]
+             (e.get("type") in ("Syndicat", "EHPAD public") or
+              (e.get("type") == "EPCI" and (e.get("population") or 0) < 20000))]
     print(len(sans), "communes, EPCI et syndicats éligibles sans site connu", flush=True)
 
     # suivi persistant (dans le dépôt) : une collectivité examinée sans succès n'est retentée qu'après
@@ -810,7 +820,7 @@ def decouvrir(sites_json, fils=64, max_n=2500, retente_jours=30):
 
     def un(sc):
         s, c = sc
-        if c.get("type") in ("Syndicat", "EPCI"):
+        if c.get("type") in ("Syndicat", "EPCI", "EHPAD public"):
             try:
                 for u in _candidats_groupement(c):
                     if not _existe(urllib.parse.urlparse(u).netloc):
