@@ -42,6 +42,13 @@ KW_ACTE_EXCLU = re.compile(r"virement|fongibilit|subvention|pret d.honneur|pret 
 KW_ROB = re.compile(r"\b(orientations? budgetaires?|debat d.orientation|rapport d.orientation|rob|dob)\b")
 TEXTE_INTEGRAL = ["emprunt", "emprunts", "prêt", "prêts", "bancaire", "banque"]
 AGE_MAX = 45
+# Signaux thématiques (pas des emprunts écrits) : garanties d'emprunt aux bailleurs sociaux, maisons de santé,
+# logements communaux, portage foncier des EPF. Ils vont dans « themes », jamais dans les A/B.
+KW_THEME = re.compile(r"garantie d.emprunt|logements? sociaux|logement social|\bhlm\b|office public de l.habitat|"
+                      r"bailleur|habitat 2[0-9]|maison de sante|pole de sante|centre de sante|\bmsp\b|"
+                      r"cabinet medical|logements? communa|logements? locatifs? communa|etablissement public foncier|"
+                      r"\bepf\b|epfna|epfl|portage foncier|rachat .{0,40}(epf|etablissement public foncier)")
+THEMES = []
 MAX_FICHES = 80
 KW_BOAMP = re.compile(r"\b(emprunt|pret|prets|financement bancaire|bancaire|credit|ligne de tresorerie|"
                       r"concours financier|refinanc)")
@@ -95,7 +102,7 @@ def entite(siren, communes, epcis):
     if not e:
         return {"siren": siren, "eligible": False,
                 "motif": "Hors cible : ni commune, ni EPCI à fiscalité propre, ni syndicat des 20 départements"}
-    if e["type"] == "Syndicat":      # syndicats : tous éligibles, quelle que soit leur taille
+    if e["type"] in ("Syndicat", "CCAS", "CIAS", "EHPAD public"):   # tous éligibles, quelle que soit leur taille
         return dict(e, siren=siren, region=DEPT2REG[e["dept"]], departement=DEPT_NAME[e["dept"]], eligible=True)
     seuil = 10000 if e["type"] == "Commune" else 20000
     pop = e.get("population") or 0
@@ -284,6 +291,10 @@ def collecte_actes(d, outdir, communes, epcis, stats):
                 em, kind = None, "acte (mot trouvé dans le texte)"
                 n_txt += 1
             else:
+                if KW_THEME.search(o):
+                    THEMES.append({"source": nom, "siren": a["siren"], "objet": a.get("objet"),
+                                   "date_acte": (a.get("date_acte") or "")[:10], "lien": a["url"],
+                                   "entite": entite(a["siren"], communes, epcis)})
                 continue
             ent = entite(a["siren"], communes, epcis)
             c = {"source": nom, "type_signal": kind, "siren": a["siren"], "objet": a.get("objet"),
@@ -544,6 +555,21 @@ def rattache_syndicats(sites, communes, epcis):
             x = dict(c, siren=s, entite=entite(s, communes, epcis),
                      rattachement=f"publié sur le site de {hote.get('nom', c.get('siren'))} (siège ou membre)")
             out.append(x)
+    # CCAS (et son budget annexe EHPAD) : délibérations du conseil d'administration publiées chez la commune
+    ccas = {}
+    for s, e in epcis.items():
+        if e.get("type") == "CCAS":
+            ccas.setdefault((e["dept"], norm(e.get("commune_siege") or "")), []).append(s)
+    for c in sites:
+        txt = norm(" ".join([c.get("titre") or ""] + list(c.get("extraits") or [])))
+        if not re.search(r"\bccas\b|centre communal d.action sociale|\behpad\b|residence autonomie", txt):
+            continue
+        hote = communes.get(c.get("siren")) or {}
+        cands = ccas.get((hote.get("dept"), norm(hote.get("nom") or "")), [])
+        for s in cands[:1]:
+            x = dict(c, siren=s, entite=entite(s, communes, epcis),
+                     rattachement=f"publié sur le site de {hote.get('nom', c.get('siren'))} (siège ou membre)")
+            out.append(x)
     return out
 
 
@@ -684,7 +710,7 @@ def main():
            "fenetre_presse": f"{debut:%Y-%m-%d %H:%M} -> {fin:%Y-%m-%d %H:%M}",
            "couverture": stats, "actes": actes, "consultations": consultations, "boamp": boamp, "ted": ted,
            "presse": articles, "presse_sans_collectivite": orphelins, "sites": sites, "travaux": travaux,
-           "echeances": echeances, "emprunts_recents": recents,
+           "echeances": echeances, "emprunts_recents": recents, "themes": THEMES,
            "non_couvert": f"{SANS_REGISTRE} : pas de plateforme publique des actes connue ; "
                           "couverts par les sites des mairies, les appels d'offres, la presse locale et le modèle.",
            "note": "Fiches (contacts, comptes, probabilité) dans 'fiches' ; pour une autre collectivité : "

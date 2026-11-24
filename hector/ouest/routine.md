@@ -42,7 +42,7 @@ Résultat : /tmp/hv/J/candidats.json, avec :
 - les PDF des actes, dans /tmp/hv/J/pdf/.
 
 2. QUALIFICATION
-Ne retiens que les collectivités dont entite.eligible vaut true. Un syndicat du périmètre est toujours éligible. La source « Open data délibérations (data.gouv.fr, …) » se traite comme un acte : lis le PDF de pdf_locaux ou le lien.
+Ne retiens que les collectivités dont entite.eligible vaut true. CCAS, CIAS et EHPAD publics (entite.type « CCAS », « CIAS » ou « EHPAD public », budgets annexes EHPAD compris) : Nicolas ne veut QUE des A purs (consultation des banques ou choix de la banque écrit, conseil d'administration à venir qui prévoit un emprunt ou une ligne de trésorerie, consultation bancaire ouverte) ; pour eux, tout ce qui n'est pas un A sûr est C. Une délibération du conseil d'administration du CCAS publiée sur le site de la commune porte « rattachement » : vérifie que c'est bien le CCAS. Un syndicat du périmètre est toujours éligible. La source « Open data délibérations (data.gouv.fr, …) » se traite comme un acte : lis le PDF de pdf_locaux ou le lien.
 
 Un candidat qui porte « motif_ecart » est déjà écarté par le script (budget primitif, compte administratif, aucun emprunt nouveau, emprunt encaissé, décision de plus de 45 jours). Ne le reprends pas.
 

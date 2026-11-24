@@ -40,3 +40,6 @@ MEDIAS = {
 }
 MEDIAS_PAR_DEPT = ["sudouest.fr", "ladepeche.fr"]   # journaux interrogés département par département
 SANS_REGISTRE = "Nouvelle-Aquitaine et Midi-Pyrénées"  # territoires sans registre public des actes
+
+# CCAS, CIAS et EHPAD publics autonomes (A écrits seulement) : activés zone par zone
+ETABLISSEMENTS_SOCIAUX = False

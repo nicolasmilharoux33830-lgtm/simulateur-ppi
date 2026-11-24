@@ -29,7 +29,7 @@ MAX_OCTETS = 25_000_000
 DUREE_MAX = 420
 KW = re.compile(r"\b(emprunt|emprunts|pret|prets|tresorerie|refinanc|renegoci|reamenag|banque|bancaire|bancaires|"
                 r"etablissements? financiers?|organismes? preteurs?|financement bancaire)\b")
-KW_EXCLU = re.compile(r"virement|fongibilit|pret d.honneur|pret de (materiel|salle|vehicule|local)|garantie d.emprunt|"
+KW_EXCLU = re.compile(r"virement|fongibilit|pret d.honneur|pret de (materiel|salle|vehicule|local)|"
                       r"mise a disposition|circulation|permis de construire")
 
 

@@ -26,6 +26,13 @@ NOM_SYNDICAT = re.compile(r"\b(syndicat|syndic|sivom|sivu|sivos|siaep|siep|sia|s
                           r"sirp|sie|sde|sdeg|syded|sydec|sm|smo|smf|pole|petr|regie)\b")
 
 
+# CCAS, CIAS, EHPAD publics autonomes (catégories 7361, 7367 ; EHPAD parmi 7364 et 7379, reconnus par leur nom)
+SOCIAUX = {"7361": ("CCAS", "Centre communal d'action sociale"), "7367": ("CIAS", "Centre intercommunal d'action sociale"),
+           "7364": ("EHPAD public", "EHPAD public"), "7379": ("EHPAD public", "EHPAD public")}
+NOM_EHPAD = re.compile(r"\b(ehpad|maison de retraite|residence|hebergement|personnes agees|foyer logement|"
+                       r"logement foyer|accueil des personnes)\b")
+
+
 def nom_de(r):
     nom = r.get("nom_raison_sociale") or r.get("nom_complet") or ""
     sigle = (r.get("sigle") or "").strip()
@@ -35,8 +42,15 @@ def nom_de(r):
 def construire(pause=0.2, limite_s=1500):
     """{siren: fiche} de tous les syndicats actifs du périmètre (siège dans un des départements)."""
     out, t0, erreurs = {}, time.time(), 0
+    try:
+        from perimetre import ETABLISSEMENTS_SOCIAUX
+    except ImportError:
+        ETABLISSEMENTS_SOCIAUX = False
+    natures = dict(NATURES)
+    if ETABLISSEMENTS_SOCIAUX:
+        natures.update({k: v[1] for k, v in SOCIAUX.items()})
     for dept in sorted(DEPT2REG):
-        for code, libelle in NATURES.items():
+        for code, libelle in natures.items():
             page = 1
             while time.time() - t0 < limite_s:
                 try:
@@ -49,14 +63,17 @@ def construire(pause=0.2, limite_s=1500):
                     siren = r.get("siren")
                     nat = str(r.get("nature_juridique") or code)
                     nom, sigle = nom_de(r)
-                    if not siren or not nom or nat not in NATURES:
+                    if not siren or not nom or nat not in natures:
                         continue
                     if nat in ("7345", "7353") and not NOM_SYNDICAT.search(norm(f"{nom} {sigle}")):
                         continue
+                    if nat in ("7364", "7379") and not NOM_EHPAD.search(norm(f"{nom} {sigle}")):
+                        continue
+                    typ = SOCIAUX[nat][0] if nat in SOCIAUX else "Syndicat"
                     siege = r.get("siege") or {}
                     dep = siege.get("departement") or dept
-                    out[siren] = {"type": "Syndicat", "nom": nom, "sigle": sigle or None,
-                                  "nature": NATURES[nat], "population": None,
+                    out[siren] = {"type": typ, "nom": nom, "sigle": sigle or None,
+                                  "nature": natures[nat], "population": None,
                                   "dept": dep if dep in DEPT2REG else dept,
                                   "commune_siege": siege.get("libelle_commune")}
                 if page >= int(d.get("total_pages") or 1) or not d.get("results"):

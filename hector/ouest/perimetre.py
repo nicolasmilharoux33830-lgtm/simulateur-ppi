@@ -47,3 +47,6 @@ MEDIAS = {
 }
 MEDIAS_PAR_DEPT = ["ouest-france.fr"]           # journaux interrogés département par département
 SANS_REGISTRE = "Pays de la Loire et Normandie"  # territoires sans registre public des actes
+
+# CCAS, CIAS et EHPAD publics autonomes (A écrits seulement) : activés zone par zone
+ETABLISSEMENTS_SOCIAUX = True

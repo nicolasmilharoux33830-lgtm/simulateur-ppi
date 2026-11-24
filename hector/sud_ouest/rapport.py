@@ -234,8 +234,8 @@ def entete(e, siren):
     code = CODES.get(dep) or e.get("dept") or ""
     sir = e.get("siren") or siren
     sir = f" · SIREN {sir}" if sir else ""
-    if e.get("type") == "Syndicat":
-        return f"{(e.get('nom') or siren).upper()} ({code}) · {(e.get('nature') or 'syndicat').lower()}{sir}"
+    if e.get("type") in ("Syndicat", "CCAS", "CIAS", "EHPAD public"):
+        return f"{(e.get('nom') or siren).upper()} ({code}) · {(e.get('nature') or e.get('type')).lower()}{sir}"
     typ = "EPCI" if e.get("type") == "EPCI" else "commune"
     return f"{(e.get('nom') or siren).upper()} ({code}) · {typ} de {hab(e.get('population'))} hab.{sir}"
 
@@ -344,7 +344,7 @@ def bloc_syndicats(decp, jour_ref, exclus=(), n=6, seuil=300_000, recent=14):
     try:
         import decp as mod_decp
         import syndicats
-        synd = syndicats.charge(construire_si_vide=False)
+        synd = {k: v for k, v in syndicats.charge(construire_si_vide=False).items() if v.get("type") == "Syndicat"}
     except Exception:
         return []
     out = []
@@ -366,6 +366,70 @@ def bloc_syndicats(decp, jour_ref, exclus=(), n=6, seuil=300_000, recent=14):
         L.append(f"{i}. {entete(e, siren)}")
         L.append(f"   {phrase}")
     L.append("")
+    return L
+
+
+THEMES_RE = [
+    ("🏠 BAILLEURS SOCIAUX · garanties d'emprunt et projets de logement social",
+     r"garantie d.emprunt|logements? sociaux|logement social|\bhlm\b|office public de l.habitat|bailleur|habitat 2[0-9]"),
+    ("🏥 MAISONS DE SANTÉ · projets et travaux (cofinancement ARS, DETR, Région)",
+     r"maison de sante|pole de sante|centre de sante|\bmsp\b|cabinet medical|maison medicale"),
+    ("🧱 EPF · portage foncier et rachat par la collectivité",
+     r"etablissement public foncier|\bepf\b|epfna|epfl|portage foncier"),
+    ("🏡 LOGEMENTS COMMUNAUX · création ou rénovation",
+     r"logements? communa|logements? locatifs? communa|rehabilitation .{0,30}logements?|renovation .{0,30}logements?"),
+]
+
+
+def bloc_thematiques(cfs, decp, jour_ref, exclus=(), n=5):
+    """Signaux thématiques de la veille (actes, délibérations open data, avis BOAMP de travaux, marchés attribués
+    DECP) : besoins de financement probables, jamais des A ou B écrits."""
+    vus, par = set(), {t: [] for t, _ in THEMES_RE}
+    items = []
+    for f in cfs:
+        if f.endswith("qualifies.json"):
+            continue
+        try:
+            c = json.load(open(f))
+        except Exception:
+            continue
+        for a in c.get("themes", []) + c.get("actes", []):
+            items.append((a.get("siren"), a.get("entite") or {}, a.get("objet") or "", a.get("date_acte"),
+                          a.get("lien"), a.get("source") or ""))
+        for siren, lst in (c.get("travaux") or {}).items() if isinstance(c.get("travaux"), dict) else []:
+            for t in lst:
+                items.append((siren, t.get("entite") or {}, t.get("objet") or "", t.get("date"), t.get("lien"),
+                              "BOAMP (travaux)"))
+    lim = (jour_ref - timedelta(days=45)).isoformat()
+    for siren, e in ((decp or {}).get("collectivites") or {}).items():
+        for t in (e.get("travaux") or []) + (e.get("moe") or []):
+            if (t.get("date") or "") >= lim:
+                items.append((siren, {"siren": siren, "nom": e.get("nom")}, t.get("objet") or "", t.get("date"),
+                              None, f"Marché attribué (DECP), {round((t.get('montant') or 0) / 1000)} k€"))
+    for siren, e, objet, d, lien, src in items:
+        if not siren or siren in exclus:
+            continue
+        o = norm(objet)
+        for titre, motif in THEMES_RE:
+            if re.search(motif, o) and (siren, titre) not in vus:
+                vus.add((siren, titre))
+                par[titre].append((siren, e, objet, d, lien, src))
+                break
+    L = []
+    for titre, _ in THEMES_RE:
+        lst = par[titre][:n]
+        if not lst:
+            continue
+        L.append(f"{titre} ({len(par[titre])})")
+        for i, (siren, e, objet, d, lien, src) in enumerate(lst, 1):
+            L.append(f"{i}. {entete(e, siren)}")
+            try:
+                quand = fr_date(str(d)) if d else ""
+            except ValueError:
+                quand = str(d)
+            L.append(f"   {objet[:170]}" + (f" ({quand})" if quand else ""))
+            L.append(f"   📅 {src}" + (f" · 🔗 {lien}" if lien else ""))
+        L.append("")
     return L
 
 
@@ -831,7 +895,7 @@ def main():
             decp_du_jour = json.load(open(opts["--decp"]))
         except Exception as e:
             print("signaux DECP illisibles :", str(e)[:120])
-    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + "".join(x + "\n" for x in bloc_syndicats(decp_du_jour, jour_ref, certains | appeles | deja_surs)) + bloc_lecture(couv, jours, "--webhook" in opts)
+    msg = message(q, idx, jours, calc, opts["--surs"]) + "\n" + "".join(x + "\n" for x in bloc_syndicats(decp_du_jour, jour_ref, certains | appeles | deja_surs)) + "".join(x + "\n" for x in bloc_thematiques(cfs, decp_du_jour, jour_ref, certains | appeles | deja_surs)) + bloc_lecture(couv, jours, "--webhook" in opts)
     if n_appeles:
         msg += f"\n({n_appeles} collectivité{'s' if n_appeles > 1 else ''} déjà appelée{'s' if n_appeles > 1 else ''} non reproposée{'s' if n_appeles > 1 else ''}.)"
     if "--sortie" in opts:
