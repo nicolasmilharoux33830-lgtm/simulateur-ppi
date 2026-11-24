@@ -12,7 +12,9 @@ trésorerie, ou qui sont classées 7.3.
 import csv
 import io
 import json
+import os
 import re
+import sys
 import time
 from datetime import date, datetime, timedelta
 
@@ -160,6 +162,76 @@ def collecte(d, outdir, communes, epcis, entite, stats):
     return out
 
 
+# ---------- plateformes qui publient les délibérations au format SCDL, un fichier par collectivité ----------
+# département -> modèle d'URL (fichier public, sans compte). Gironde Numérique : communes, EPCI et syndicats
+# girondins adhérents à son service Open Data (Licence Ouverte 2.0).
+DIRECT = {
+    "33": ("Gironde Numérique", "https://api-opendata.girondenumerique.fr/datasets/{siren}/deliberations.csv"),
+}
+ADHERENTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adherents_scdl.json")
+PAUSE = 2.1          # Gironde Numérique : 30 requêtes par minute au plus
+
+
+def decouvrir(communes, epcis, sortie, duree_max=5400):
+    """Collectivités du périmètre qui ont un fichier de délibérations sur une plateforme DIRECT (tâche de nuit)."""
+    out, t0, n = {}, time.time(), 0
+    for siren, e in list(communes.items()) + list(epcis.items()):
+        if e.get("dept") not in DIRECT or time.time() - t0 > duree_max:
+            continue
+        nom, modele = DIRECT[e["dept"]]
+        url = modele.format(siren=siren)
+        n += 1
+        try:
+            tete = get(url, tries=2, timeout=40)[:400].decode("utf-8-sig", "ignore").upper()
+            if "COLL_SIRET" in tete or "DELIB_OBJET" in tete:
+                out[siren] = {"plateforme": nom, "url": url, "nom": e.get("nom")}
+        except Exception:
+            pass
+        time.sleep(PAUSE)
+    json.dump(out, open(sortie, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+    print(f"{len(out)} collectivités publient leurs délibérations ({n} testées)")
+
+
+def collecte_directe(d, outdir, communes, epcis, entite, stats, duree_max=900):
+    """Fichiers de délibérations des adhérents connus (adherents_scdl.json), lus un par un, poliment."""
+    try:
+        adh = json.load(open(ADHERENTS, encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    adh = {s: a for s, a in adh.items() if (communes.get(s) or epcis.get(s) or {}).get("dept") in DIRECT}
+    if not adh:
+        return []
+    t0, out, lus, err, nom = time.time(), [], 0, 0, ""
+    for siren, a in adh.items():
+        if time.time() - t0 > duree_max:
+            break
+        nom = a.get("plateforme", "")
+        try:
+            rows = lignes(get(a["url"], tries=3, timeout=60), "csv")
+            lus += 1
+        except Exception:
+            err += 1
+            time.sleep(PAUSE)
+            continue
+        for r in rows:
+            c = candidat(r, nom, d, communes, epcis, entite)
+            if c and c["age_jours"] <= 10:      # le fichier contient tout l'historique : les décisions récentes seulement
+                c["source"] = f"{nom} (délibérations open data)"
+                if c["lien"] and c["lien"].lower().endswith(".pdf") and c["entite"].get("eligible") and outdir:
+                    fn = f"{outdir}/pdf/{siren}_gn_{len(out)}.pdf"
+                    try:
+                        open(fn, "wb").write(get(c["lien"], tries=3, timeout=90))
+                        c["pdf_locaux"] = [fn]
+                    except Exception:
+                        c["pdf_locaux"] = []
+                out.append(c)
+        time.sleep(PAUSE)
+    stats[f"{nom} (délibérations open data)"] = (f"{lus} collectivités lues sur {len(adh)} adhérentes"
+                                                 + (f", {err} injoignables" if err else "")
+                                                 + f", {len(out)} délibérations récentes sur l'emprunt ou la banque")
+    return out
+
+
 def _test():
     """Contrôle hors réseau du découpage et du filtre."""
     csv_txt = ("COLL_NOM;COLL_SIRET;DELIB_ID;DELIB_DATE;DELIB_MATIERE_CODE;DELIB_MATIERE_NOM;DELIB_OBJET;DELIB_URL\n"
@@ -170,8 +242,18 @@ def _test():
     ent = (lambda s, c, e: {"siren": s, "eligible": True})
     got = [candidat(r, "Test", date(2026, 11, 24), {"213300015": {}}, {"253300015": {}}, ent) for r in rows]
     assert got[0] and got[0]["siren"] == "253300015" and got[1] is None, got
+    gn = lignes(('"COLL_NOM","COLL_SIRET","DELIB_ID","DELIB_DATE","DELIB_MATIERE_CODE","DELIB_MATIERE_NOM","DELIB_OBJET"\n'
+                 '"SIAEP TEST",25330001500011,X1,21/11/2026,7.3,"Emprunts","AUTORISATION DE CONSULTER LES BANQUES"\n').encode(), "csv")
+    g = candidat(gn[0], "Gironde Numérique", date(2026, 11, 24), {}, {"253300015": {}}, ent)
+    assert g and g["age_jours"] == 3, g
     print("scdl ok")
 
 
 if __name__ == "__main__":
-    _test()
+    if len(sys.argv) > 2 and sys.argv[1] == "--decouvrir":
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import veille
+        c, e = veille.referentiel()
+        decouvrir(c, e, sys.argv[2])
+    else:
+        _test()

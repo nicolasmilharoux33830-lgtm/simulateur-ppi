@@ -602,6 +602,8 @@ def main():
         f_presse = ex.submit(presse.collecte, debut, fin, communes, epcis, entite, stats)
         f_marches = ex.submit(marches.collecte, d, communes, epcis, entite, stats)
         f_scdl = ex.submit(scdl.collecte, d, outdir, communes, epcis, entite, stats)
+        f_direct = (ex.submit(scdl.collecte_directe, d, outdir, communes, epcis, entite, stats)
+                    if not sans_sites else None)
         mairies.DOSSIER_OCR = os.path.join(outdir, "scans")
         os.makedirs(mairies.DOSSIER_OCR, exist_ok=True)
         f_sites = (ex.submit(mairies.scan, plan, d, communes, epcis, entite, stats, priorite=priorite_sites(epcis))
@@ -618,6 +620,8 @@ def main():
         actes, boamp, ted, travaux = f_actes.result(), f_boamp.result(), f_ted.result(), f_trav.result()
         try:
             actes += f_scdl.result()
+            if f_direct:
+                actes += f_direct.result()
         except Exception as e:
             stats["Open data délibérations (data.gouv.fr)"] = f"ERREUR : {str(e)[:120]}"
         echeances, recents = f_ech.result()

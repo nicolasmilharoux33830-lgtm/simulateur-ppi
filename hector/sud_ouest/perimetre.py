@@ -20,7 +20,9 @@ CODES = {n: c for c, n in DEPT_NAME.items()}    # nom du département -> code
 PLATEFORMES = {}
 # Plateformes régionales de marchés publics (Atexo) : à compléter ; AWS, e-marchespublics, BOAMP et TED
 # couvrent déjà les 20 départements.
-ATEXO = {}
+ATEXO = {
+    "AMPA, marchés publics d'Aquitaine (demat-ampa)": "https://demat-ampa.fr",
+}
 # Presse régionale : journal -> départements qu'il couvre (None : national ou multirégional)
 MEDIAS = {
     "sudouest.fr": ["16", "17", "19", "24", "33", "40", "47", "64", "79", "86"],

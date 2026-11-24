@@ -117,6 +117,10 @@ def main():
         for f in os.listdir(ICI):
             if f.endswith(".part"):
                 os.remove(os.path.join(ICI, f))
+    # délibérations open data publiées collectivité par collectivité (Gironde Numérique...) : qui publie ?
+    adh = os.path.join(ICI, "adherents_scdl.json")
+    if dimanche or tout or not os.path.exists(adh):
+        bilan["adherents_scdl"] = lance(lambda f: ["scdl.py", "--decouvrir", f], "adherents_scdl.json", 2, 5600)
     json.dump(bilan, open(os.path.join(ICI, "nuit.json"), "w"), ensure_ascii=False, indent=1)
     print(json.dumps(bilan, ensure_ascii=False))
 

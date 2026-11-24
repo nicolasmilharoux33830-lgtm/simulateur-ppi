@@ -11,7 +11,7 @@ Règle absolue : n'invente jamais un besoin, un montant, un taux, une banque, un
 
 1. COLLECTE
 mkdir -p /tmp/hv && cd /tmp/hv
-for f in net.py perimetre.py totem.py syndicats.py syndicats.json scdl.py veille.py rapport.py presse.py marches.py mairies.py imminence.py budgets_pdf.py panneaupocket.py facebook.py reseaux.py decp.py registre.py scores.csv modele.json imminence.json referentiel.json plan_sites.json panneaupocket.json signaux_decp.json subventions.json registre.json reseaux.json; do curl -sS -f -o $f "https://raw.githubusercontent.com/nicolasmilharoux33830-lgtm/simulateur-ppi/claude/telegram-bot-hector-1q4wby/hector/sud_ouest/$f" || echo "absent : $f"; done
+for f in net.py perimetre.py totem.py syndicats.py syndicats.json scdl.py adherents_scdl.json veille.py rapport.py presse.py marches.py mairies.py imminence.py budgets_pdf.py panneaupocket.py facebook.py reseaux.py decp.py registre.py scores.csv modele.json imminence.json referentiel.json plan_sites.json panneaupocket.json signaux_decp.json subventions.json registre.json reseaux.json; do curl -sS -f -o $f "https://raw.githubusercontent.com/nicolasmilharoux33830-lgtm/simulateur-ppi/claude/telegram-bot-hector-1q4wby/hector/sud_ouest/$f" || echo "absent : $f"; done
 python3 -m venv /tmp/hv/venv && /tmp/hv/venv/bin/pip install -q pypdf rapidocr-onnxruntime pypdfium2
 (30 secondes environ. rapidocr et pypdfium2 servent à l'OCR des documents scannés. Si l'installation échoue, réessaie avec pypdf seul ; sans OCR, les scans sont marqués « a_lire » et tu les lis toi-même. Si le venv échoue, utilise python3.)
 
