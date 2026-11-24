@@ -13,7 +13,7 @@ Règle absolue : n'invente jamais un besoin, un montant, un taux, une banque, un
 
 1. COLLECTE
 mkdir -p /tmp/hv && cd /tmp/hv
-for f in net.py perimetre.py totem.py syndicats.py syndicats.json scdl.py adherents_scdl.json veille.py rapport.py predictifs.py presse.py marches.py mairies.py imminence.py budgets_pdf.py panneaupocket.py facebook.py reseaux.py decp.py registre.py scores.csv modele.json imminence.json referentiel.json plan_sites.json panneaupocket.json signaux_decp.json subventions.json registre.json reseaux.json; do curl -sS -f -o $f "https://raw.githubusercontent.com/nicolasmilharoux33830-lgtm/simulateur-ppi/claude/telegram-bot-hector-1q4wby/hector/ouest/$f" || echo "absent : $f"; done
+for f in net.py perimetre.py totem.py syndicats.py syndicats.json scdl.py adherents_scdl.json intramuros.py intramuros.json veille.py rapport.py predictifs.py presse.py marches.py mairies.py imminence.py budgets_pdf.py panneaupocket.py facebook.py reseaux.py decp.py registre.py scores.csv modele.json imminence.json referentiel.json plan_sites.json panneaupocket.json signaux_decp.json subventions.json registre.json reseaux.json; do curl -sS -f -o $f "https://raw.githubusercontent.com/nicolasmilharoux33830-lgtm/simulateur-ppi/claude/telegram-bot-hector-1q4wby/hector/ouest/$f" || echo "absent : $f"; done
 python3 -m venv /tmp/hv/venv && /tmp/hv/venv/bin/pip install -q pypdf rapidocr-onnxruntime pypdfium2
 (30 secondes environ. rapidocr et pypdfium2 servent à l'OCR des documents scannés. Si l'installation échoue, réessaie avec pypdf seul ; sans OCR, les scans sont marqués « a_lire » et tu les lis toi-même. Si le venv échoue, utilise python3.)
 
@@ -81,6 +81,7 @@ Par source :
   - « convocation » vaut true pour une convocation, un ordre du jour ou une annonce de conseil à venir : A si un emprunt ou le choix d'une banque y est prévu (la date du conseil dans « nature »).
   - « ocr » vaut true quand les extraits viennent de l'OCR d'un scan : vérifie la phrase dans le document (curl puis Read) avant de la recopier.
 - PanneauPocket (type « PanneauPocket ») : panneaux d'information publiés par la commune ; même règle que les sites (titre, extraits, date de mise en ligne) ; le lien mène au panneau.
+- IntraMuros (type « IntraMuros ») : actualités et agenda publics de la commune sur intramuros.org ; même règle que PanneauPocket (titre, extraits, date). Un conseil municipal ou un comité syndical à venir dont l'ordre du jour prévoit un emprunt, une ligne de trésorerie ou le choix d'une banque est A (date de la séance dans « nature »). Source : « IntraMuros ».
 - Facebook (type « Facebook ») : publication de la page officielle de la mairie (reprise sur son site, ou lue par l'API de Meta) ; même règle que PanneauPocket. Une annonce de conseil qui prévoit le choix d'une banque, un emprunt ou une ligne de trésorerie est A (date du conseil dans « nature ») ; « ocr » vaut true quand l'extrait vient de l'affiche jointe : vérifie-le sur l'image (curl puis Read) avant de le recopier. Source : « Page Facebook de la mairie ».
 - Consultations, BOAMP, TED : une consultation d'emprunt, de ligne de trésorerie ou de services bancaires d'un acheteur éligible, encore ouverte, vaut A, avec sa date limite. « consultation close il y a moins de 15 jours » : C.
 - Presse : titre et chapeau seulement. Ne lis jamais les sites de presse.
