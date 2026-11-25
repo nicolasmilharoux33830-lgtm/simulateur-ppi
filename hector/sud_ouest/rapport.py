@@ -876,6 +876,22 @@ def main():
             for o in q.get("opportunites", []):
                 if o.get("lien") in vus and o.get("niveau") in ("A", "B"):
                     o["niveau"], o["statut"] = "C", f"déjà signalé le {vus[o['lien']]}"
+            # anti-doublon par collectivité (SIREN) : une collectivité déjà envoyée en A ou B un autre jour
+            # n'est renvoyée que si son grade monte (B -> A) ; sinon elle reste au Sheet en C, sans message
+            rang = {"B": 1, "A": 2}
+            prec = {}
+            for x in rep.get("deja_signales", []):
+                d = str(x.get("date") or "").strip()
+                if x.get("siren") and x.get("niveau") in rang and d != aujourdhui:
+                    if rang[x["niveau"]] >= prec.get(x["siren"], (0, ""))[0]:
+                        prec[x["siren"]] = (rang[x["niveau"]], d)
+            for o in q.get("opportunites", []):
+                p = prec.get(o.get("siren"))
+                if p and o.get("niveau") in rang:
+                    if rang[o["niveau"]] <= p[0]:
+                        o["niveau"], o["statut"] = "C", f"collectivité déjà signalée le {p[1]} (doublon)"
+                    else:
+                        o["statut"] = (o.get("statut", "") + f" · monte de B (signalé le {p[1]}) à A").strip(" ·")
         except Exception as e:
             print("Google Sheets illisible :", str(e)[:120])
     n_avant = len(q.get("opportunites", []))
