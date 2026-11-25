@@ -139,6 +139,15 @@ def main():
     if dimanche or tout or not os.path.exists(adh) or os.path.getsize(adh) < 50:
         bilan["adherents_scdl"] = lance(lambda f: ["scdl.py", "--decouvrir", f], "adherents_scdl.json", 2, 5600)
     json.dump(bilan, open(os.path.join(ICI, "nuit.json"), "w"), ensure_ascii=False, indent=1)
+    # les fichiers créés par les nouvelles collectes sont ajoutés à l'index git, pour que le commit de la
+    # tâche de nuit les emporte même s'il ne liste que les fichiers historiques
+    nouveaux = [f for f in ("syndicats.json", "intramuros.json", "illiwap.json", "collectivite.json", "applis_suivi.json",
+                            "adherents_scdl.json", "decouverte_suivi.json", "sites.json", "plan_sites.json", "nuit.json",
+                            "signaux_decp.json") if os.path.exists(os.path.join(ICI, f))]
+    try:
+        subprocess.run(["git", "add", "--"] + nouveaux, cwd=ICI, capture_output=True, timeout=120)
+    except Exception:
+        pass
     print(json.dumps(bilan, ensure_ascii=False))
 
 
