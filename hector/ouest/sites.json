@@ -26770,5 +26770,1209 @@
 "type": "EPCI",
 "dept": "85",
 "site": "https://www.cc-vsa.com/"
+},
+"211400635": {
+"nom": "Bernesq",
+"type": "Commune",
+"dept": "14",
+"site": "https://www.bernesq.fr/",
+"decouvert": true
+},
+"211402987": {
+"nom": "Géfosse-Fontenay",
+"type": "Commune",
+"dept": "14",
+"site": "https://mairiegefossefontenay.fr/",
+"decouvert": true
+},
+"200066421": {
+"nom": "Dialan sur Chaîne",
+"type": "Commune",
+"dept": "14",
+"site": "https://dialan-sur-chaine.fr/",
+"decouvert": true
+},
+"211406822": {
+"nom": "Surville",
+"type": "Commune",
+"dept": "14",
+"site": "https://www.surville14.fr/FR/",
+"decouvert": true
+},
+"211800461": {
+"nom": "Chambon",
+"type": "Commune",
+"dept": "18",
+"site": "https://www.chambon.fr/",
+"decouvert": true
+},
+"211800602": {
+"nom": "Chaumont",
+"type": "Commune",
+"dept": "18",
+"site": "https://www.chaumont.fr/",
+"decouvert": true
+},
+"211800693": {
+"nom": "Colombiers",
+"type": "Commune",
+"dept": "18",
+"site": "https://www.colombiers.fr/",
+"decouvert": true
+},
+"211800776": {
+"nom": "Couy",
+"type": "Commune",
+"dept": "18",
+"site": "https://couy.fr/",
+"decouvert": true
+},
+"211801279": {
+"nom": "Lignières",
+"type": "Commune",
+"dept": "18",
+"site": "https://www.lignieres.fr/",
+"decouvert": true
+},
+"211801352": {
+"nom": "Maisonnais",
+"type": "Commune",
+"dept": "18",
+"site": "https://maisonnais18.fr/",
+"decouvert": true
+},
+"211801683": {
+"nom": "Le Noyer",
+"type": "Commune",
+"dept": "18",
+"site": "https://mairielenoyer.fr/",
+"decouvert": true
+},
+"211801840": {
+"nom": "Précy",
+"type": "Commune",
+"dept": "18",
+"site": "https://precy.fr/",
+"decouvert": true
+},
+"211801956": {
+"nom": "Sagonne",
+"type": "Commune",
+"dept": "18",
+"site": "https://www.sagonne.fr/",
+"decouvert": true
+},
+"211802251": {
+"nom": "Saint-Maur",
+"type": "Commune",
+"dept": "18",
+"site": "https://www.saint-maur.fr/",
+"decouvert": true
+},
+"211802343": {
+"nom": "Saint-Saturnin",
+"type": "Commune",
+"dept": "18",
+"site": "https://www.saint-saturnin.fr/",
+"decouvert": true
+},
+"211802368": {
+"nom": "Saint-Symphorien",
+"type": "Commune",
+"dept": "18",
+"site": "https://www.saint-symphorien.fr/",
+"decouvert": true
+},
+"211802772": {
+"nom": "Verneuil",
+"type": "Commune",
+"dept": "18",
+"site": "https://www.verneuil.fr/",
+"decouvert": true
+},
+"212200331": {
+"nom": "Caurel",
+"type": "Commune",
+"dept": "22",
+"site": "https://caurel.fr/",
+"decouvert": true
+},
+"212200778": {
+"nom": "Hénansal",
+"type": "Commune",
+"dept": "22",
+"site": "https://www.henansal.fr/",
+"decouvert": true
+},
+"212200836": {
+"nom": "Illifaut",
+"type": "Commune",
+"dept": "22",
+"site": "https://www.mairie-illifaut.fr/",
+"decouvert": true
+},
+"212201750": {
+"nom": "Plédéliac",
+"type": "Commune",
+"dept": "22",
+"site": "https://www.pledeliac.fr/",
+"decouvert": true
+},
+"200082857": {
+"nom": "Châtelaudren-Plouagat",
+"type": "Commune",
+"dept": "22",
+"site": "https://www.chatelaudren-plouagat.fr/",
+"decouvert": true
+},
+"212202550": {
+"nom": "La Prénessaye",
+"type": "Commune",
+"dept": "22",
+"site": "https://www.laprenessaye.fr/",
+"decouvert": true
+},
+"212203202": {
+"nom": "Saint-Nicodème",
+"type": "Commune",
+"dept": "22",
+"site": "https://www.stnicodeme.fr/",
+"decouvert": true
+},
+"212203566": {
+"nom": "Trégomeur",
+"type": "Commune",
+"dept": "22",
+"site": "https://www.tregomeur.fr/fr/",
+"decouvert": true
+},
+"212203848": {
+"nom": "Uzel",
+"type": "Commune",
+"dept": "22",
+"site": "https://mairie-uzel.fr/",
+"decouvert": true
+},
+"212700215": {
+"nom": "Asnières",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.asnieres.fr/",
+"decouvert": true
+},
+"212700280": {
+"nom": "Authou",
+"type": "Commune",
+"dept": "27",
+"site": "https://authou.fr/",
+"decouvert": true
+},
+"212700363": {
+"nom": "Bâlines",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.balines.fr/",
+"decouvert": true
+},
+"212700488": {
+"nom": "Beauficel-en-Lyons",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.beauficelenlyons.fr/",
+"decouvert": true
+},
+"212701247": {
+"nom": "Cailly-sur-Eure",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.caillysureure.fr/",
+"decouvert": true
+},
+"212701353": {
+"nom": "Cesseville",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.cesseville.fr/",
+"decouvert": true
+},
+"212701767": {
+"nom": "Coudray",
+"type": "Commune",
+"dept": "27",
+"site": "https://coudray27.fr/",
+"decouvert": true
+},
+"212702021": {
+"nom": "Daubeuf-près-Vatteville",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.daubeuf-pres-vatteville.fr/",
+"decouvert": true
+},
+"212702278": {
+"nom": "Étréville",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.etreville.fr/",
+"decouvert": true
+},
+"212702476": {
+"nom": "Flipou",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.flipou.fr/",
+"decouvert": true
+},
+"212703383": {
+"nom": "Les Hogues",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.leshogues27.fr/",
+"decouvert": true
+},
+"212703706": {
+"nom": "Lisors",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.lisors.fr/",
+"decouvert": true
+},
+"212703961": {
+"nom": "Ménesqueville",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.menesqueville.fr/",
+"decouvert": true
+},
+"212704142": {
+"nom": "Montreuil-l'Argillé",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.montreuillargille.fr/",
+"decouvert": true
+},
+"212704308": {
+"nom": "La Neuve-Grange",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.laneuvegrange.fr/",
+"decouvert": true
+},
+"212704860": {
+"nom": "Quittebeuf",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.quittebeuf.fr/",
+"decouvert": true
+},
+"212704886": {
+"nom": "Renneville",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.renneville.fr/",
+"decouvert": true
+},
+"212704894": {
+"nom": "Reuilly",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.reuilly.fr/",
+"decouvert": true
+},
+"212705909": {
+"nom": "Saint-Pierre-de-Cernières",
+"type": "Commune",
+"dept": "27",
+"site": "https://stpierredecernieres.fr/",
+"decouvert": true
+},
+"212705941": {
+"nom": "Saint-Pierre-des-Ifs",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.saintpierredesifs.fr/",
+"decouvert": true
+},
+"212706063": {
+"nom": "Saint-Symphorien",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.saint-symphorien.fr/",
+"decouvert": true
+},
+"212706279": {
+"nom": "Le Theil-Nolent",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.mairie-letheilnolent.fr/",
+"decouvert": true
+},
+"212706436": {
+"nom": "Tillières-sur-Avre",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.tillieres-sur-avre.fr/",
+"decouvert": true
+},
+"212706568": {
+"nom": "Toutainville",
+"type": "Commune",
+"dept": "27",
+"site": "https://www.toutainville.fr/",
+"decouvert": true
+},
+"200063782": {
+"nom": "Les Trois Lacs",
+"type": "Commune",
+"dept": "27",
+"site": "https://les-trois-lacs.fr/",
+"decouvert": true
+},
+"212800049": {
+"nom": "Allonnes",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.allonnes28.fr/",
+"decouvert": true
+},
+"212800460": {
+"nom": "Boissy-lès-Perche",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.boissy-les-perche.fr/",
+"decouvert": true
+},
+"212800734": {
+"nom": "Champseru",
+"type": "Commune",
+"dept": "28",
+"site": "https://champseru.fr/",
+"decouvert": true
+},
+"212800965": {
+"nom": "La Chaussée-d'Ivry",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.lachausseedivry.fr/",
+"decouvert": true
+},
+"212801187": {
+"nom": "Croisilles",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.croisilles28.fr/",
+"decouvert": true
+},
+"212801260": {
+"nom": "Dancy",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.dancy.fr/",
+"decouvert": true
+},
+"212802227": {
+"nom": "Luplanté",
+"type": "Commune",
+"dept": "28",
+"site": "https://luplante.fr/",
+"decouvert": true
+},
+"212802573": {
+"nom": "Mondonville-Saint-Jean",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.mondonvillesaintjean28.fr/",
+"decouvert": true
+},
+"212802680": {
+"nom": "Morainville",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.morainville28.fr/",
+"decouvert": true
+},
+"212802920": {
+"nom": "Ouerre",
+"type": "Commune",
+"dept": "28",
+"site": "https://ouerre.fr/",
+"decouvert": true
+},
+"212803043": {
+"nom": "Prasville",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.prasville.fr/",
+"decouvert": true
+},
+"212803126": {
+"nom": "Puiseux",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.mairiepuiseux.fr/",
+"decouvert": true
+},
+"212803274": {
+"nom": "Saint-Bomer",
+"type": "Commune",
+"dept": "28",
+"site": "https://saint-bomer.fr/",
+"decouvert": true
+},
+"212803704": {
+"nom": "Saumeray",
+"type": "Commune",
+"dept": "28",
+"site": "https://www.saumeray.fr/",
+"decouvert": true
+},
+"212900336": {
+"nom": "Le Cloître-Pleyben",
+"type": "Commune",
+"dept": "29",
+"site": "https://www.lecloitrepleyben.fr/",
+"decouvert": true
+},
+"212900625": {
+"nom": "Gouézec",
+"type": "Commune",
+"dept": "29",
+"site": "https://mairiegouezec.fr/",
+"decouvert": true
+},
+"212902142": {
+"nom": "Plovan",
+"type": "Commune",
+"dept": "29",
+"site": "https://www.plovan.bzh/",
+"decouvert": true
+},
+"213501083": {
+"nom": "Essé",
+"type": "Commune",
+"dept": "35",
+"site": "https://www.esse.bzh/",
+"decouvert": true
+},
+"213501182": {
+"nom": "Gahard",
+"type": "Commune",
+"dept": "35",
+"site": "https://www.gahard.fr/",
+"decouvert": true
+},
+"213600091": {
+"nom": "Arthon",
+"type": "Commune",
+"dept": "36",
+"site": "https://www.arthon.fr/",
+"decouvert": true
+},
+"213600117": {
+"nom": "Bagneux",
+"type": "Commune",
+"dept": "36",
+"site": "https://www.bagneux.fr/",
+"decouvert": true
+},
+"213600216": {
+"nom": "Les Bordes",
+"type": "Commune",
+"dept": "36",
+"site": "https://www.lesbordes36.fr/",
+"decouvert": true
+},
+"213600596": {
+"nom": "Condé",
+"type": "Commune",
+"dept": "36",
+"site": "https://www.conde.fr/",
+"decouvert": true
+},
+"213600992": {
+"nom": "Lourdoueix-Saint-Michel",
+"type": "Commune",
+"dept": "36",
+"site": "https://www.lourdoueix-saint-michel.fr/",
+"decouvert": true
+},
+"213601081": {
+"nom": "Lys-Saint-Georges",
+"type": "Commune",
+"dept": "36",
+"site": "https://lys-saint-georges.fr/",
+"decouvert": true
+},
+"213601537": {
+"nom": "Paulnay",
+"type": "Commune",
+"dept": "36",
+"site": "https://www.paulnay.fr/",
+"decouvert": true
+},
+"213601818": {
+"nom": "Saint-Aubin",
+"type": "Commune",
+"dept": "36",
+"site": "https://www.saintaubin.fr/",
+"decouvert": true
+},
+"213602188": {
+"nom": "Sougé",
+"type": "Commune",
+"dept": "36",
+"site": "https://www.souge.fr/",
+"decouvert": true
+},
+"213602469": {
+"nom": "Villiers",
+"type": "Commune",
+"dept": "36",
+"site": "https://www.villiers.fr/",
+"decouvert": true
+},
+"213700255": {
+"nom": "Berthenay",
+"type": "Commune",
+"dept": "37",
+"site": "https://www.berthenay.fr/",
+"decouvert": true
+},
+"213702715": {
+"nom": "Villaines-les-Rochers",
+"type": "Commune",
+"dept": "37",
+"site": "https://www.villaines-les-rochers.fr/",
+"decouvert": true
+},
+"214100653": {
+"nom": "Coulommiers-la-Tour",
+"type": "Commune",
+"dept": "41",
+"site": "https://www.coulommiers-la-tour.fr/",
+"decouvert": true
+},
+"214100950": {
+"nom": "Fréteval",
+"type": "Commune",
+"dept": "41",
+"site": "https://www.freteval.fr/fr/",
+"decouvert": true
+},
+"214101123": {
+"nom": "Lassay-sur-Croisne",
+"type": "Commune",
+"dept": "41",
+"site": "https://www.lassaysurcroisne.fr/",
+"decouvert": true
+},
+"214101412": {
+"nom": "Moisy",
+"type": "Commune",
+"dept": "41",
+"site": "https://moisy41.fr/",
+"decouvert": true
+},
+"200065670": {
+"nom": "Oucques La Nouvelle",
+"type": "Commune",
+"dept": "41",
+"site": "https://www.oucqueslanouvelle.fr/",
+"decouvert": true
+},
+"214500050": {
+"nom": "Andonville",
+"type": "Commune",
+"dept": "45",
+"site": "https://www.andonville.fr/",
+"decouvert": true
+},
+"214500605": {
+"nom": "La Bussière",
+"type": "Commune",
+"dept": "45",
+"site": "https://www.labussiere45.fr/accueil",
+"decouvert": true
+},
+"214500845": {
+"nom": "Châtenoy",
+"type": "Commune",
+"dept": "45",
+"site": "https://www.chatenoy45.fr/",
+"decouvert": true
+},
+"214502056": {
+"nom": "Mézières-en-Gâtinais",
+"type": "Commune",
+"dept": "45",
+"site": "https://www.mezieresengatinais.fr/",
+"decouvert": true
+},
+"214502312": {
+"nom": "Oison",
+"type": "Commune",
+"dept": "45",
+"site": "https://www.oison.fr/",
+"decouvert": true
+},
+"214502643": {
+"nom": "Rozières-en-Beauce",
+"type": "Commune",
+"dept": "45",
+"site": "https://www.rozieresenbeauce.fr/",
+"decouvert": true
+},
+"214502684": {
+"nom": "Saint-Aignan-le-Jaillard",
+"type": "Commune",
+"dept": "45",
+"site": "https://saintaignanlejaillard.fr/",
+"decouvert": true
+},
+"214502718": {
+"nom": "Saint-Brisson-sur-Loire",
+"type": "Commune",
+"dept": "45",
+"site": "https://www.saintbrissonsurloire.fr/",
+"decouvert": true
+},
+"214901316": {
+"nom": "Épieds",
+"type": "Commune",
+"dept": "49",
+"site": "https://epieds49.fr/",
+"decouvert": true
+},
+"214902165": {
+"nom": "Montreuil-sur-Loir",
+"type": "Commune",
+"dept": "49",
+"site": "https://montreuilsurloir.fr/",
+"decouvert": true
+},
+"215000449": {
+"nom": "Belval",
+"type": "Commune",
+"dept": "50",
+"site": "https://belval50.fr/",
+"decouvert": true
+},
+"215000886": {
+"nom": "Brouains",
+"type": "Commune",
+"dept": "50",
+"site": "https://brouains.fr/",
+"decouvert": true
+},
+"215001595": {
+"nom": "Dangy",
+"type": "Commune",
+"dept": "50",
+"site": "https://dangy.fr/",
+"decouvert": true
+},
+"215001645": {
+"nom": "Domjean",
+"type": "Commune",
+"dept": "50",
+"site": "https://domjean.fr/",
+"decouvert": true
+},
+"215001983": {
+"nom": "Geffosses",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.geffosses.fr/",
+"decouvert": true
+},
+"215002080": {
+"nom": "Gonfreville",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.gonfreville.fr/",
+"decouvert": true
+},
+"215002148": {
+"nom": "Gouvets",
+"type": "Commune",
+"dept": "50",
+"site": "https://gouvets.fr/",
+"decouvert": true
+},
+"215002999": {
+"nom": "Le Mesnil",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.lemesnil.fr/",
+"decouvert": true
+},
+"215003344": {
+"nom": "Montabot",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.montabot.fr/",
+"decouvert": true
+},
+"215003781": {
+"nom": "Notre-Dame-de-Cenilly",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.notredamedecenilly.fr/",
+"decouvert": true
+},
+"215004136": {
+"nom": "Précey",
+"type": "Commune",
+"dept": "50",
+"site": "https://precey.fr/",
+"decouvert": true
+},
+"215004508": {
+"nom": "Saint-Barthélemy",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.saint-barthelemy.fr/",
+"decouvert": true
+},
+"215004573": {
+"nom": "Sainte-Colombe",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.sainte-colombe.fr/",
+"decouvert": true
+},
+"215004698": {
+"nom": "Sainte-Geneviève",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.sainte-genevieve.fr/",
+"decouvert": true
+},
+"215005182": {
+"nom": "Saint-Martin-le-Bouillant",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.saintmartinlebouillant.fr/",
+"decouvert": true
+},
+"215005695": {
+"nom": "Savigny",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.savigny.fr/",
+"decouvert": true
+},
+"215300286": {
+"nom": "Belgeard",
+"type": "Commune",
+"dept": "53",
+"site": "https://www.belgeard.fr/",
+"decouvert": true
+},
+"215300351": {
+"nom": "Bouchamps-lès-Craon",
+"type": "Commune",
+"dept": "53",
+"site": "https://bouchamps-les-craon.fr/",
+"decouvert": true
+},
+"215301185": {
+"nom": "Le Housseau-Brétignolles",
+"type": "Commune",
+"dept": "53",
+"site": "https://www.le-housseau-bretignolles.fr/",
+"decouvert": true
+},
+"215301540": {
+"nom": "Montaudin",
+"type": "Commune",
+"dept": "53",
+"site": "https://montaudin53.fr/",
+"decouvert": true
+},
+"215601295": {
+"nom": "Ménéac",
+"type": "Commune",
+"dept": "56",
+"site": "https://meneac.bzh/",
+"decouvert": true
+},
+"215602251": {
+"nom": "Saint-Léry",
+"type": "Commune",
+"dept": "56",
+"site": "https://saintlery.fr/",
+"decouvert": true
+},
+"215602285": {
+"nom": "Saint-Marcel",
+"type": "Commune",
+"dept": "56",
+"site": "https://www.saint-marcel.fr/",
+"decouvert": true
+},
+"216100230": {
+"nom": "Bailleul",
+"type": "Commune",
+"dept": "61",
+"site": "https://www.bailleul.fr/",
+"decouvert": true
+},
+"216101030": {
+"nom": "Chaumont",
+"type": "Commune",
+"dept": "61",
+"site": "https://www.chaumont.fr/",
+"decouvert": true
+},
+"216101469": {
+"nom": "Dompierre",
+"type": "Commune",
+"dept": "61",
+"site": "https://www.dompierre.fr/",
+"decouvert": true
+},
+"216101972": {
+"nom": "Guêprei",
+"type": "Commune",
+"dept": "61",
+"site": "https://www.gueprei.fr/",
+"decouvert": true
+},
+"216103440": {
+"nom": "Rânes",
+"type": "Commune",
+"dept": "61",
+"site": "https://ranes.fr/",
+"decouvert": true
+},
+"216103614": {
+"nom": "Saint-André-de-Briouze",
+"type": "Commune",
+"dept": "61",
+"site": "https://saintandredebriouze.fr/",
+"decouvert": true
+},
+"216104190": {
+"nom": "Sainte-Marguerite-de-Carrouges",
+"type": "Commune",
+"dept": "61",
+"site": "https://www.saintemargueritedecarrouges.fr/",
+"decouvert": true
+},
+"200076412": {
+"nom": "Charencey",
+"type": "Commune",
+"dept": "61",
+"site": "https://www.charencey61.fr/",
+"decouvert": true
+},
+"217200054": {
+"nom": "Ancinnes",
+"type": "Commune",
+"dept": "72",
+"site": "https://www.ancinnes.fr/",
+"decouvert": true
+},
+"217201235": {
+"nom": "Dureil",
+"type": "Commune",
+"dept": "72",
+"site": "https://dureil.fr/",
+"decouvert": true
+},
+"217201292": {
+"nom": "Fatines",
+"type": "Commune",
+"dept": "72",
+"site": "https://fatines.fr/",
+"decouvert": true
+},
+"217201748": {
+"nom": "Lucé-sous-Ballon",
+"type": "Commune",
+"dept": "72",
+"site": "https://luce-sous-ballon.fr/",
+"decouvert": true
+},
+"217202019": {
+"nom": "Moncé-en-Saosnois",
+"type": "Commune",
+"dept": "72",
+"site": "https://monce-en-saosnois.fr/",
+"decouvert": true
+},
+"217202753": {
+"nom": "Saint-Corneille",
+"type": "Commune",
+"dept": "72",
+"site": "https://www.saint-corneille.fr/",
+"decouvert": true
+},
+"217203355": {
+"nom": "Sillé-le-Philippe",
+"type": "Commune",
+"dept": "72",
+"site": "https://www.sille-le-philippe.fr/",
+"decouvert": true
+},
+"217203439": {
+"nom": "Souvigné-sur-Sarthe",
+"type": "Commune",
+"dept": "72",
+"site": "https://souvigne-sur-sarthe.fr/",
+"decouvert": true
+},
+"217203611": {
+"nom": "Tresson",
+"type": "Commune",
+"dept": "72",
+"site": "https://www.tresson.fr/",
+"decouvert": true
+},
+"217600774": {
+"nom": "Bénesville",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.benesville.fr/",
+"decouvert": true
+},
+"217600790": {
+"nom": "Bénouville",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.benouville76.fr:443/",
+"decouvert": true
+},
+"217600865": {
+"nom": "Bertrimont",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.bertrimont.fr/",
+"decouvert": true
+},
+"217601525": {
+"nom": "Cailly",
+"type": "Commune",
+"dept": "76",
+"site": "https://mairie-cailly.fr/",
+"decouvert": true
+},
+"217601566": {
+"nom": "Canouville",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.canouville.fr/",
+"decouvert": true
+},
+"217601723": {
+"nom": "La Chapelle-sur-Dun",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.lachapellesurdun.fr/",
+"decouvert": true
+},
+"217601806": {
+"nom": "Cleuville",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.cleuville.fr/fr/",
+"decouvert": true
+},
+"217601970": {
+"nom": "Criquetot-sur-Longueville",
+"type": "Commune",
+"dept": "76",
+"site": "https://criquetot-sur-longueville.fr/",
+"decouvert": true
+},
+"217602473": {
+"nom": "Esteville",
+"type": "Commune",
+"dept": "76",
+"site": "https://certificats-non-gage.fr/commune-esteville/",
+"decouvert": true
+},
+"217602689": {
+"nom": "Fongueusemare",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.fongueusemare.fr/",
+"decouvert": true
+},
+"217604180": {
+"nom": "Maulévrier-Sainte-Gertrude",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.maulevriersaintegertrude.fr/",
+"decouvert": true
+},
+"217604503": {
+"nom": "Montroty",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.montroty.fr/",
+"decouvert": true
+},
+"217604891": {
+"nom": "Oudalle",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.oudalle.fr/",
+"decouvert": true
+},
+"217604933": {
+"nom": "Paluel",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.paluel.fr/",
+"decouvert": true
+},
+"217605138": {
+"nom": "Quevillon",
+"type": "Commune",
+"dept": "76",
+"site": "https://quevillon.fr/",
+"decouvert": true
+},
+"217605542": {
+"nom": "Saint-Aignan-sur-Ry",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.staignansurry.fr/",
+"decouvert": true
+},
+"217605567": {
+"nom": "Saint-Antoine-la-Forêt",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.saint-antoine-la-foret.fr/",
+"decouvert": true
+},
+"217606672": {
+"nom": "Sauqueville",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.sauqueville.fr/",
+"decouvert": true
+},
+"217607514": {
+"nom": "Yébleron",
+"type": "Commune",
+"dept": "76",
+"site": "https://www.yebleron.fr/",
+"decouvert": true
+},
+"218501013": {
+"nom": "Le Givre",
+"type": "Commune",
+"dept": "85",
+"site": "https://legivre.fr/",
+"decouvert": true
+},
+"218501740": {
+"nom": "Petosse",
+"type": "Commune",
+"dept": "85",
+"site": "https://petosse.fr/",
+"decouvert": true
+},
+"218502052": {
+"nom": "Saint-Cyr-des-Gâts",
+"type": "Commune",
+"dept": "85",
+"site": "https://st-cyr-des-gats.fr/",
+"decouvert": true
+},
+"218502185": {
+"nom": "Saint-Georges-de-Pointindoux",
+"type": "Commune",
+"dept": "85",
+"site": "https://www.saintgeorgesdepointindoux.fr/",
+"decouvert": true
+},
+"251405304": {
+"nom": "SYNDICAT MIXTE TER'BESSIN",
+"type": "Syndicat",
+"dept": "14",
+"site": "https://ter-bessin.fr/",
+"decouvert": true
+},
+"251400669": {
+"nom": "SYNDICAT MIXTE DU PLATEAU D'HEULAND",
+"type": "Syndicat",
+"dept": "14",
+"site": "https://smph14.fr/",
+"decouvert": true
+},
+"251405031": {
+"nom": "SYNDICAT MIXTE TRAITEMENT VALORISATION DES DECHETS MENAGERS REGION OUEST CALVADOS",
+"type": "Syndicat",
+"dept": "14",
+"site": "https://seroc14.fr/",
+"decouvert": true
+},
+"200025344": {
+"nom": "NORMANDIE EQUINE VALLEE",
+"type": "Syndicat",
+"dept": "14",
+"site": "https://www.normandieequinevallee.fr/",
+"decouvert": true
+},
+"200079044": {
+"nom": "SYNDICAT MIXTE POUR L'AMENAGEMENT DE LA VALLEE DE L'ARNON AVAL (SMAVAA)",
+"type": "Syndicat",
+"dept": "18",
+"site": "https://smavaa.fr/",
+"decouvert": true
+},
+"200078491": {
+"nom": "SI DE LA VALLEE DE YEVRE",
+"type": "Syndicat",
+"dept": "18",
+"site": "https://sivy.fr/",
+"decouvert": true
+},
+"200078707": {
+"nom": "SYNDICAT POUR L'AMENAGEMENT DES BASSINS DE L'AURON, DE L'AIRAIN ET DE LEURS AFFLUENTS (SIAB3A)",
+"type": "Syndicat",
+"dept": "18",
+"site": "https://siab3a.fr/",
+"decouvert": true
+},
+"200079036": {
+"nom": "SI DU RU, DE LA VAUVISE, DE L'AUBOIS ET DE LEURS AFFLUENTS (SIRVAA)",
+"type": "Syndicat",
+"dept": "18",
+"site": "https://www.sirvaa.fr/",
+"decouvert": true
+},
+"200041481": {
+"nom": "BERRY NUMERIQUE",
+"type": "Syndicat",
+"dept": "18",
+"site": "https://berrynumerique.fr/",
+"decouvert": true
+},
+"252901343": {
+"nom": "VIGIPOL",
+"type": "Syndicat",
+"dept": "22",
+"site": "https://vigipol.org/",
+"decouvert": true
+},
+"252202189": {
+"nom": "SYNDICAT DEPARTEMENTAL D ALIMENTATION EN EAU POTABLE DES COTES D ARMOR",
+"type": "Syndicat",
+"dept": "22",
+"site": "https://www.sdaep22.fr/",
+"decouvert": true
+},
+"200041648": {
+"nom": "SYNDICAT MIXTE DU GRAND LEGUE",
+"type": "Syndicat",
+"dept": "22",
+"site": "https://grandlegue.org/",
+"decouvert": true
 }
 }
