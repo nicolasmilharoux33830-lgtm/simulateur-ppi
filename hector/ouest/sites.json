@@ -27974,5 +27974,96 @@
 "dept": "22",
 "site": "https://grandlegue.org/",
 "decouvert": true
+},
+"212900369": {
+"nom": "Collorec",
+"type": "Commune",
+"dept": "29",
+"site": "https://collorec.bzh/",
+"decouvert": true
+},
+"215006487": {
+"nom": "Yvetot-Bocage",
+"type": "Commune",
+"dept": "50",
+"site": "https://www.yvetot-bocage.fr/",
+"decouvert": true
+},
+"200102846": {
+"nom": "SYNDICAT INTERCOMMUNAL EAU DU PAYS DE VERNEUIL",
+"type": "Syndicat",
+"dept": "27",
+"site": "https://www.eaudupaysdeverneuil.fr/",
+"decouvert": true
+},
+"252703863": {
+"nom": "SYNDICAT DE PREVENTION, COLLECTE ET DE VALORISATION DES DECHETS DE L'OUEST DE L'EURE (PRECOVAL)",
+"type": "Syndicat",
+"dept": "27",
+"site": "https://www.precoval.fr/",
+"decouvert": true
+},
+"200087252": {
+"nom": "SYNDICAT MIXTE D'AMENAGEMENT DU BASSIN DE L'ITON",
+"type": "Syndicat",
+"dept": "27",
+"site": "https://smabi.fr/",
+"decouvert": true
+},
+"200045037": {
+"nom": "SYNDICAT MIXTE OUVERT EURE NORMANDIE NUMERIQUE",
+"type": "Syndicat",
+"dept": "27",
+"site": "https://www.eurenormandienumerique.fr/",
+"decouvert": true
+},
+"925056624": {
+"nom": "SI EAU POTABLE ET ASSAINISSEMENT DE LA REGION D'EPERNON (SIEPARE)",
+"type": "Syndicat",
+"dept": "28",
+"site": "https://www.siepare.fr/",
+"decouvert": true
+},
+"200078160": {
+"nom": "SI D'ENERGIES D'EURE-ET-LOIR ET DES YVELINES (SIE-ELY)",
+"type": "Syndicat",
+"dept": "28",
+"site": "https://www.sieely.fr/",
+"decouvert": true
+},
+"939284501": {
+"nom": "SYNDICAT MIXTE EURE - BLAISE - VESGRE",
+"type": "Syndicat",
+"dept": "28",
+"site": "https://www.sebv28.fr/",
+"decouvert": true
+},
+"200096162": {
+"nom": "SI POUR L'ALIMENTATION ET LA DISTRIBUTION EN EAU POTABLE DE LA REGION DE BREZOLLES (SIADEP)",
+"type": "Syndicat",
+"dept": "28",
+"site": "https://siadep-brezolles.fr/",
+"decouvert": true
+},
+"252855614": {
+"nom": "SYNDICAT DU PAYS DUNOIS",
+"type": "Syndicat",
+"dept": "28",
+"site": "https://www.pays-dunois.fr/",
+"decouvert": true
+},
+"252901145": {
+"nom": "SYNDICAT DEPARTEMENTAL D ENERGIE ET D EQUIPEMENT DU FINISTERE",
+"type": "Syndicat",
+"dept": "29",
+"site": "https://www.sdef.fr/",
+"decouvert": true
+},
+"200019073": {
+"nom": "SYNDICAT MIXTE SAGE OUEST CORNOUAILLE",
+"type": "Syndicat",
+"dept": "29",
+"site": "https://ouesco.fr/",
+"decouvert": true
 }
 }

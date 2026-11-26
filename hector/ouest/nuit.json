@@ -1,4 +1,9 @@
 {
- "jour": "2026-11-24",
- "decp": true
+ "jour": "2026-11-26",
+ "decp": true,
+ "sites": true,
+ "plan_nouveaux": true,
+ "illiwap_annuaire": true,
+ "intramuros": true,
+ "adherents_scdl": true
 }

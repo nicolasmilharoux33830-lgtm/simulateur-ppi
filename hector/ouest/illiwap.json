@@ -1,1 +1,20 @@
-{}
+{
+"211407556": {
+"nom": "Villerville",
+"dept": "14",
+"id": "14755",
+"url": "https://station.illiwap.com/fr/public/commune-de-villerville-village-de-caractere-du-calvados_14755"
+},
+"211800123": {
+"nom": "Argenvières",
+"dept": "18",
+"id": "18012",
+"url": "https://station.illiwap.com/fr/public/mairie-d-argenvieres_18012"
+},
+"211800396": {
+"nom": "Bué",
+"dept": "18",
+"id": "18039",
+"url": "https://station.illiwap.com/fr/public/mairie-de-bue_18039"
+}
+}
