@@ -28065,5 +28065,89 @@
 "dept": "29",
 "site": "https://ouesco.fr/",
 "decouvert": true
+},
+"253514707": {
+"nom": "SYNDICAT MIXTE DES VALLONS DE VILAINE",
+"type": "Syndicat",
+"dept": "35",
+"site": "https://www.vallonsdevilaine.fr/",
+"decouvert": true
+},
+"253502603": {
+"nom": "EAU DU PAYS DE FOUGERES",
+"type": "Syndicat",
+"dept": "35",
+"site": "https://eaudupaysdefougeres.fr/",
+"decouvert": true
+},
+"200082485": {
+"nom": "SYNDICAT MIXTE DES EAUX D'ANTRAIN",
+"type": "Syndicat",
+"dept": "35",
+"site": "https://www.valcouesnon.fr/",
+"decouvert": true
+},
+"253602429": {
+"nom": "SYND MIXTE TRAIT ORDURES REG CHATEAUROUX",
+"type": "Syndicat",
+"dept": "36",
+"site": "https://www.sytom36.fr/",
+"decouvert": true
+},
+"200085702": {
+"nom": "AFFLUENTS NORD VAL DE LOIRE",
+"type": "Syndicat",
+"dept": "37",
+"site": "https://www.anval.fr/",
+"decouvert": true
+},
+"253753149": {
+"nom": "SM DES COMMUNAUTES DE L'AMBOISIE, DU BLEROIS, ET DU CASTELRENAUDAIS",
+"type": "Syndicat",
+"dept": "37",
+"site": "https://www.scotabc.fr/",
+"decouvert": true
+},
+"200075653": {
+"nom": "SYNDICAT MIXTE DE RIVIERES VAL DE VIENNE",
+"type": "Syndicat",
+"dept": "37",
+"site": "https://www.rivieresvaldevienne.fr/",
+"decouvert": true
+},
+"253701668": {
+"nom": "SYNDICAT D ASSISTANCE TECHNIQUE POUR L EPURATION ET LE SUIVI DES EAUX D INDRE ET LOIRE",
+"type": "Syndicat",
+"dept": "37",
+"site": "https://www.satese37.fr/",
+"decouvert": true
+},
+"253753032": {
+"nom": "SYNDICAT MIXTE DU PAYS LOIRE TOURAINE",
+"type": "Syndicat",
+"dept": "37",
+"site": "https://www.paysloiretouraine.fr/",
+"decouvert": true
+},
+"253752968": {
+"nom": "SYNDICAT MIXTE DU PAYS DU CHINONAIS",
+"type": "Syndicat",
+"dept": "37",
+"site": "https://www.pays-du-chinonais.fr/",
+"decouvert": true
+},
+"200046050": {
+"nom": "SYNDICAT MIXTE OUVERT VAL DE LOIRE NUMERIQUE",
+"type": "Syndicat",
+"dept": "41",
+"site": "https://www.valdeloirenumerique.fr/",
+"decouvert": true
+},
+"254103237": {
+"nom": "SYNDICAT MIXTE PAYS DES CHATEAUX",
+"type": "Syndicat",
+"dept": "41",
+"site": "https://www.paysdeschateaux.fr/",
+"decouvert": true
 }
 }

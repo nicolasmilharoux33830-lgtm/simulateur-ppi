@@ -10,5 +10,77 @@
 "dept": "18",
 "url": "https://collectivite.fr/precy-18140",
 "n_docs": 1
+},
+"212704746": {
+"nom": "Poses",
+"dept": "27",
+"url": "https://collectivite.fr/poses-27740",
+"n_docs": 2
+},
+"212803134": {
+"nom": "Réclainville",
+"dept": "28",
+"url": "https://collectivite.fr/reclainville-28150",
+"n_docs": 1
+},
+"212803753": {
+"nom": "Serville",
+"dept": "28",
+"url": "https://collectivite.fr/serville-28410",
+"n_docs": 1
+},
+"212804009": {
+"nom": "Varize",
+"dept": "28",
+"url": "https://collectivite.fr/varize-28140",
+"n_docs": 1
+},
+"212900351": {
+"nom": "Coat-Méal",
+"dept": "29",
+"url": "https://collectivite.fr/coat-meal-29870",
+"n_docs": 3
+},
+"212901409": {
+"nom": "Loperhet",
+"dept": "29",
+"url": "https://collectivite.fr/loperhet-29470",
+"n_docs": 1
+},
+"212902639": {
+"nom": "Saint-Ségal",
+"dept": "29",
+"url": "https://collectivite.fr/saint-segal-29590",
+"n_docs": 1
+},
+"213502941": {
+"nom": "Sainte-Marie",
+"dept": "35",
+"url": "https://collectivite.fr/sainte-marie-35600",
+"n_docs": 1
+},
+"213503451": {
+"nom": "Trévérien",
+"dept": "35",
+"url": "https://collectivite.fr/treverien-35190",
+"n_docs": 1
+},
+"213600125": {
+"nom": "Baraize",
+"dept": "36",
+"url": "https://collectivite.fr/baraize-36270",
+"n_docs": 1
+},
+"213700206": {
+"nom": "Beaulieu-lès-Loches",
+"dept": "37",
+"url": "https://collectivite.fr/beaulieu-les-loches-37600",
+"n_docs": 1
+},
+"213700784": {
+"nom": "Ciran",
+"dept": "37",
+"url": "https://collectivite.fr/ciran-37240",
+"n_docs": 1
 }
 }
