@@ -82,5 +82,95 @@
 "dept": "37",
 "url": "https://collectivite.fr/ciran-37240",
 "n_docs": 1
+},
+"214100075": {
+"nom": "Authon",
+"dept": "41",
+"url": "https://collectivite.fr/authon-41310",
+"n_docs": 1
+},
+"214100687": {
+"nom": "Courmemin",
+"dept": "41",
+"url": "https://collectivite.fr/courmemin-41230",
+"n_docs": 1
+},
+"214100695": {
+"nom": "Cour-sur-Loire",
+"dept": "41",
+"url": "https://collectivite.fr/cour-sur-loire-41500",
+"n_docs": 1
+},
+"214101099": {
+"nom": "Landes-le-Gaulois",
+"dept": "41",
+"url": "https://collectivite.fr/landes-le-gaulois-41190",
+"n_docs": 1
+},
+"214102147": {
+"nom": "Saint-Hilaire-la-Gravelle",
+"dept": "41",
+"url": "https://collectivite.fr/saint-hilaire-la-gravelle-41160",
+"n_docs": 1
+},
+"214400319": {
+"nom": "La Chapelle-Glain",
+"dept": "44",
+"url": "https://collectivite.fr/la-chapelle-glain-44670",
+"n_docs": 1
+},
+"214401853": {
+"nom": "Saint-Nicolas-de-Redon",
+"dept": "44",
+"url": "https://collectivite.fr/saint-nicolas-de-redon-44460",
+"n_docs": 1
+},
+"214500092": {
+"nom": "Aschères-le-Marché",
+"dept": "45",
+"url": "https://collectivite.fr/ascheres-le-marche-45170",
+"n_docs": 1
+},
+"214500365": {
+"nom": "Boismorand",
+"dept": "45",
+"url": "https://collectivite.fr/boismorand-45290",
+"n_docs": 1
+},
+"214502288": {
+"nom": "Nibelle",
+"dept": "45",
+"url": "https://collectivite.fr/nibelle-45340",
+"n_docs": 1
+},
+"214502965": {
+"nom": "Saint-Péravy-la-Colombe",
+"dept": "45",
+"url": "https://collectivite.fr/saint-peravy-la-colombe-45310",
+"n_docs": 1
+},
+"214901076": {
+"nom": "Cornillé-les-Caves",
+"dept": "49",
+"url": "https://collectivite.fr/cornille-les-caves-49140",
+"n_docs": 1
+},
+"215000217": {
+"nom": "Audouville-la-Hubert",
+"dept": "50",
+"url": "https://collectivite.fr/audouville-la-hubert-50480",
+"n_docs": 1
+},
+"215002288": {
+"nom": "Hambye",
+"dept": "50",
+"url": "https://collectivite.fr/hambye-50450",
+"n_docs": 3
+},
+"215004458": {
+"nom": "Saint-André-de-Bohon",
+"dept": "50",
+"url": "https://collectivite.fr/saint-andre-de-bohon-50500",
+"n_docs": 1
 }
 }
