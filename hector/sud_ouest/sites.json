@@ -27751,5 +27751,12 @@
 "dept": "09",
 "site": "https://montagagne.fr/",
 "decouvert": true
+},
+"212326102": {
+"nom": "Viersat",
+"type": "Commune",
+"dept": "23",
+"site": "https://www.mairieviersat.fr/",
+"decouvert": true
 }
 }
